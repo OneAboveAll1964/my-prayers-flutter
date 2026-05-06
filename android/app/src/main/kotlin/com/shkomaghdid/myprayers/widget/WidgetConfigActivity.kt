@@ -4,13 +4,8 @@ import android.app.Activity
 import android.appwidget.AppWidgetManager
 import android.content.Intent
 import android.os.Bundle
-import android.view.Gravity
-import android.view.View
 import android.widget.Button
-import android.widget.LinearLayout
-import android.widget.RadioButton
 import android.widget.RadioGroup
-import android.widget.TextView
 import com.shkomaghdid.myprayers.R
 import es.antonborri.home_widget.HomeWidgetPlugin
 
@@ -39,45 +34,62 @@ class WidgetConfigActivity : Activity() {
 
     private fun wireUp() {
         val prefs = HomeWidgetPlugin.getData(this)
-        val typeGroup = findViewById<RadioGroup>(R.id.config_type)
-        val themeGroup = findViewById<RadioGroup>(R.id.config_theme)
-        val sizeGroup = findViewById<RadioGroup>(R.id.config_size)
-        val showTr = findViewById<RadioGroup>(R.id.config_show_tr)
+
+        val groupType = findViewById<RadioGroup>(R.id.group_type)
+        val groupStyle = findViewById<RadioGroup>(R.id.group_style)
+        val groupLayout = findViewById<RadioGroup>(R.id.group_layout)
+        val groupTheme = findViewById<RadioGroup>(R.id.group_theme)
+        val groupSize = findViewById<RadioGroup>(R.id.group_size)
+        val groupShowTr = findViewById<RadioGroup>(R.id.group_show_tr)
+        val groupShowRef = findViewById<RadioGroup>(R.id.group_show_ref)
         val randomize = findViewById<Button>(R.id.config_randomize)
         val save = findViewById<Button>(R.id.config_save)
 
-        val type = prefs.getString("widget.${widgetId}.type", "mix")
-        when (type) {
-            "ayah" -> typeGroup.check(R.id.config_type_ayah)
-            "azkar" -> typeGroup.check(R.id.config_type_azkar)
-            else -> typeGroup.check(R.id.config_type_mix)
-        }
-        val theme = prefs.getString("widget.${widgetId}.theme", "auto")
-        when (theme) {
-            "light" -> themeGroup.check(R.id.config_theme_light)
-            "dark" -> themeGroup.check(R.id.config_theme_dark)
-            else -> themeGroup.check(R.id.config_theme_auto)
-        }
-        val size = prefs.getString("widget.${widgetId}.size", "m")
-        when (size) {
-            "s" -> sizeGroup.check(R.id.config_size_s)
-            "l" -> sizeGroup.check(R.id.config_size_l)
-            else -> sizeGroup.check(R.id.config_size_m)
-        }
-        if (prefs.getBoolean("widget.${widgetId}.showTr", true)) {
-            showTr.check(R.id.config_show_tr_yes)
-        } else {
-            showTr.check(R.id.config_show_tr_no)
-        }
+        groupType.check(when (prefs.getString("widget.${widgetId}.type", "mix")) {
+            "ayah" -> R.id.type_ayah
+            "azkar" -> R.id.type_azkar
+            else -> R.id.type_mix
+        })
+        groupStyle.check(when (prefs.getString("widget.${widgetId}.style", "tinted")) {
+            "transparent" -> R.id.style_transparent
+            "solid" -> R.id.style_solid
+            "accent" -> R.id.style_accent
+            else -> R.id.style_tinted
+        })
+        groupLayout.check(when (prefs.getString("widget.${widgetId}.layout", "default")) {
+            "centered" -> R.id.layout_centered
+            else -> R.id.layout_default
+        })
+        groupTheme.check(when (prefs.getString("widget.${widgetId}.theme", "auto")) {
+            "light" -> R.id.theme_light
+            "dark" -> R.id.theme_dark
+            else -> R.id.theme_auto
+        })
+        groupSize.check(when (prefs.getString("widget.${widgetId}.size", "m")) {
+            "s" -> R.id.size_s
+            "l" -> R.id.size_l
+            else -> R.id.size_m
+        })
+        groupShowTr.check(
+            if (prefs.getBoolean("widget.${widgetId}.showTr", true))
+                R.id.show_tr_on else R.id.show_tr_off
+        )
+        groupShowRef.check(
+            if (prefs.getBoolean("widget.${widgetId}.showRef", true))
+                R.id.show_ref_on else R.id.show_ref_off
+        )
 
         randomize.setOnClickListener {
-            persistTo(prefs.edit(), typeGroup, themeGroup, sizeGroup, showTr)
+            persist(prefs.edit(),
+                groupType, groupStyle, groupLayout, groupTheme, groupSize, groupShowTr, groupShowRef)
             WidgetRandomizer.rotate(this, widgetId)
             push()
         }
 
         save.setOnClickListener {
-            persistTo(prefs.edit(), typeGroup, themeGroup, sizeGroup, showTr)
+            persist(prefs.edit(),
+                groupType, groupStyle, groupLayout, groupTheme, groupSize, groupShowTr, groupShowRef)
+            WidgetRandomizer.rotate(this, widgetId)
             push()
             val result = Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId)
             setResult(RESULT_OK, result)
@@ -85,42 +97,62 @@ class WidgetConfigActivity : Activity() {
         }
     }
 
-    private fun persistTo(
+    private fun persist(
         editor: android.content.SharedPreferences.Editor,
-        typeGroup: RadioGroup,
-        themeGroup: RadioGroup,
-        sizeGroup: RadioGroup,
-        showTr: RadioGroup
+        groupType: RadioGroup,
+        groupStyle: RadioGroup,
+        groupLayout: RadioGroup,
+        groupTheme: RadioGroup,
+        groupSize: RadioGroup,
+        groupShowTr: RadioGroup,
+        groupShowRef: RadioGroup
     ) {
-        val type = when (typeGroup.checkedRadioButtonId) {
-            R.id.config_type_ayah -> "ayah"
-            R.id.config_type_azkar -> "azkar"
+        val type = when (groupType.checkedRadioButtonId) {
+            R.id.type_ayah -> "ayah"
+            R.id.type_azkar -> "azkar"
             else -> "mix"
         }
-        val theme = when (themeGroup.checkedRadioButtonId) {
-            R.id.config_theme_light -> "light"
-            R.id.config_theme_dark -> "dark"
+        val style = when (groupStyle.checkedRadioButtonId) {
+            R.id.style_transparent -> "transparent"
+            R.id.style_solid -> "solid"
+            R.id.style_accent -> "accent"
+            else -> "tinted"
+        }
+        val layout = when (groupLayout.checkedRadioButtonId) {
+            R.id.layout_centered -> "centered"
+            else -> "default"
+        }
+        val theme = when (groupTheme.checkedRadioButtonId) {
+            R.id.theme_light -> "light"
+            R.id.theme_dark -> "dark"
             else -> "auto"
         }
-        val size = when (sizeGroup.checkedRadioButtonId) {
-            R.id.config_size_s -> "s"
-            R.id.config_size_l -> "l"
+        val size = when (groupSize.checkedRadioButtonId) {
+            R.id.size_s -> "s"
+            R.id.size_l -> "l"
             else -> "m"
         }
-        val show = showTr.checkedRadioButtonId == R.id.config_show_tr_yes
+        val showTr = groupShowTr.checkedRadioButtonId == R.id.show_tr_on
+        val showRef = groupShowRef.checkedRadioButtonId == R.id.show_ref_on
+
         editor
             .putString("widget.${widgetId}.type", type)
+            .putString("widget.${widgetId}.style", style)
+            .putString("widget.${widgetId}.layout", layout)
             .putString("widget.${widgetId}.theme", theme)
             .putString("widget.${widgetId}.size", size)
-            .putBoolean("widget.${widgetId}.showTr", show)
+            .putBoolean("widget.${widgetId}.showTr", showTr)
+            .putBoolean("widget.${widgetId}.showRef", showRef)
             .apply()
     }
 
     private fun push() {
         val mgr = AppWidgetManager.getInstance(this)
-        mgr.updateAppWidget(widgetId,
+        mgr.updateAppWidget(
+            widgetId,
             PrayersAppWidgetProvider.buildViews(
                 this, widgetId, HomeWidgetPlugin.getData(this)
-            ))
+            )
+        )
     }
 }

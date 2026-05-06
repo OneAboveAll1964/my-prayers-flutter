@@ -7,7 +7,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.graphics.Color
-import android.os.Build
 import android.view.View
 import android.widget.RemoteViews
 import com.shkomaghdid.myprayers.MainActivity
@@ -53,50 +52,117 @@ class PrayersAppWidgetProvider : AppWidgetProvider() {
         ): RemoteViews {
             val views = RemoteViews(context.packageName, R.layout.prayers_app_widget)
 
-            val arabic = prefs.getString("arabic", null)
-                ?: prefs.getString("widget.${widgetId}.arabic", null)
+            val arabic = prefs.getString("widget.${widgetId}.arabic", null)
+                ?: prefs.getString("arabic", null)
                 ?: "بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ"
-            val translation = prefs.getString("translation", null)
-                ?: prefs.getString("widget.${widgetId}.translation", null)
+            val translation = prefs.getString("widget.${widgetId}.translation", null)
+                ?: prefs.getString("translation", null)
                 ?: "In the name of Allah, the Entirely Merciful, the Especially Merciful."
-            val reference = prefs.getString("reference", null)
-                ?: prefs.getString("widget.${widgetId}.reference", null)
-                ?: ""
+            val reference = prefs.getString("widget.${widgetId}.reference", null)
+                ?: prefs.getString("reference", null)
+                ?: "Al-Fātiḥah 1:1"
 
             val theme = prefs.getString("widget.${widgetId}.theme", "auto")
+            val style = prefs.getString("widget.${widgetId}.style", "tinted")
+            val layout = prefs.getString("widget.${widgetId}.layout", "default")
             val showTr = prefs.getBoolean("widget.${widgetId}.showTr", true)
+            val showRef = prefs.getBoolean("widget.${widgetId}.showRef", true)
             val sizeKey = prefs.getString("widget.${widgetId}.size", "m")
-            val (arSize, trSize) = when (sizeKey) {
-                "s" -> 16f to 11f
-                "l" -> 24f to 14f
-                else -> 20f to 12.5f
+
+            val (arSize, trSize, refSize) = when (sizeKey) {
+                "s" -> Triple(15f, 11f, 9f)
+                "l" -> Triple(23f, 13.5f, 11f)
+                else -> Triple(19f, 12f, 10f)
             }
 
-            val nightMode = if (theme == "light") false
-                else if (theme == "dark") true
-                else context.resources.configuration.uiMode and
+            val nightMode = when (theme) {
+                "light" -> false
+                "dark" -> true
+                else -> context.resources.configuration.uiMode and
                     android.content.res.Configuration.UI_MODE_NIGHT_MASK ==
                     android.content.res.Configuration.UI_MODE_NIGHT_YES
+            }
 
-            val textColor = if (nightMode) Color.parseColor("#F1F3F5") else Color.parseColor("#15171A")
-            val mutedColor = if (nightMode) Color.parseColor("#B6BBC2") else Color.parseColor("#5A5F66")
+            val onAccentColor = if (nightMode) Color.parseColor("#0E1013") else Color.WHITE
+            val isAccent = style == "accent"
 
-            views.setTextViewText(R.id.widget_arabic, arabic)
-            views.setTextColor(R.id.widget_arabic, textColor)
-            views.setTextViewTextSize(R.id.widget_arabic,
-                android.util.TypedValue.COMPLEX_UNIT_SP, arSize)
+            val textColor = when {
+                isAccent -> onAccentColor
+                nightMode -> Color.parseColor("#F1F3F5")
+                else -> Color.parseColor("#15171A")
+            }
+            val mutedColor = when {
+                isAccent -> Color.parseColor(if (nightMode) "#660E1013" else "#CCFFFFFF")
+                nightMode -> Color.parseColor("#B6BBC2")
+                else -> Color.parseColor("#5A5F66")
+            }
+            val subtleColor = when {
+                isAccent -> Color.parseColor(if (nightMode) "#440E1013" else "#99FFFFFF")
+                nightMode -> Color.parseColor("#8A8F96")
+                else -> Color.parseColor("#898E95")
+            }
 
-            views.setTextViewText(R.id.widget_translation, translation)
-            views.setTextColor(R.id.widget_translation, mutedColor)
-            views.setTextViewTextSize(R.id.widget_translation,
-                android.util.TypedValue.COMPLEX_UNIT_SP, trSize)
-            views.setViewVisibility(
-                R.id.widget_translation,
-                if (showTr) View.VISIBLE else View.GONE
-            )
+            val bgRes = when (style) {
+                "solid" -> if (nightMode) R.drawable.widget_bg_solid_dark else R.drawable.widget_bg_solid_light
+                "accent" -> R.drawable.widget_bg_accent
+                "tinted" -> if (nightMode) R.drawable.widget_bg_tinted_dark else R.drawable.widget_bg_tinted_light
+                else -> 0
+            }
 
-            views.setTextViewText(R.id.widget_reference, reference)
-            views.setTextColor(R.id.widget_reference, mutedColor)
+            val isCentered = layout == "centered"
+            views.setViewVisibility(R.id.widget_card_default,
+                if (isCentered) View.GONE else View.VISIBLE)
+            views.setViewVisibility(R.id.widget_card_centered,
+                if (isCentered) View.VISIBLE else View.GONE)
+
+            val activeCardId = if (isCentered)
+                R.id.widget_card_centered else R.id.widget_card_default
+            if (bgRes != 0) {
+                views.setInt(activeCardId, "setBackgroundResource", bgRes)
+            } else {
+                views.setInt(activeCardId, "setBackgroundColor", Color.TRANSPARENT)
+            }
+
+            if (isCentered) {
+                val centeredArabic = "﴿  $arabic  ﴾"
+                views.setTextViewText(R.id.widget_arabic_centered, centeredArabic)
+                views.setTextColor(R.id.widget_arabic_centered, textColor)
+                views.setTextViewTextSize(R.id.widget_arabic_centered,
+                    android.util.TypedValue.COMPLEX_UNIT_SP, arSize)
+
+                views.setTextViewText(R.id.widget_translation_centered, translation)
+                views.setTextColor(R.id.widget_translation_centered, mutedColor)
+                views.setTextViewTextSize(R.id.widget_translation_centered,
+                    android.util.TypedValue.COMPLEX_UNIT_SP, trSize)
+                views.setViewVisibility(R.id.widget_translation_centered,
+                    if (showTr) View.VISIBLE else View.GONE)
+
+                views.setTextViewText(R.id.widget_reference_centered, reference)
+                views.setTextColor(R.id.widget_reference_centered, subtleColor)
+                views.setTextViewTextSize(R.id.widget_reference_centered,
+                    android.util.TypedValue.COMPLEX_UNIT_SP, refSize)
+                views.setViewVisibility(R.id.widget_reference_centered,
+                    if (showRef) View.VISIBLE else View.GONE)
+            } else {
+                views.setTextViewText(R.id.widget_arabic, arabic)
+                views.setTextColor(R.id.widget_arabic, textColor)
+                views.setTextViewTextSize(R.id.widget_arabic,
+                    android.util.TypedValue.COMPLEX_UNIT_SP, arSize)
+
+                views.setTextViewText(R.id.widget_translation, translation)
+                views.setTextColor(R.id.widget_translation, mutedColor)
+                views.setTextViewTextSize(R.id.widget_translation,
+                    android.util.TypedValue.COMPLEX_UNIT_SP, trSize)
+                views.setViewVisibility(R.id.widget_translation,
+                    if (showTr) View.VISIBLE else View.GONE)
+
+                views.setTextViewText(R.id.widget_reference, reference)
+                views.setTextColor(R.id.widget_reference, subtleColor)
+                views.setTextViewTextSize(R.id.widget_reference,
+                    android.util.TypedValue.COMPLEX_UNIT_SP, refSize)
+                views.setViewVisibility(R.id.widget_reference,
+                    if (showRef) View.VISIBLE else View.GONE)
+            }
 
             val openIntent = Intent(context, MainActivity::class.java)
             openIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK

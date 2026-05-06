@@ -7,6 +7,34 @@
     android:background="@color/config_background"
     android:fitsSystemWindows="false">
 
+    <LinearLayout
+        android:id="@+id/config_header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@color/config_background"
+        android:paddingStart="22dp"
+        android:paddingEnd="22dp"
+        android:paddingTop="22dp"
+        android:paddingBottom="14dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="My Prayers widget"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:textColor="@color/config_text"
+            android:layout_marginBottom="4dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Pick what to display and how it should look on your home screen."
+            android:textSize="13sp"
+            android:textColor="@color/config_text_muted" />
+    </LinearLayout>
+
     <ScrollView
         android:id="@+id/config_scroll"
         android:layout_width="match_parent"
@@ -21,24 +49,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="22dp">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="My Prayers widget"
-                android:textSize="22sp"
-                android:textStyle="bold"
-                android:textColor="@color/config_text"
-                android:layout_marginBottom="4dp" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Pick what to display and how it should look on your home screen."
-                android:textSize="13sp"
-                android:textColor="@color/config_text_muted"
-                android:layout_marginBottom="22dp" />
+            android:paddingStart="22dp"
+            android:paddingEnd="22dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="22dp">
 
             <TextView style="@style/MpConfigLabel" android:text="Content" />
             <RadioGroup

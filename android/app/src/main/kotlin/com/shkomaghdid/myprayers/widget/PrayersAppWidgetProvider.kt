@@ -27,6 +27,18 @@ class PrayersAppWidgetProvider : AppWidgetProvider() {
         }
     }
 
+    override fun onAppWidgetOptionsChanged(
+        context: Context,
+        appWidgetManager: AppWidgetManager,
+        appWidgetId: Int,
+        newOptions: android.os.Bundle?
+    ) {
+        super.onAppWidgetOptionsChanged(context, appWidgetManager, appWidgetId, newOptions)
+        val prefs = HomeWidgetPlugin.getData(context)
+        val views = buildViews(context, appWidgetId, prefs)
+        appWidgetManager.updateAppWidget(appWidgetId, views)
+    }
+
     override fun onReceive(context: Context, intent: Intent) {
         super.onReceive(context, intent)
         if (intent.action == ACTION_RANDOMIZE) {

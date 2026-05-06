@@ -41,19 +41,18 @@ class WidgetConfigActivity : Activity() {
     }
 
     private fun applyEdgeToEdgeInsets() {
-        val scroll = findViewById<View>(R.id.config_scroll)
-        val content = findViewById<View>(R.id.config_content)
+        val header = findViewById<View>(R.id.config_header)
         val bottomBar = findViewById<View>(R.id.config_bottom_bar)
-        val basePaddingTop = content.paddingTop
+        val basePaddingHeaderTop = header.paddingTop
         val basePaddingBottomBar = bottomBar.paddingBottom
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.config_root)) { _, insets ->
             val sys = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            content.setPadding(
-                content.paddingLeft,
-                basePaddingTop + sys.top,
-                content.paddingRight,
-                content.paddingBottom
+            header.setPadding(
+                header.paddingLeft,
+                basePaddingHeaderTop + sys.top,
+                header.paddingRight,
+                header.paddingBottom
             )
             bottomBar.setPadding(
                 bottomBar.paddingLeft,
@@ -63,7 +62,7 @@ class WidgetConfigActivity : Activity() {
             )
             insets
         }
-        scroll.requestApplyInsets()
+        header.requestApplyInsets()
     }
 
     private fun wireUp() {

@@ -59,7 +59,7 @@ class _QuranPageState extends ConsumerState<QuranPage> {
 
     final bookmarked =
         _list.where((s) => fav.surahs.contains(s.number)).toList();
-    final font = arabicFontFamilies[settings.arabicFont] ?? 'AmiriQuran';
+    final font = arabicFontFamilies[settings.arabicFont] ?? 'UthmanicHafs';
 
     return Column(
       children: [

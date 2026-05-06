@@ -125,7 +125,7 @@ class _SurahPageState extends ConsumerState<SurahPage> {
     final l10n = AppL10n.of(context);
     final settings = ref.watch(settingsProvider);
     final fav = ref.watch(favoritesProvider);
-    final fontFamily = arabicFontFamilies[settings.arabicFont] ?? 'AmiriQuran';
+    final fontFamily = arabicFontFamilies[settings.arabicFont] ?? 'UthmanicHafs';
     final marked = fav.surahs.contains(widget.number);
 
     return Scaffold(

@@ -41,7 +41,7 @@ class _NamesPageState extends ConsumerState<NamesPage> {
     final l10n = AppL10n.of(context);
     final palette = context.palette;
     final settings = ref.watch(settingsProvider);
-    final fontFamily = arabicFontFamilies[settings.arabicFont] ?? 'AmiriQuran';
+    final fontFamily = arabicFontFamilies[settings.arabicFont] ?? 'UthmanicHafs';
 
     return Scaffold(
       backgroundColor: palette.bg,

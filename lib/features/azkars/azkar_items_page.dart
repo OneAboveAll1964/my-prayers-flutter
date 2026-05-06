@@ -87,7 +87,7 @@ class _AzkarItemCard extends ConsumerWidget {
     final palette = context.palette;
     final l10n = AppL10n.of(context);
     final settings = ref.watch(settingsProvider);
-    final fontFamily = arabicFontFamilies[settings.arabicFont] ?? 'AmiriQuran';
+    final fontFamily = arabicFontFamilies[settings.arabicFont] ?? 'UthmanicHafs';
     final fav = ref.watch(favoritesProvider);
     final notifier = ref.read(favoritesProvider.notifier);
 

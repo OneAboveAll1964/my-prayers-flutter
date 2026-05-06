@@ -78,16 +78,12 @@ class AppL10nDelegate extends LocalizationsDelegate<AppL10n> {
 
 const arabicFontLabels = {
   'uthmanic-hafs': 'Uthmanic Hafs',
-  'amiri-quran': 'Amiri Quran',
-  'amiri': 'Amiri',
   'scheherazade': 'Scheherazade',
   'naskh': 'Noto Naskh Arabic',
 };
 
 const arabicFontFamilies = {
   'uthmanic-hafs': 'UthmanicHafs',
-  'amiri-quran': 'AmiriQuran',
-  'amiri': 'Amiri',
   'scheherazade': 'ScheherazadeNew',
   'naskh': 'NotoNaskhArabic',
 };

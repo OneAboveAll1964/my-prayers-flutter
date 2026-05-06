@@ -75,7 +75,7 @@ class _LastReadCardState extends State<LastReadCard> {
               widget.entry.name,
               style: TextStyle(
                 color: palette.accentStrong,
-                fontFamily: 'AmiriQuran',
+                fontFamily: 'UthmanicHafs',
                 fontSize: 18,
               ),
             ),

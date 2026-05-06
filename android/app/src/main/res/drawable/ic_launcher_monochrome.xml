@@ -1,41 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
   Monochrome variant for Android 13+ themed icons.
-  Identical geometry to ic_launcher_foreground.xml; the system applies its
-  own tint, so we render the entire silhouette in solid black.
+  System applies its own tint and uses the bitmap's alpha as the silhouette,
+  so we can reuse the same source bitmap as the foreground. Same 18dp inset
+  to keep the silhouette inside the 72dp safe zone.
 -->
-<vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="108dp"
-    android:height="108dp"
-    android:viewportWidth="108"
-    android:viewportHeight="108">
-
-    <group
-        android:translateX="-3.71"
-        android:translateY="-1.89"
-        android:scaleX="0.1136"
-        android:scaleY="0.1136">
-
-        <path
-            android:fillColor="#000000"
-            android:fillType="evenOdd"
-            android:pathData="
-                M232,724 H792 V784 H232 Z
-                M384,488 H640 V568 H384 Z
-                M384,488 C384,360 432,288 512,288 C592,288 640,360 640,488 Z
-                M498,252 H526 V294 H498 Z
-                M512,200 L498,254 L526,254 Z
-                M304,568 H720 V724 H304 Z
-                M760,332 H816 V724 H760 Z
-                M760,332 C760,288 776,268 788,268 C800,268 816,288 816,332 Z
-                M788,232 L780,270 L796,270 Z
-                M752,452 H824 V466 H752 Z
-                M208,412 H256 V724 H208 Z
-                M208,412 C208,376 222,360 232,360 C242,360 256,376 256,412 Z
-                M232,332 L226,362 L238,362 Z
-                M200,512 H264 V524 H200 Z
-                M472,724 L472,656 C472,634 490,616 512,616 C534,616 552,634 552,656 L552,724 Z
-            " />
-
-    </group>
-</vector>
+<inset xmlns:android="http://schemas.android.com/apk/res/android"
+    android:insetLeft="18dp"
+    android:insetTop="18dp"
+    android:insetRight="18dp"
+    android:insetBottom="18dp">
+    <bitmap
+        android:src="@drawable/ic_launcher_foreground_src"
+        android:gravity="center"
+        android:tint="#000000"
+        android:filter="true" />
+</inset>

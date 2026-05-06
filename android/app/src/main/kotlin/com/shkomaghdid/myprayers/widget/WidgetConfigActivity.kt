@@ -192,6 +192,11 @@ class WidgetConfigActivity : Activity() {
         }
         val showTr = groupShowTr.checkedRadioButtonId == R.id.show_tr_on
         val showRef = groupShowRef.checkedRadioButtonId == R.id.show_ref_on
+        val lang = when (groupLang.checkedRadioButtonId) {
+            R.id.lang_ar -> "ar"
+            R.id.lang_ku -> "ku"
+            else -> "en"
+        }
 
         editor
             .putString("widget.${widgetId}.type", type)
@@ -200,6 +205,7 @@ class WidgetConfigActivity : Activity() {
             .putString("widget.${widgetId}.theme", theme)
             .putString("widget.${widgetId}.font", font)
             .putString("widget.${widgetId}.size", size)
+            .putString("widget.${widgetId}.lang", lang)
             .putBoolean("widget.${widgetId}.showTr", showTr)
             .putBoolean("widget.${widgetId}.showRef", showRef)
             .apply()

@@ -116,6 +116,22 @@
                 <RadioButton android:id="@+id/show_tr_off" style="@style/MpSegmentItem" android:text="Hide" />
             </RadioGroup>
 
+            <LinearLayout
+                android:id="@+id/section_lang"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView style="@style/MpConfigLabel" android:text="Translation language" android:layout_marginTop="20dp" />
+                <RadioGroup
+                    android:id="@+id/group_lang"
+                    style="@style/MpSegmentGroup">
+                    <RadioButton android:id="@+id/lang_en" style="@style/MpSegmentItem" android:text="English" />
+                    <RadioButton android:id="@+id/lang_ar" style="@style/MpSegmentItem" android:text="Arabic" />
+                    <RadioButton android:id="@+id/lang_ku" style="@style/MpSegmentItem" android:text="Kurdish" />
+                </RadioGroup>
+            </LinearLayout>
+
             <TextView style="@style/MpConfigLabel" android:text="Reference" android:layout_marginTop="20dp" />
             <RadioGroup
                 android:id="@+id/group_show_ref"

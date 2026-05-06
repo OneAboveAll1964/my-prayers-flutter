@@ -1,104 +1,138 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/config_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true"
-    android:background="@color/config_background">
+    android:orientation="vertical"
+    android:background="@color/config_background"
+    android:fitsSystemWindows="false">
+
+    <ScrollView
+        android:id="@+id/config_scroll"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true"
+        android:scrollbars="none"
+        android:overScrollMode="never">
+
+        <LinearLayout
+            android:id="@+id/config_content"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="22dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="My Prayers widget"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:textColor="@color/config_text"
+                android:layout_marginBottom="4dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Pick what to display and how it should look on your home screen."
+                android:textSize="13sp"
+                android:textColor="@color/config_text_muted"
+                android:layout_marginBottom="22dp" />
+
+            <TextView style="@style/MpConfigLabel" android:text="Content" />
+            <RadioGroup
+                android:id="@+id/group_type"
+                style="@style/MpSegmentGroup">
+                <RadioButton android:id="@+id/type_ayah" style="@style/MpSegmentItem" android:text="Ayah" />
+                <RadioButton android:id="@+id/type_azkar" style="@style/MpSegmentItem" android:text="Azkar" />
+                <RadioButton android:id="@+id/type_mix" style="@style/MpSegmentItem" android:text="Both" />
+            </RadioGroup>
+
+            <TextView style="@style/MpConfigLabel" android:text="Layout" android:layout_marginTop="20dp" />
+            <RadioGroup
+                android:id="@+id/group_layout"
+                style="@style/MpSegmentGroup">
+                <RadioButton android:id="@+id/layout_default" style="@style/MpSegmentItem" android:text="Default" />
+                <RadioButton android:id="@+id/layout_centered" style="@style/MpSegmentItem" android:text="Centered" />
+            </RadioGroup>
+
+            <TextView style="@style/MpConfigLabel" android:text="Background" android:layout_marginTop="20dp" />
+            <RadioGroup
+                android:id="@+id/group_style"
+                style="@style/MpSegmentGroup">
+                <RadioButton android:id="@+id/style_transparent" style="@style/MpSegmentItem" android:text="Clear" />
+                <RadioButton android:id="@+id/style_tinted" style="@style/MpSegmentItem" android:text="Tinted" />
+                <RadioButton android:id="@+id/style_solid" style="@style/MpSegmentItem" android:text="Solid" />
+                <RadioButton android:id="@+id/style_accent" style="@style/MpSegmentItem" android:text="Green" />
+            </RadioGroup>
+
+            <TextView style="@style/MpConfigLabel" android:text="Theme" android:layout_marginTop="20dp" />
+            <RadioGroup
+                android:id="@+id/group_theme"
+                style="@style/MpSegmentGroup">
+                <RadioButton android:id="@+id/theme_auto" style="@style/MpSegmentItem" android:text="Auto" />
+                <RadioButton android:id="@+id/theme_light" style="@style/MpSegmentItem" android:text="Light" />
+                <RadioButton android:id="@+id/theme_dark" style="@style/MpSegmentItem" android:text="Dark" />
+            </RadioGroup>
+
+            <TextView style="@style/MpConfigLabel" android:text="Arabic font" android:layout_marginTop="20dp" />
+            <RadioGroup
+                android:id="@+id/group_font"
+                style="@style/MpSegmentGroup">
+                <RadioButton android:id="@+id/font_uthmanic" style="@style/MpSegmentItem" android:text="Uthmanic" />
+                <RadioButton android:id="@+id/font_scheherazade" style="@style/MpSegmentItem" android:text="Scheherazade" />
+                <RadioButton android:id="@+id/font_naskh" style="@style/MpSegmentItem" android:text="Naskh" />
+            </RadioGroup>
+
+            <TextView style="@style/MpConfigLabel" android:text="Text size" android:layout_marginTop="20dp" />
+            <RadioGroup
+                android:id="@+id/group_size"
+                style="@style/MpSegmentGroup">
+                <RadioButton android:id="@+id/size_s" style="@style/MpSegmentItem" android:text="Small" />
+                <RadioButton android:id="@+id/size_m" style="@style/MpSegmentItem" android:text="Medium" />
+                <RadioButton android:id="@+id/size_l" style="@style/MpSegmentItem" android:text="Large" />
+            </RadioGroup>
+
+            <TextView style="@style/MpConfigLabel" android:text="Translation" android:layout_marginTop="20dp" />
+            <RadioGroup
+                android:id="@+id/group_show_tr"
+                style="@style/MpSegmentGroup">
+                <RadioButton android:id="@+id/show_tr_on" style="@style/MpSegmentItem" android:text="Show" />
+                <RadioButton android:id="@+id/show_tr_off" style="@style/MpSegmentItem" android:text="Hide" />
+            </RadioGroup>
+
+            <TextView style="@style/MpConfigLabel" android:text="Reference" android:layout_marginTop="20dp" />
+            <RadioGroup
+                android:id="@+id/group_show_ref"
+                style="@style/MpSegmentGroup">
+                <RadioButton android:id="@+id/show_ref_on" style="@style/MpSegmentItem" android:text="Show" />
+                <RadioButton android:id="@+id/show_ref_off" style="@style/MpSegmentItem" android:text="Hide" />
+            </RadioGroup>
+
+        </LinearLayout>
+    </ScrollView>
 
     <LinearLayout
+        android:id="@+id/config_bottom_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="22dp">
+        android:background="@color/config_background"
+        android:paddingStart="22dp"
+        android:paddingEnd="22dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="22dp">
 
-        <TextView
+        <View
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="My Prayers widget"
-            android:textSize="22sp"
-            android:textStyle="bold"
-            android:textColor="@color/config_text"
-            android:layout_marginBottom="4dp" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Pick what to display and how it should look on your home screen."
-            android:textSize="13sp"
-            android:textColor="@color/config_text_muted"
-            android:layout_marginBottom="22dp" />
-
-        <TextView style="@style/MpConfigLabel" android:text="Content" />
-        <RadioGroup
-            android:id="@+id/group_type"
-            style="@style/MpSegmentGroup">
-            <RadioButton android:id="@+id/type_ayah" style="@style/MpSegmentItem" android:text="Ayah" />
-            <RadioButton android:id="@+id/type_azkar" style="@style/MpSegmentItem" android:text="Azkar" />
-            <RadioButton android:id="@+id/type_mix" style="@style/MpSegmentItem" android:text="Both" />
-        </RadioGroup>
-
-        <TextView style="@style/MpConfigLabel" android:text="Layout" android:layout_marginTop="20dp" />
-        <RadioGroup
-            android:id="@+id/group_layout"
-            style="@style/MpSegmentGroup">
-            <RadioButton android:id="@+id/layout_default" style="@style/MpSegmentItem" android:text="Default" />
-            <RadioButton android:id="@+id/layout_centered" style="@style/MpSegmentItem" android:text="Centered" />
-        </RadioGroup>
-
-        <TextView style="@style/MpConfigLabel" android:text="Background" android:layout_marginTop="20dp" />
-        <RadioGroup
-            android:id="@+id/group_style"
-            style="@style/MpSegmentGroup">
-            <RadioButton android:id="@+id/style_transparent" style="@style/MpSegmentItem" android:text="Clear" />
-            <RadioButton android:id="@+id/style_tinted" style="@style/MpSegmentItem" android:text="Tinted" />
-            <RadioButton android:id="@+id/style_solid" style="@style/MpSegmentItem" android:text="Solid" />
-            <RadioButton android:id="@+id/style_accent" style="@style/MpSegmentItem" android:text="Green" />
-        </RadioGroup>
-
-        <TextView style="@style/MpConfigLabel" android:text="Theme" android:layout_marginTop="20dp" />
-        <RadioGroup
-            android:id="@+id/group_theme"
-            style="@style/MpSegmentGroup">
-            <RadioButton android:id="@+id/theme_auto" style="@style/MpSegmentItem" android:text="Auto" />
-            <RadioButton android:id="@+id/theme_light" style="@style/MpSegmentItem" android:text="Light" />
-            <RadioButton android:id="@+id/theme_dark" style="@style/MpSegmentItem" android:text="Dark" />
-        </RadioGroup>
-
-        <TextView style="@style/MpConfigLabel" android:text="Text size" android:layout_marginTop="20dp" />
-        <RadioGroup
-            android:id="@+id/group_size"
-            style="@style/MpSegmentGroup">
-            <RadioButton android:id="@+id/size_s" style="@style/MpSegmentItem" android:text="Small" />
-            <RadioButton android:id="@+id/size_m" style="@style/MpSegmentItem" android:text="Medium" />
-            <RadioButton android:id="@+id/size_l" style="@style/MpSegmentItem" android:text="Large" />
-        </RadioGroup>
-
-        <TextView style="@style/MpConfigLabel" android:text="Translation" android:layout_marginTop="20dp" />
-        <RadioGroup
-            android:id="@+id/group_show_tr"
-            style="@style/MpSegmentGroup">
-            <RadioButton android:id="@+id/show_tr_on" style="@style/MpSegmentItem" android:text="Show" />
-            <RadioButton android:id="@+id/show_tr_off" style="@style/MpSegmentItem" android:text="Hide" />
-        </RadioGroup>
-
-        <TextView style="@style/MpConfigLabel" android:text="Reference" android:layout_marginTop="20dp" />
-        <RadioGroup
-            android:id="@+id/group_show_ref"
-            style="@style/MpSegmentGroup">
-            <RadioButton android:id="@+id/show_ref_on" style="@style/MpSegmentItem" android:text="Show" />
-            <RadioButton android:id="@+id/show_ref_off" style="@style/MpSegmentItem" android:text="Hide" />
-        </RadioGroup>
-
-        <Space
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:minHeight="20dp" />
+            android:layout_height="1dp"
+            android:background="@color/config_segment_border"
+            android:layout_marginBottom="12dp" />
 
         <Button
             android:id="@+id/config_randomize"
             style="@style/MpConfigOutlineButton"
-            android:layout_marginTop="26dp"
             android:text="New random verse" />
 
         <Button
@@ -107,4 +141,4 @@
             android:layout_marginTop="10dp"
             android:text="Add widget" />
     </LinearLayout>
-</ScrollView>
+</LinearLayout>

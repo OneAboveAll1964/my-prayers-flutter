@@ -4,8 +4,13 @@ import android.app.Activity
 import android.appwidget.AppWidgetManager
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
+import android.view.WindowManager
 import android.widget.Button
 import android.widget.RadioGroup
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
 import com.shkomaghdid.myprayers.R
 import es.antonborri.home_widget.HomeWidgetPlugin
 
@@ -16,6 +21,8 @@ class WidgetConfigActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setResult(RESULT_CANCELED)
+
+        WindowCompat.setDecorFitsSystemWindows(window, false)
 
         val extras = intent.extras
         if (extras != null) {
@@ -29,7 +36,34 @@ class WidgetConfigActivity : Activity() {
             return
         }
         setContentView(R.layout.widget_config_activity)
+        applyEdgeToEdgeInsets()
         wireUp()
+    }
+
+    private fun applyEdgeToEdgeInsets() {
+        val scroll = findViewById<View>(R.id.config_scroll)
+        val content = findViewById<View>(R.id.config_content)
+        val bottomBar = findViewById<View>(R.id.config_bottom_bar)
+        val basePaddingTop = content.paddingTop
+        val basePaddingBottomBar = bottomBar.paddingBottom
+
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.config_root)) { _, insets ->
+            val sys = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            content.setPadding(
+                content.paddingLeft,
+                basePaddingTop + sys.top,
+                content.paddingRight,
+                content.paddingBottom
+            )
+            bottomBar.setPadding(
+                bottomBar.paddingLeft,
+                bottomBar.paddingTop,
+                bottomBar.paddingRight,
+                basePaddingBottomBar + sys.bottom
+            )
+            insets
+        }
+        scroll.requestApplyInsets()
     }
 
     private fun wireUp() {
@@ -39,6 +73,7 @@ class WidgetConfigActivity : Activity() {
         val groupStyle = findViewById<RadioGroup>(R.id.group_style)
         val groupLayout = findViewById<RadioGroup>(R.id.group_layout)
         val groupTheme = findViewById<RadioGroup>(R.id.group_theme)
+        val groupFont = findViewById<RadioGroup>(R.id.group_font)
         val groupSize = findViewById<RadioGroup>(R.id.group_size)
         val groupShowTr = findViewById<RadioGroup>(R.id.group_show_tr)
         val groupShowRef = findViewById<RadioGroup>(R.id.group_show_ref)
@@ -65,6 +100,11 @@ class WidgetConfigActivity : Activity() {
             "dark" -> R.id.theme_dark
             else -> R.id.theme_auto
         })
+        groupFont.check(when (prefs.getString("widget.${widgetId}.font", "uthmanic_hafs")) {
+            "scheherazade" -> R.id.font_scheherazade
+            "noto_naskh" -> R.id.font_naskh
+            else -> R.id.font_uthmanic
+        })
         groupSize.check(when (prefs.getString("widget.${widgetId}.size", "m")) {
             "s" -> R.id.size_s
             "l" -> R.id.size_l
@@ -81,14 +121,14 @@ class WidgetConfigActivity : Activity() {
 
         randomize.setOnClickListener {
             persist(prefs.edit(),
-                groupType, groupStyle, groupLayout, groupTheme, groupSize, groupShowTr, groupShowRef)
+                groupType, groupStyle, groupLayout, groupTheme, groupFont, groupSize, groupShowTr, groupShowRef)
             WidgetRandomizer.rotate(this, widgetId)
             push()
         }
 
         save.setOnClickListener {
             persist(prefs.edit(),
-                groupType, groupStyle, groupLayout, groupTheme, groupSize, groupShowTr, groupShowRef)
+                groupType, groupStyle, groupLayout, groupTheme, groupFont, groupSize, groupShowTr, groupShowRef)
             WidgetRandomizer.rotate(this, widgetId)
             push()
             val result = Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId)
@@ -103,6 +143,7 @@ class WidgetConfigActivity : Activity() {
         groupStyle: RadioGroup,
         groupLayout: RadioGroup,
         groupTheme: RadioGroup,
+        groupFont: RadioGroup,
         groupSize: RadioGroup,
         groupShowTr: RadioGroup,
         groupShowRef: RadioGroup
@@ -127,6 +168,11 @@ class WidgetConfigActivity : Activity() {
             R.id.theme_dark -> "dark"
             else -> "auto"
         }
+        val font = when (groupFont.checkedRadioButtonId) {
+            R.id.font_scheherazade -> "scheherazade"
+            R.id.font_naskh -> "noto_naskh"
+            else -> "uthmanic_hafs"
+        }
         val size = when (groupSize.checkedRadioButtonId) {
             R.id.size_s -> "s"
             R.id.size_l -> "l"
@@ -140,6 +186,7 @@ class WidgetConfigActivity : Activity() {
             .putString("widget.${widgetId}.style", style)
             .putString("widget.${widgetId}.layout", layout)
             .putString("widget.${widgetId}.theme", theme)
+            .putString("widget.${widgetId}.font", font)
             .putString("widget.${widgetId}.size", size)
             .putBoolean("widget.${widgetId}.showTr", showTr)
             .putBoolean("widget.${widgetId}.showRef", showRef)

@@ -81,7 +81,7 @@
             android:gravity="center"
             android:maxLines="3"
             android:ellipsize="end"
-            android:text="﴿ بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ ﴾" />
+            android:text="بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ" />
 
         <TextView
             android:id="@+id/widget_translation_centered"

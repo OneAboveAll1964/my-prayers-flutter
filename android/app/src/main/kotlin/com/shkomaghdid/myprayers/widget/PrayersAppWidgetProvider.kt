@@ -50,7 +50,13 @@ class PrayersAppWidgetProvider : AppWidgetProvider() {
             widgetId: Int,
             prefs: SharedPreferences
         ): RemoteViews {
-            val views = RemoteViews(context.packageName, R.layout.prayers_app_widget)
+            val font = prefs.getString("widget.${widgetId}.font", "uthmanic_hafs")
+            val layoutId = when (font) {
+                "scheherazade" -> R.layout.prayers_app_widget_scheherazade
+                "noto_naskh" -> R.layout.prayers_app_widget_naskh
+                else -> R.layout.prayers_app_widget
+            }
+            val views = RemoteViews(context.packageName, layoutId)
 
             val arabic = prefs.getString("widget.${widgetId}.arabic", null)
                 ?: prefs.getString("arabic", null)
@@ -70,9 +76,9 @@ class PrayersAppWidgetProvider : AppWidgetProvider() {
             val sizeKey = prefs.getString("widget.${widgetId}.size", "m")
 
             val (arSize, trSize, refSize) = when (sizeKey) {
-                "s" -> Triple(15f, 11f, 9f)
-                "l" -> Triple(23f, 13.5f, 11f)
-                else -> Triple(19f, 12f, 10f)
+                "s" -> Triple(14f, 10f, 9f)
+                "l" -> Triple(28f, 15f, 12f)
+                else -> Triple(18f, 12f, 10f)
             }
 
             val nightMode = when (theme) {
@@ -83,21 +89,20 @@ class PrayersAppWidgetProvider : AppWidgetProvider() {
                     android.content.res.Configuration.UI_MODE_NIGHT_YES
             }
 
-            val onAccentColor = if (nightMode) Color.parseColor("#0E1013") else Color.WHITE
             val isAccent = style == "accent"
 
             val textColor = when {
-                isAccent -> onAccentColor
+                isAccent -> Color.WHITE
                 nightMode -> Color.parseColor("#F1F3F5")
                 else -> Color.parseColor("#15171A")
             }
             val mutedColor = when {
-                isAccent -> Color.parseColor(if (nightMode) "#660E1013" else "#CCFFFFFF")
+                isAccent -> Color.parseColor("#CCFFFFFF")
                 nightMode -> Color.parseColor("#B6BBC2")
                 else -> Color.parseColor("#5A5F66")
             }
             val subtleColor = when {
-                isAccent -> Color.parseColor(if (nightMode) "#440E1013" else "#99FFFFFF")
+                isAccent -> Color.parseColor("#99FFFFFF")
                 nightMode -> Color.parseColor("#8A8F96")
                 else -> Color.parseColor("#898E95")
             }
@@ -120,8 +125,7 @@ class PrayersAppWidgetProvider : AppWidgetProvider() {
             views.setInt(activeCardId, "setBackgroundResource", bgRes)
 
             if (isCentered) {
-                val centeredArabic = "﴿  $arabic  ﴾"
-                views.setTextViewText(R.id.widget_arabic_centered, centeredArabic)
+                views.setTextViewText(R.id.widget_arabic_centered, arabic)
                 views.setTextColor(R.id.widget_arabic_centered, textColor)
                 views.setTextViewTextSize(R.id.widget_arabic_centered,
                     android.util.TypedValue.COMPLEX_UNIT_SP, arSize)

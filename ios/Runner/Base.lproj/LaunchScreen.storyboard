@@ -26,7 +26,6 @@
                         <constraints>
                             <constraint firstItem="YRO-k0-Ey4" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="1a2-6s-vTC"/>
                             <constraint firstItem="YRO-k0-Ey4" firstAttribute="centerY" secondItem="Ze5-6b-2t3" secondAttribute="centerY" id="4X2-HB-R7a"/>
-                            <constraint firstAttribute="width" secondItem="YRO-k0-Ey4" secondAttribute="width" multiplier="1:1" id="w-w-w01"/>
                             <constraint firstItem="YRO-k0-Ey4" firstAttribute="width" constant="120" id="ww-12-0px"/>
                             <constraint firstItem="YRO-k0-Ey4" firstAttribute="height" constant="120" id="hh-12-0px"/>
                         </constraints>

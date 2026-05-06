@@ -44,7 +44,7 @@
         <activity
             android:name=".widget.WidgetConfigActivity"
             android:exported="true"
-            android:theme="@style/Theme.AppCompat.Light.Dialog">
+            android:theme="@style/MpWidgetConfigTheme">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE"/>
             </intent-filter>

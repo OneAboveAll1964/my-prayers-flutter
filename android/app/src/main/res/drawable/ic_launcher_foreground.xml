@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  My Prayers - adaptive icon foreground.
+  Mosque silhouette in accent green (#2E7C4F).
+  108x108dp viewport with the mark scaled into the central 72dp safe zone.
+
+  The path uses 1024-space coordinates (matching /tmp/app_icon_master.svg);
+  the <group> transform scales (1024 -> ~70dp) and translates so the glyph
+  bounding box (approx 200..816 x 200..784) is centered on (54, 54).
+
+  Translation derivation:
+    bbox center ~ (508, 492)
+    scale       = 0.1136  (so bbox width 616 -> ~70dp)
+    tx = 54 - 508*0.1136 = -3.71
+    ty = 54 - 492*0.1136 = -1.89
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <group
+        android:translateX="-3.71"
+        android:translateY="-1.89"
+        android:scaleX="0.1136"
+        android:scaleY="0.1136">
+
+        <!-- Mosque silhouette: single compound path in accent green.
+             Sub-paths use even-odd fill so the doorway arch is cut out. -->
+        <path
+            android:fillColor="#2E7C4F"
+            android:fillType="evenOdd"
+            android:pathData="
+                M232,724 H792 V784 H232 Z
+                M384,488 H640 V568 H384 Z
+                M384,488 C384,360 432,288 512,288 C592,288 640,360 640,488 Z
+                M498,252 H526 V294 H498 Z
+                M512,200 L498,254 L526,254 Z
+                M304,568 H720 V724 H304 Z
+                M760,332 H816 V724 H760 Z
+                M760,332 C760,288 776,268 788,268 C800,268 816,288 816,332 Z
+                M788,232 L780,270 L796,270 Z
+                M752,452 H824 V466 H752 Z
+                M208,412 H256 V724 H208 Z
+                M208,412 C208,376 222,360 232,360 C242,360 256,376 256,412 Z
+                M232,332 L226,362 L238,362 Z
+                M200,512 H264 V524 H200 Z
+                M472,724 L472,656 C472,634 490,616 512,616 C534,616 552,634 552,656 L552,724 Z
+            " />
+
+    </group>
+</vector>

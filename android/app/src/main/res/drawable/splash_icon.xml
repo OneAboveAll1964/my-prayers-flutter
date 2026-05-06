@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Android 12+ splash screen icon.
+
+  Per Material guidance the icon must be 288x288dp with the visual mark
+  occupying the inner 192x192dp (so the system can crop to a circle on
+  some launchers without clipping the glyph).
+
+  Geometry is identical to ic_launcher_foreground.xml: same mosque path
+  in 1024-space, scaled and centered into the inner 192dp safe zone.
+
+  Scale derivation:
+    bbox 200..816 x 200..784 (width 616, height 584)
+    scale = 175 / 616 = 0.2841   (175dp keeps a small margin inside 192)
+    target center = (144, 144)
+    bbox center   = (508, 492)
+    tx = 144 - 508 * 0.2841 = -0.3
+    ty = 144 - 492 * 0.2841 = 4.24
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="288dp"
+    android:height="288dp"
+    android:viewportWidth="288"
+    android:viewportHeight="288">
+
+    <group
+        android:translateX="-0.3"
+        android:translateY="4.24"
+        android:scaleX="0.2841"
+        android:scaleY="0.2841">
+
+        <path
+            android:fillColor="#2E7C4F"
+            android:fillType="evenOdd"
+            android:pathData="
+                M232,724 H792 V784 H232 Z
+                M384,488 H640 V568 H384 Z
+                M384,488 C384,360 432,288 512,288 C592,288 640,360 640,488 Z
+                M498,252 H526 V294 H498 Z
+                M512,200 L498,254 L526,254 Z
+                M304,568 H720 V724 H304 Z
+                M760,332 H816 V724 H760 Z
+                M760,332 C760,288 776,268 788,268 C800,268 816,288 816,332 Z
+                M788,232 L780,270 L796,270 Z
+                M752,452 H824 V466 H752 Z
+                M208,412 H256 V724 H208 Z
+                M208,412 C208,376 222,360 232,360 C242,360 256,376 256,412 Z
+                M232,332 L226,362 L238,362 Z
+                M200,512 H264 V524 H200 Z
+                M472,724 L472,656 C472,634 490,616 512,616 C534,616 552,634 552,656 L552,724 Z
+            " />
+
+    </group>
+</vector>

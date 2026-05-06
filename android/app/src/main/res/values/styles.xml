@@ -7,6 +7,15 @@
         <item name="android:windowBackground">?android:colorBackground</item>
     </style>
 
+    <!-- Android 12+ splash screen (androidx.core:core-splashscreen).
+         Background and animated icon match the in-app splash visuals. -->
+    <style name="LaunchTheme.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">#FBFBFA</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_icon</item>
+        <item name="windowSplashScreenAnimationDuration">800</item>
+        <item name="postSplashScreenTheme">@style/NormalTheme</item>
+    </style>
+
     <style name="MpConfigLabel">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>

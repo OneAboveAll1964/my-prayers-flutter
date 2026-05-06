@@ -14,19 +14,13 @@
         android:visibility="visible"
         android:background="@android:color/transparent">
 
-        <TextView
+        <ImageView
             android:id="@+id/widget_arabic"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="18sp"
-            android:lineSpacingMultiplier="1.25"
-            android:textDirection="rtl"
-            android:layoutDirection="rtl"
-            android:textColor="#15171A"
-            android:textAlignment="textStart"
-            android:maxLines="3"
-            android:ellipsize="end"
-            android:text="بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ" />
+            android:adjustViewBounds="true"
+            android:scaleType="fitStart"
+            android:importantForAccessibility="no" />
 
         <TextView
             android:id="@+id/widget_translation"
@@ -68,20 +62,13 @@
         android:visibility="gone"
         android:background="@android:color/transparent">
 
-        <TextView
+        <ImageView
             android:id="@+id/widget_arabic_centered"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="18sp"
-            android:lineSpacingMultiplier="1.25"
-            android:textDirection="rtl"
-            android:layoutDirection="rtl"
-            android:textColor="#F1F3F5"
-            android:textAlignment="center"
-            android:gravity="center"
-            android:maxLines="3"
-            android:ellipsize="end"
-            android:text="بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ" />
+            android:adjustViewBounds="true"
+            android:scaleType="fitCenter"
+            android:importantForAccessibility="no" />
 
         <TextView
             android:id="@+id/widget_translation_centered"

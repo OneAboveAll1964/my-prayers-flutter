@@ -92,9 +92,9 @@ class WidgetConfigActivity : Activity() {
             "accent" -> R.id.style_accent
             else -> R.id.style_transparent
         })
-        groupLayout.check(when (prefs.getString("widget.${widgetId}.layout", "default")) {
-            "centered" -> R.id.layout_centered
-            else -> R.id.layout_default
+        groupLayout.check(when (prefs.getString("widget.${widgetId}.layout", "centered")) {
+            "default" -> R.id.layout_default
+            else -> R.id.layout_centered
         })
         groupTheme.check(when (prefs.getString("widget.${widgetId}.theme", "dark")) {
             "light" -> R.id.theme_light
@@ -119,7 +119,7 @@ class WidgetConfigActivity : Activity() {
         val showTr = prefs.getBoolean("widget.${widgetId}.showTr", true)
         groupShowTr.check(if (showTr) R.id.show_tr_on else R.id.show_tr_off)
         groupShowRef.check(
-            if (prefs.getBoolean("widget.${widgetId}.showRef", true))
+            if (prefs.getBoolean("widget.${widgetId}.showRef", false))
                 R.id.show_ref_on else R.id.show_ref_off
         )
 

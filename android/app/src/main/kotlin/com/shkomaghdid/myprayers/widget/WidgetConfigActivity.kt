@@ -75,6 +75,8 @@ class WidgetConfigActivity : Activity() {
         val groupFont = findViewById<RadioGroup>(R.id.group_font)
         val groupSize = findViewById<RadioGroup>(R.id.group_size)
         val groupShowTr = findViewById<RadioGroup>(R.id.group_show_tr)
+        val groupLang = findViewById<RadioGroup>(R.id.group_lang)
+        val langSection = findViewById<View>(R.id.section_lang)
         val groupShowRef = findViewById<RadioGroup>(R.id.group_show_ref)
         val randomize = findViewById<Button>(R.id.config_randomize)
         val save = findViewById<Button>(R.id.config_save)
@@ -84,20 +86,25 @@ class WidgetConfigActivity : Activity() {
             "azkar" -> R.id.type_azkar
             else -> R.id.type_mix
         })
-        groupStyle.check(when (prefs.getString("widget.${widgetId}.style", "tinted")) {
-            "transparent" -> R.id.style_transparent
+        groupStyle.check(when (prefs.getString("widget.${widgetId}.style", "transparent")) {
+            "tinted" -> R.id.style_tinted
             "solid" -> R.id.style_solid
             "accent" -> R.id.style_accent
-            else -> R.id.style_tinted
+            else -> R.id.style_transparent
         })
         groupLayout.check(when (prefs.getString("widget.${widgetId}.layout", "default")) {
             "centered" -> R.id.layout_centered
             else -> R.id.layout_default
         })
-        groupTheme.check(when (prefs.getString("widget.${widgetId}.theme", "auto")) {
+        groupTheme.check(when (prefs.getString("widget.${widgetId}.theme", "dark")) {
             "light" -> R.id.theme_light
-            "dark" -> R.id.theme_dark
-            else -> R.id.theme_auto
+            "auto" -> R.id.theme_auto
+            else -> R.id.theme_dark
+        })
+        groupLang.check(when (prefs.getString("widget.${widgetId}.lang", "en")) {
+            "ar" -> R.id.lang_ar
+            "ku" -> R.id.lang_ku
+            else -> R.id.lang_en
         })
         groupFont.check(when (prefs.getString("widget.${widgetId}.font", "uthmanic_hafs")) {
             "scheherazade" -> R.id.font_scheherazade
@@ -109,14 +116,19 @@ class WidgetConfigActivity : Activity() {
             "l" -> R.id.size_l
             else -> R.id.size_m
         })
-        groupShowTr.check(
-            if (prefs.getBoolean("widget.${widgetId}.showTr", true))
-                R.id.show_tr_on else R.id.show_tr_off
-        )
+        val showTr = prefs.getBoolean("widget.${widgetId}.showTr", true)
+        groupShowTr.check(if (showTr) R.id.show_tr_on else R.id.show_tr_off)
         groupShowRef.check(
             if (prefs.getBoolean("widget.${widgetId}.showRef", true))
                 R.id.show_ref_on else R.id.show_ref_off
         )
+
+        fun updateLangVisibility() {
+            langSection.visibility =
+                if (groupShowTr.checkedRadioButtonId == R.id.show_tr_on) View.VISIBLE else View.GONE
+        }
+        updateLangVisibility()
+        groupShowTr.setOnCheckedChangeListener { _, _ -> updateLangVisibility() }
 
         randomize.setOnClickListener {
             persist(prefs.edit(),

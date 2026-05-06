@@ -73,15 +73,20 @@ class PrayersAppWidgetProvider : AppWidgetProvider() {
             val arabic = prefs.getString("widget.${widgetId}.arabic", null)
                 ?: prefs.getString("arabic", null)
                 ?: "بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ"
-            val translation = prefs.getString("widget.${widgetId}.translation", null)
+            val lang = prefs.getString("widget.${widgetId}.lang", "en") ?: "en"
+            val translation = prefs.getString("widget.${widgetId}.translation_${lang}", null)
+                ?: prefs.getString("widget.${widgetId}.translation_en", null)
+                ?: prefs.getString("widget.${widgetId}.translation", null)
+                ?: prefs.getString("translation_${lang}", null)
+                ?: prefs.getString("translation_en", null)
                 ?: prefs.getString("translation", null)
                 ?: "In the name of Allah, the Entirely Merciful, the Especially Merciful."
             val reference = prefs.getString("widget.${widgetId}.reference", null)
                 ?: prefs.getString("reference", null)
                 ?: "Al-Fātiḥah 1:1"
 
-            val theme = prefs.getString("widget.${widgetId}.theme", "auto")
-            val style = prefs.getString("widget.${widgetId}.style", "tinted")
+            val theme = prefs.getString("widget.${widgetId}.theme", "dark")
+            val style = prefs.getString("widget.${widgetId}.style", "transparent")
             val layout = prefs.getString("widget.${widgetId}.layout", "default")
             val showTr = prefs.getBoolean("widget.${widgetId}.showTr", true)
             val showRef = prefs.getBoolean("widget.${widgetId}.showRef", true)

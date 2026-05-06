@@ -244,6 +244,41 @@ class SettingsPage extends ConsumerWidget {
                                 ],
                               ),
                             ),
+                          const SizedBox(height: 8),
+                          GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () async {
+                              await NotificationService.instance
+                                  .requestPermissions();
+                              await NotificationService.instance.showTest();
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 14, vertical: 12),
+                              decoration: BoxDecoration(
+                                color: palette.surface2,
+                                borderRadius:
+                                    BorderRadius.circular(AppTokens.radius),
+                                border: Border.all(color: palette.line),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(Icons.notifications_active_outlined,
+                                      size: 18, color: palette.accent),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Text(
+                                      l10n.t('settings.sendTestNotification'),
+                                      style: TextStyle(
+                                          color: palette.text,
+                                          fontSize: 13.5,
+                                          fontWeight: FontWeight.w600),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
                         ],
                       ],
                     ),

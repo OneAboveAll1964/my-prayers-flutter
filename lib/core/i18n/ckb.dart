@@ -97,6 +97,7 @@ const ckbBundle = <String, String>{
   'settings.madeBy': 'دروستکراو لەلایەن',
   'settings.notifications': 'ئاگادارکردنەوەی نوێژ',
   'settings.notificationsHint': 'ئەزان لە کاتی هەر نوێژێکی چالاکدا دەژمێردرێ',
+  'settings.sendTestNotification': 'ناردنی ئاگادارکردنەوەی تاقیکردنەوە',
   'calc.makkah': 'ئوم القورا، مەککە',
   'calc.mwl': 'ڕابەرایەتی جیهانی ئیسلامی',
   'calc.isna': 'کۆمەڵی ئیسلامی ئەمەریکای باکوور',

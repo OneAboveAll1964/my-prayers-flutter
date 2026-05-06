@@ -97,6 +97,7 @@ const ckbBadiniBundle = <String, String>{
   'settings.madeBy': 'دروستکری ژ لایێ',
   'settings.notifications': 'ئاگەهداری نڤێژان',
   'settings.notificationsHint': 'ئەزان د دەمێ هەر نڤێژەکا چالاک دا دێت ژمارتن',
+  'settings.sendTestNotification': 'هنارتنا ئاگەهداریا ساختە',
   'calc.makkah': 'ئوم القورا، مەککە',
   'calc.mwl': 'ڕابەری جیهانی ئیسلامی',
   'calc.isna': 'کۆما ئیسلامی ئەمەریکا',

@@ -97,6 +97,7 @@ const enBundle = <String, String>{
   'settings.madeBy': 'Made by',
   'settings.notifications': 'Prayer notifications',
   'settings.notificationsHint': 'Adhan plays at each enabled prayer',
+  'settings.sendTestNotification': 'Send test notification',
   'calc.makkah': 'Umm al-Qura, Makkah',
   'calc.mwl': 'Muslim World League',
   'calc.isna': 'Islamic Society of North America',

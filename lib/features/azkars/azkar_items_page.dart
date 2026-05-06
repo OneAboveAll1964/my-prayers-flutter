@@ -117,9 +117,13 @@ class _AzkarItemCard extends ConsumerWidget {
 
     void increment() {
       HapticFeedback.selectionClick();
-      final next = dhikr + 1;
-      final reset = next > target;
-      notifier.setDhikr(item.id, reset ? 0 : next);
+      if (hasTarget) {
+        final next = dhikr + 1;
+        final reset = next > target;
+        notifier.setDhikr(item.id, reset ? 0 : next);
+      } else {
+        notifier.setDhikr(item.id, dhikr + 1);
+      }
     }
 
     void reset() {
@@ -165,11 +169,35 @@ class _AzkarItemCard extends ConsumerWidget {
                   ),
                 ),
                 const Spacer(),
-                if (hasTarget)
-                  _ResetButton(
-                    onTap: dhikr > 0 ? reset : null,
-                    visible: dhikr > 0,
+                if (!hasTarget)
+                  AnimatedContainer(
+                    duration: AppTokens.duration,
+                    curve: AppTokens.ease,
+                    margin: const EdgeInsets.only(right: 4),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: dhikr > 0
+                          ? palette.accentSoft
+                          : palette.surface2,
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(
+                      '$dhikr',
+                      style: TextStyle(
+                        color: dhikr > 0
+                            ? palette.accentStrong
+                            : palette.textMuted,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 12,
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
+                    ),
                   ),
+                _ResetButton(
+                  onTap: dhikr > 0 ? reset : null,
+                  visible: dhikr > 0,
+                ),
               ],
             ),
           ),
@@ -268,8 +296,6 @@ class _AzkarItemCard extends ConsumerWidget {
         ],
       ),
     );
-
-    if (!hasTarget) return card;
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,

@@ -97,6 +97,7 @@ const arBundle = <String, String>{
   'settings.madeBy': 'صُنع بواسطة',
   'settings.notifications': 'إشعارات الصلاة',
   'settings.notificationsHint': 'يُشغل الأذان عند كل صلاة مفعّلة',
+  'settings.sendTestNotification': 'إرسال إشعار تجريبي',
   'calc.makkah': 'أم القرى، مكة',
   'calc.mwl': 'رابطة العالم الإسلامي',
   'calc.isna': 'الجمعية الإسلامية لأمريكا الشمالية',

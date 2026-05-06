@@ -223,8 +223,9 @@ class PrayersAppWidgetProvider : AppWidgetProvider() {
 
         private fun loadTypeface(context: Context, fontKey: String?): Typeface? {
             val resId = when (fontKey) {
+                "qpc_hafs" -> R.font.qpc_hafs
+                "nastaleeq" -> R.font.kfgqpc_nastaleeq
                 "scheherazade" -> R.font.scheherazade
-                "noto_naskh" -> R.font.noto_naskh
                 else -> R.font.uthmanic_hafs
             }
             return try {

@@ -45,14 +45,17 @@ flutter:
     - family: UthmanicHafs
       fonts:
         - asset: assets/fonts/UthmanicHafs.ttf
+    - family: QpcHafs
+      fonts:
+        - asset: assets/fonts/QpcHafs.ttf
+    - family: QpcV4Tajweed
+      fonts:
+        - asset: assets/fonts/QpcV4Tajweed.ttf
+    - family: KfgqpcNastaleeq
+      fonts:
+        - asset: assets/fonts/KfgqpcNastaleeq.ttf
     - family: ScheherazadeNew
       fonts:
         - asset: assets/fonts/ScheherazadeNew-Regular.ttf
         - asset: assets/fonts/ScheherazadeNew-Bold.ttf
           weight: 700
-    - family: NotoNaskhArabic
-      fonts:
-        - asset: assets/fonts/NotoNaskhArabic-Regular.ttf
-    - family: NotoKufiArabic
-      fonts:
-        - asset: assets/fonts/NotoKufiArabic-Regular.ttf

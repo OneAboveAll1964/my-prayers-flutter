@@ -8,6 +8,8 @@ import android.view.View
 import android.view.WindowManager
 import android.widget.Button
 import android.widget.RadioGroup
+import android.widget.TextView
+import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -107,10 +109,24 @@ class WidgetConfigActivity : Activity() {
             else -> R.id.lang_en
         })
         groupFont.check(when (prefs.getString("widget.${widgetId}.font", "uthmanic_hafs")) {
+            "qpc_hafs" -> R.id.font_qpc_hafs
+            "nastaleeq" -> R.id.font_nastaleeq
             "scheherazade" -> R.id.font_scheherazade
-            "noto_naskh" -> R.id.font_naskh
             else -> R.id.font_uthmanic
         })
+
+        val fontPreview = findViewById<TextView>(R.id.font_preview)
+        fun updateFontPreview() {
+            val resId = when (groupFont.checkedRadioButtonId) {
+                R.id.font_qpc_hafs -> R.font.qpc_hafs
+                R.id.font_nastaleeq -> R.font.kfgqpc_nastaleeq
+                R.id.font_scheherazade -> R.font.scheherazade
+                else -> R.font.uthmanic_hafs
+            }
+            fontPreview.typeface = ResourcesCompat.getFont(this, resId)
+        }
+        updateFontPreview()
+        groupFont.setOnCheckedChangeListener { _, _ -> updateFontPreview() }
         groupSize.check(when (prefs.getString("widget.${widgetId}.size", "m")) {
             "s" -> R.id.size_s
             "l" -> R.id.size_l
@@ -181,8 +197,9 @@ class WidgetConfigActivity : Activity() {
             else -> "auto"
         }
         val font = when (groupFont.checkedRadioButtonId) {
+            R.id.font_qpc_hafs -> "qpc_hafs"
+            R.id.font_nastaleeq -> "nastaleeq"
             R.id.font_scheherazade -> "scheherazade"
-            R.id.font_naskh -> "noto_naskh"
             else -> "uthmanic_hafs"
         }
         val size = when (groupSize.checkedRadioButtonId) {

@@ -94,10 +94,28 @@
             <RadioGroup
                 android:id="@+id/group_font"
                 style="@style/MpSegmentGroup">
-                <RadioButton android:id="@+id/font_uthmanic" style="@style/MpSegmentItem" android:text="Uthmanic" />
+                <RadioButton android:id="@+id/font_uthmanic" style="@style/MpSegmentItem" android:text="Uthmani" />
+                <RadioButton android:id="@+id/font_qpc_hafs" style="@style/MpSegmentItem" android:text="QPC Hafs" />
+                <RadioButton android:id="@+id/font_nastaleeq" style="@style/MpSegmentItem" android:text="Nastaleeq" />
                 <RadioButton android:id="@+id/font_scheherazade" style="@style/MpSegmentItem" android:text="Scheherazade" />
-                <RadioButton android:id="@+id/font_naskh" style="@style/MpSegmentItem" android:text="Naskh" />
             </RadioGroup>
+
+            <TextView
+                android:id="@+id/font_preview"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:padding="14dp"
+                android:background="@drawable/segment_track_selected"
+                android:textSize="22sp"
+                android:lineSpacingMultiplier="1.6"
+                android:textDirection="rtl"
+                android:layoutDirection="rtl"
+                android:textAlignment="center"
+                android:gravity="center"
+                android:textColor="@color/config_text"
+                android:fontFamily="@font/uthmanic_hafs"
+                android:text="بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ" />
 
             <TextView style="@style/MpConfigLabel" android:text="Text size" android:layout_marginTop="20dp" />
             <RadioGroup

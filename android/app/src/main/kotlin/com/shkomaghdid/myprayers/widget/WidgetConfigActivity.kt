@@ -213,10 +213,11 @@ class WidgetConfigActivity : Activity() {
 
     private fun push() {
         val mgr = AppWidgetManager.getInstance(this)
+        val opts = mgr.getAppWidgetOptions(widgetId) ?: Bundle()
         mgr.updateAppWidget(
             widgetId,
             PrayersAppWidgetProvider.buildViews(
-                this, widgetId, HomeWidgetPlugin.getData(this)
+                this, widgetId, HomeWidgetPlugin.getData(this), opts
             )
         )
     }

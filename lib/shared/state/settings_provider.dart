@@ -21,6 +21,7 @@ class AppSettings {
     this.useFixedTimes = true,
     this.notificationsEnabled = true,
     this.perPrayerNotifications = const [true, false, true, true, true, true],
+    this.timeFormat = '24h',
   });
 
   final AppThemeMode themeMode;
@@ -36,6 +37,7 @@ class AppSettings {
   final bool useFixedTimes;
   final bool notificationsEnabled;
   final List<bool> perPrayerNotifications;
+  final String timeFormat;
 
   AppSettings copyWith({
     AppThemeMode? themeMode,
@@ -51,6 +53,7 @@ class AppSettings {
     bool? useFixedTimes,
     bool? notificationsEnabled,
     List<bool>? perPrayerNotifications,
+    String? timeFormat,
   }) {
     return AppSettings(
       themeMode: themeMode ?? this.themeMode,
@@ -66,6 +69,7 @@ class AppSettings {
       useFixedTimes: useFixedTimes ?? this.useFixedTimes,
       notificationsEnabled: notificationsEnabled ?? this.notificationsEnabled,
       perPrayerNotifications: perPrayerNotifications ?? this.perPrayerNotifications,
+      timeFormat: timeFormat ?? this.timeFormat,
     );
   }
 
@@ -85,6 +89,7 @@ class AppSettings {
         'useFixedTimes': useFixedTimes,
         'notificationsEnabled': notificationsEnabled,
         'perPrayerNotifications': perPrayerNotifications,
+        'timeFormat': timeFormat,
       };
 
   factory AppSettings.fromJson(Map<String, dynamic> j) => AppSettings(
@@ -119,6 +124,7 @@ class AppSettings {
                 ?.map((e) => e as bool)
                 .toList() ??
             const [true, false, true, true, true, true],
+        timeFormat: (j['timeFormat'] ?? '24h') as String,
       );
 
   PrayerAttribute toAttribute() => PrayerAttribute(
@@ -176,6 +182,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       update((s) => s.copyWith(notificationsEnabled: v));
   void setPerPrayerNotifications(List<bool> list) =>
       update((s) => s.copyWith(perPrayerNotifications: list));
+  void setTimeFormat(String v) => update((s) => s.copyWith(timeFormat: v));
 }
 
 final settingsProvider =

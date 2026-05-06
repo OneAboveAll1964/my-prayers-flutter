@@ -10,11 +10,13 @@ class NextPrayerCountdown extends StatelessWidget {
     required this.prayer,
     required this.tomorrowPrayer,
     required this.language,
+    required this.timeFormat,
   });
 
   final PrayerTime prayer;
   final PrayerTime? tomorrowPrayer;
   final String language;
+  final String timeFormat;
 
   @override
   Widget build(BuildContext context) {
@@ -62,7 +64,8 @@ class NextPrayerCountdown extends StatelessWidget {
     final timeStr = h > 0
         ? '${h.toString().padLeft(2, '0')}:${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}'
         : '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
-    final atTime = DateFormat.Hm(intl).format(nextAt);
+    final atFmt = timeFormat == '12h' ? DateFormat.jm(intl) : DateFormat.Hm(intl);
+    final atTime = atFmt.format(nextAt);
 
     final onAccent = palette.accentOn;
 

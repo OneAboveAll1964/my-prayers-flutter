@@ -10,11 +10,13 @@ class PrayerCard extends StatelessWidget {
     required this.prayer,
     required this.currentIndex,
     required this.language,
+    required this.timeFormat,
   });
 
   final PrayerTime prayer;
   final int currentIndex;
   final String language;
+  final String timeFormat;
 
   @override
   Widget build(BuildContext context) {
@@ -22,6 +24,7 @@ class PrayerCard extends StatelessWidget {
     final l10n = AppL10n.of(context);
     final times = prayer.all;
     final intl = _intlLocale(language);
+    final fmt = timeFormat == '12h' ? DateFormat.jm(intl) : DateFormat.Hm(intl);
 
     final children = <Widget>[];
     for (var i = 0; i < times.length; i++) {
@@ -29,7 +32,7 @@ class PrayerCard extends StatelessWidget {
       final prevActive = i > 0 && i - 1 == currentIndex;
       children.add(_PrayerRow(
         label: l10n.t('prayers.${prayerKeys[i]}'),
-        time: DateFormat.Hm(intl).format(times[i]),
+        time: fmt.format(times[i]),
         active: active,
       ));
       if (i < times.length - 1 && !active && !prevActive) {

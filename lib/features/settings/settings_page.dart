@@ -57,6 +57,21 @@ class SettingsPage extends ConsumerWidget {
                     ),
                   ),
                   _Section(
+                    label: l10n.t('settings.timeFormat'),
+                    child: SegmentedControl<String>(
+                      value: settings.timeFormat,
+                      onChanged: notifier.setTimeFormat,
+                      options: [
+                        SegmentedOption(
+                            value: '24h',
+                            label: l10n.t('settings.time24h')),
+                        SegmentedOption(
+                            value: '12h',
+                            label: l10n.t('settings.time12h')),
+                      ],
+                    ),
+                  ),
+                  _Section(
                     label: l10n.t('settings.arabicFont'),
                     child: const ArabicFontPicker(),
                   ),

@@ -167,11 +167,13 @@ class _HomePageState extends ConsumerState<HomePage> {
                   prayer: _prayer!,
                   tomorrowPrayer: _tomorrowPrayer,
                   language: lang,
+                  timeFormat: settings.timeFormat,
                 ),
                 PrayerCard(
                   prayer: _prayer!,
                   currentIndex: idx,
                   language: lang,
+                  timeFormat: settings.timeFormat,
                 ),
               ],
               if (favorites.lastSurah != null)

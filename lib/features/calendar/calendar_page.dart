@@ -131,6 +131,7 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
                               prayer: e.value,
                               today: today,
                               intl: intl,
+                              timeFormat: settings.timeFormat,
                             );
                           },
                         ),
@@ -197,17 +198,20 @@ class _DayCard extends StatelessWidget {
     required this.prayer,
     required this.today,
     required this.intl,
+    required this.timeFormat,
   });
 
   final DateTime date;
   final PrayerTime? prayer;
   final bool today;
   final String intl;
+  final String timeFormat;
 
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
     final l10n = AppL10n.of(context);
+    final fmt = timeFormat == '12h' ? DateFormat.jm(intl) : DateFormat.Hm(intl);
 
     return Container(
       decoration: BoxDecoration(
@@ -294,7 +298,7 @@ class _DayCard extends StatelessWidget {
                 for (var i = 0; i < prayer!.all.length; i++)
                   _Cell(
                     label: l10n.t('prayers.${prayerKeys[i]}'),
-                    value: DateFormat.Hm(intl).format(prayer!.all[i]),
+                    value: fmt.format(prayer!.all[i]),
                     today: today,
                   ),
               ],

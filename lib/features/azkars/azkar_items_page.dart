@@ -173,7 +173,6 @@ class _AzkarItemCard extends ConsumerWidget {
                   AnimatedContainer(
                     duration: AppTokens.duration,
                     curve: AppTokens.ease,
-                    margin: const EdgeInsets.only(right: 4),
                     padding: const EdgeInsets.symmetric(
                         horizontal: 10, vertical: 5),
                     decoration: BoxDecoration(
@@ -194,9 +193,13 @@ class _AzkarItemCard extends ConsumerWidget {
                       ),
                     ),
                   ),
-                _ResetButton(
-                  onTap: dhikr > 0 ? reset : null,
-                  visible: dhikr > 0,
+                AnimatedSize(
+                  duration: AppTokens.duration,
+                  curve: AppTokens.ease,
+                  alignment: Alignment.centerLeft,
+                  child: dhikr > 0
+                      ? _ResetButton(onTap: reset)
+                      : const SizedBox(width: 0, height: 36),
                 ),
               ],
             ),
@@ -377,9 +380,8 @@ class _CounterBar extends StatelessWidget {
 }
 
 class _ResetButton extends StatefulWidget {
-  const _ResetButton({required this.onTap, required this.visible});
-  final VoidCallback? onTap;
-  final bool visible;
+  const _ResetButton({required this.onTap});
+  final VoidCallback onTap;
   @override
   State<_ResetButton> createState() => _ResetButtonState();
 }
@@ -391,9 +393,7 @@ class _ResetButtonState extends State<_ResetButton> {
     final palette = context.palette;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTapDown: widget.onTap == null
-          ? null
-          : (_) => setState(() => _down = true),
+      onTapDown: (_) => setState(() => _down = true),
       onTapCancel: () => setState(() => _down = false),
       onTapUp: (_) => setState(() => _down = false),
       onTap: widget.onTap,
@@ -406,13 +406,8 @@ class _ResetButtonState extends State<_ResetButton> {
           color: _down ? palette.surface2 : Colors.transparent,
           borderRadius: BorderRadius.circular(999),
         ),
-        child: AnimatedOpacity(
-          duration: AppTokens.duration,
-          curve: AppTokens.ease,
-          opacity: widget.visible ? 1.0 : 0.0,
-          child: Icon(Icons.refresh_rounded,
-              size: 18, color: palette.textMuted),
-        ),
+        child: Icon(Icons.refresh_rounded,
+            size: 18, color: palette.textMuted),
       ),
     );
   }

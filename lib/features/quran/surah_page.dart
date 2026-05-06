@@ -197,6 +197,7 @@ class _SurahPageState extends ConsumerState<SurahPage> {
     final settings = ref.watch(settingsProvider);
     final fav = ref.watch(favoritesProvider);
     final fontFamily = arabicFontFamilies[settings.arabicFont] ?? 'UthmanicHafs';
+    final arScale = settings.arabicFontScale;
     final marked = fav.surahs.contains(widget.number);
 
     return Scaffold(
@@ -261,6 +262,7 @@ class _SurahPageState extends ConsumerState<SurahPage> {
                               ayah: a,
                               surah: _surah!,
                               fontFamily: fontFamily,
+                              arScale: arScale,
                             );
                           },
                         ),
@@ -278,11 +280,13 @@ class _AyahRow extends ConsumerStatefulWidget {
     required this.ayah,
     required this.surah,
     required this.fontFamily,
+    required this.arScale,
   });
 
   final Ayah ayah;
   final Surah surah;
   final String fontFamily;
+  final double arScale;
 
   @override
   ConsumerState<_AyahRow> createState() => _AyahRowState();
@@ -388,7 +392,7 @@ class _AyahRowState extends ConsumerState<_AyahRow> {
                 style: TextStyle(
                   color: palette.text,
                   fontFamily: widget.fontFamily,
-                  fontSize: 26,
+                  fontSize: 26.0 * widget.arScale,
                   height: 2.4,
                 ),
               ),

@@ -42,6 +42,7 @@ class _NamesPageState extends ConsumerState<NamesPage> {
     final palette = context.palette;
     final settings = ref.watch(settingsProvider);
     final fontFamily = arabicFontFamilies[settings.arabicFont] ?? 'UthmanicHafs';
+    final arScale = settings.arabicFontScale;
 
     return Scaffold(
       backgroundColor: palette.bg,
@@ -57,8 +58,10 @@ class _NamesPageState extends ConsumerState<NamesPage> {
                       padding: const EdgeInsets.fromLTRB(18, 4, 18, 28),
                       itemCount: _names.length,
                       separatorBuilder: (ctx, i) => const SizedBox(height: 12),
-                      itemBuilder: (ctx, i) =>
-                          _NameTile(name: _names[i], fontFamily: fontFamily),
+                      itemBuilder: (ctx, i) => _NameTile(
+                          name: _names[i],
+                          fontFamily: fontFamily,
+                          arScale: arScale),
                     ),
             ),
           ],
@@ -69,9 +72,14 @@ class _NamesPageState extends ConsumerState<NamesPage> {
 }
 
 class _NameTile extends StatelessWidget {
-  const _NameTile({required this.name, required this.fontFamily});
+  const _NameTile({
+    required this.name,
+    required this.fontFamily,
+    required this.arScale,
+  });
   final NameOfAllah name;
   final String fontFamily;
+  final double arScale;
 
   @override
   Widget build(BuildContext context) {
@@ -113,7 +121,7 @@ class _NameTile extends StatelessWidget {
               style: TextStyle(
                 color: palette.text,
                 fontFamily: fontFamily,
-                fontSize: 28,
+                fontSize: 28.0 * arScale,
                 height: 1.4,
                 fontWeight: FontWeight.w700,
               ),

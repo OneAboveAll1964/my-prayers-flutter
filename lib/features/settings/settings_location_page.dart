@@ -14,6 +14,7 @@ import '../../shared/widgets/app_button.dart';
 import '../../shared/widgets/app_field.dart';
 import '../../shared/widgets/app_spinner.dart';
 import '../../shared/widgets/page_scaffold.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 class SettingsLocationPage extends ConsumerStatefulWidget {
   const SettingsLocationPage({super.key});
@@ -108,7 +109,7 @@ class _SettingsLocationPageState extends ConsumerState<SettingsLocationPage> {
               back: true,
               search: AppTextField(
                 hintText: l10n.t('home.searchCity'),
-                prefix: Icon(Icons.search_rounded,
+                prefix: Icon(LucideIcons.search,
                     size: 18, color: palette.textMuted),
                 onChanged: (v) {
                   _query = v;
@@ -127,7 +128,7 @@ class _SettingsLocationPageState extends ConsumerState<SettingsLocationPage> {
                     label: _detecting
                         ? l10n.t('common.loading')
                         : l10n.t('home.useMyLocation'),
-                    icon: _detecting ? null : Icons.my_location_rounded,
+                    icon: _detecting ? null : LucideIcons.locateFixed,
                     expand: true,
                     variant: AppButtonVariant.outline,
                     onPressed: _detecting ? null : _detect,
@@ -247,7 +248,7 @@ class _LocationRowState extends State<_LocationRow> {
                 color: palette.accentSoft,
                 borderRadius: BorderRadius.circular(99),
               ),
-              child: Icon(Icons.place_rounded,
+              child: Icon(LucideIcons.mapPin,
                   size: 14, color: palette.accent),
             ),
             const SizedBox(width: 12),
@@ -267,7 +268,7 @@ class _LocationRowState extends State<_LocationRow> {
                 ],
               ),
             ),
-            Icon(Icons.chevron_right_rounded,
+            Icon(LucideIcons.chevronRight,
                 size: 18, color: palette.textMuted),
           ],
         ),

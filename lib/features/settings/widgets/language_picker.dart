@@ -4,6 +4,7 @@ import '../../../core/i18n/app_l10n.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../shared/state/settings_provider.dart';
 import '../../../shared/widgets/page_scaffold.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 class LanguagePicker extends ConsumerWidget {
   const LanguagePicker({super.key, this.onPick});
@@ -86,7 +87,7 @@ class _LangRowState extends State<_LangRow> {
               ),
             ),
             if (widget.selected)
-              Icon(Icons.check_rounded, color: palette.accent, size: 20),
+              Icon(LucideIcons.check, color: palette.accent, size: 20),
           ],
         ),
       ),

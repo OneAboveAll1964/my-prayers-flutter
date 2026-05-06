@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/tokens.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 class PageHeader extends StatelessWidget {
   const PageHeader({
@@ -124,7 +125,7 @@ class _BackButtonState extends State<_BackButton> {
         ),
         alignment: Alignment.center,
         child: Icon(
-          widget.isRtl ? Icons.arrow_forward_rounded : Icons.arrow_back_rounded,
+          widget.isRtl ? LucideIcons.arrowRight : LucideIcons.arrowLeft,
           color: p.text,
           size: 20,
         ),

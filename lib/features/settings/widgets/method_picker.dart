@@ -5,6 +5,7 @@ import '../../../core/theme/tokens.dart';
 import '../../../shared/models/prayer_time.dart';
 import '../../../shared/state/settings_provider.dart';
 import '../../../shared/widgets/page_scaffold.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 class MethodPicker extends ConsumerWidget {
   const MethodPicker({super.key, this.onPick});
@@ -82,7 +83,7 @@ class _MethodRowState extends State<_MethodRow> {
               ),
             ),
             if (widget.selected)
-              Icon(Icons.check_rounded, color: palette.accent, size: 20),
+              Icon(LucideIcons.check, color: palette.accent, size: 20),
           ],
         ),
       ),

@@ -14,6 +14,7 @@ import '../../shared/widgets/app_spinner.dart';
 import '../../shared/widgets/page_scaffold.dart';
 import '../home/widgets/last_read_card.dart';
 import '../settings/widgets/arabic_font_picker.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 class QuranPage extends ConsumerStatefulWidget {
   const QuranPage({super.key});
@@ -68,11 +69,11 @@ class _QuranPageState extends ConsumerState<QuranPage> {
           search: AppTextField(
             hintText: l10n.t('quran.search'),
             prefix:
-                Icon(Icons.search_rounded, size: 18, color: palette.textMuted),
+                Icon(LucideIcons.search, size: 18, color: palette.textMuted),
             onChanged: (v) => setState(() => _query = v),
           ),
           action: AppIconButton(
-            icon: Icons.text_fields_rounded,
+            icon: LucideIcons.type,
             semanticLabel: l10n.t('settings.arabicFont'),
             onPressed: () {
               showAppSheet(
@@ -297,8 +298,8 @@ class _SurahRowState extends State<_SurahRow> {
             ),
             child: Icon(
               widget.bookmarked
-                  ? Icons.bookmark_rounded
-                  : Icons.bookmark_outline_rounded,
+                  ? LucideIcons.bookmark
+                  : LucideIcons.bookmark,
               size: 18,
               color: widget.bookmarked ? palette.accent : palette.textSubtle,
             ),
@@ -455,7 +456,7 @@ class _AyahBookmarkRowState extends ConsumerState<_AyahBookmarkRow> {
               color: _downRm ? palette.surface2 : Colors.transparent,
               borderRadius: BorderRadius.circular(999),
             ),
-            child: Icon(Icons.bookmark_rounded,
+            child: Icon(LucideIcons.bookmark,
                 size: 16, color: palette.accent),
           ),
         ),

@@ -12,6 +12,7 @@ import '../../shared/widgets/app_sheet.dart';
 import '../../shared/widgets/app_spinner.dart';
 import '../../shared/widgets/page_scaffold.dart';
 import '../settings/widgets/arabic_font_picker.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 class AzkarItemsPage extends ConsumerStatefulWidget {
   const AzkarItemsPage({
@@ -72,7 +73,7 @@ class _AzkarItemsPageState extends ConsumerState<AzkarItemsPage> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   AppIconButton(
-                    icon: Icons.text_fields_rounded,
+                    icon: LucideIcons.type,
                     semanticLabel: l10n.t('settings.arabicFont'),
                     onPressed: () {
                       showAppSheet(
@@ -84,8 +85,8 @@ class _AzkarItemsPageState extends ConsumerState<AzkarItemsPage> {
                   ),
                   AppIconButton(
                     icon: isStarred
-                        ? Icons.star_rounded
-                        : Icons.star_outline_rounded,
+                        ? LucideIcons.star
+                        : LucideIcons.star,
                     color: isStarred ? palette.accent : palette.textMuted,
                     semanticLabel: 'Star',
                     onPressed: () => ref
@@ -424,7 +425,7 @@ class _ResetButtonState extends State<_ResetButton> {
           color: _down ? palette.surface2 : Colors.transparent,
           borderRadius: BorderRadius.circular(999),
         ),
-        child: Icon(Icons.refresh_rounded,
+        child: Icon(LucideIcons.refreshCw,
             size: 18, color: palette.textMuted),
       ),
     );

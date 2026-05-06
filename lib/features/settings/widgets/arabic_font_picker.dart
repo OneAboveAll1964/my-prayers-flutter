@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/i18n/app_l10n.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../shared/state/settings_provider.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 class ArabicFontPicker extends ConsumerWidget {
   const ArabicFontPicker({super.key});
@@ -57,7 +58,7 @@ class ArabicFontPicker extends ConsumerWidget {
                           ),
                         ),
                         if (settings.arabicFont == entry.key)
-                          Icon(Icons.check_rounded,
+                          Icon(LucideIcons.check,
                               size: 18, color: palette.accent),
                       ],
                     ),

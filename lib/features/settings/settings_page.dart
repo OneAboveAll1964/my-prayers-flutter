@@ -16,6 +16,7 @@ import '../../shared/widgets/segmented_control.dart';
 import 'widgets/arabic_font_picker.dart';
 import 'widgets/language_picker.dart';
 import 'widgets/method_picker.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 class SettingsPage extends ConsumerWidget {
   const SettingsPage({super.key});
@@ -279,7 +280,7 @@ class SettingsPage extends ConsumerWidget {
                               ),
                               child: Row(
                                 children: [
-                                  Icon(Icons.notifications_active_outlined,
+                                  Icon(LucideIcons.bellRing,
                                       size: 18, color: palette.accent),
                                   const SizedBox(width: 10),
                                   Expanded(
@@ -386,7 +387,7 @@ class SettingsPage extends ConsumerWidget {
                                 ),
                               ),
                               const SizedBox(width: 4),
-                              Icon(Icons.open_in_new_rounded,
+                              Icon(LucideIcons.externalLink,
                                   size: 12, color: palette.accent),
                             ],
                           ),
@@ -498,7 +499,7 @@ class _TileState extends State<_Tile> {
               ),
             ),
             const SizedBox(width: 6),
-            Icon(Icons.chevron_right_rounded,
+            Icon(LucideIcons.chevronRight,
                 size: 18, color: palette.textSubtle),
           ],
         ),
@@ -578,7 +579,7 @@ class _OffsetRow extends StatelessWidget {
             ),
           ),
           _StepButton(
-            icon: Icons.remove_rounded,
+            icon: LucideIcons.minus,
             enabled: canMinus,
             onTap: canMinus ? () => onChange(-1) : null,
           ),
@@ -596,7 +597,7 @@ class _OffsetRow extends StatelessWidget {
             ),
           ),
           _StepButton(
-            icon: Icons.add_rounded,
+            icon: LucideIcons.plus,
             enabled: canPlus,
             onTap: canPlus ? () => onChange(1) : null,
           ),

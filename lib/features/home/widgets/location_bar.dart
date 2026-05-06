@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/tokens.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 class LocationBar extends StatefulWidget {
   const LocationBar({super.key, required this.name});
@@ -34,7 +35,7 @@ class _LocationBarState extends State<LocationBar> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.place_rounded, size: 14, color: palette.text),
+            Icon(LucideIcons.mapPin, size: 14, color: palette.text),
             const SizedBox(width: 6),
             Flexible(
               child: Text(

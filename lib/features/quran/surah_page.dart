@@ -12,6 +12,7 @@ import '../../shared/widgets/app_sheet.dart';
 import '../../shared/widgets/app_spinner.dart';
 import '../../shared/widgets/page_scaffold.dart';
 import '../settings/widgets/arabic_font_picker.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 class SurahPage extends ConsumerStatefulWidget {
   const SurahPage({
@@ -214,7 +215,7 @@ class _SurahPageState extends ConsumerState<SurahPage> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   AppIconButton(
-                    icon: Icons.text_fields_rounded,
+                    icon: LucideIcons.type,
                     semanticLabel: l10n.t('settings.arabicFont'),
                     onPressed: () {
                       showAppSheet(
@@ -226,8 +227,8 @@ class _SurahPageState extends ConsumerState<SurahPage> {
                   ),
                   AppIconButton(
                     icon: marked
-                        ? Icons.bookmark_rounded
-                        : Icons.bookmark_outline_rounded,
+                        ? LucideIcons.bookmark
+                        : LucideIcons.bookmark,
                     color: marked ? palette.accent : palette.textMuted,
                     onPressed: () => ref
                         .read(favoritesProvider.notifier)
@@ -370,8 +371,8 @@ class _AyahRowState extends ConsumerState<_AyahRow> {
                     ),
                     child: Icon(
                       marked
-                          ? Icons.bookmark_rounded
-                          : Icons.bookmark_outline_rounded,
+                          ? LucideIcons.bookmark
+                          : LucideIcons.bookmark,
                       size: 18,
                       color: marked ? palette.accent : palette.textSubtle,
                     ),

@@ -51,6 +51,7 @@ const arBundle = <String, String>{
   'qibla.enable': 'تفعيل البوصلة',
   'azkars.title': 'الأذكار',
   'azkars.search': 'ابحث في الأذكار',
+  'azkars.all': 'الكل',
   'azkars.items': 'ذكر',
   'azkars.chapters': 'باب',
   'azkars.count': 'العدد',

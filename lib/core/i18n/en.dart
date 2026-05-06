@@ -51,6 +51,7 @@ const enBundle = <String, String>{
   'qibla.enable': 'Enable compass',
   'azkars.title': 'Azkars',
   'azkars.search': 'Search azkars',
+  'azkars.all': 'All',
   'azkars.items': 'items',
   'azkars.chapters': 'chapters',
   'azkars.count': 'Count',

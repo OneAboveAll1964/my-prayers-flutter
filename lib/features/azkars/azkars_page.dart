@@ -22,6 +22,7 @@ class _AzkarsPageState extends ConsumerState<AzkarsPage> {
   List<AzkarChapter> _searchResults = [];
   bool _loading = true;
   String _query = '';
+  int? _selectedCategoryId;
 
   @override
   void didChangeDependencies() {
@@ -63,6 +64,13 @@ class _AzkarsPageState extends ConsumerState<AzkarsPage> {
     final starred = _allChapters
         .where((c) => fav.chapters.contains(c.id))
         .toList();
+    final searching = _query.trim().isNotEmpty;
+
+    final filteredChapters = _selectedCategoryId == null
+        ? _allChapters
+        : _allChapters
+            .where((c) => c.categoryId == _selectedCategoryId)
+            .toList();
 
     return Column(
       children: [
@@ -78,29 +86,135 @@ class _AzkarsPageState extends ConsumerState<AzkarsPage> {
             },
           ),
         ),
+        if (!_loading && !searching && _categories.isNotEmpty)
+          _CategoryFilterStrip(
+            categories: _categories,
+            selectedId: _selectedCategoryId,
+            allLabel: l10n.t('azkars.all'),
+            onPick: (id) => setState(() => _selectedCategoryId = id),
+          ),
         Expanded(
           child: _loading
               ? const PageLoader()
-              : _query.trim().isNotEmpty
+              : searching
                   ? _SearchResults(results: _searchResults)
                   : ListView(
-                      padding: const EdgeInsets.fromLTRB(18, 4, 18, 28),
+                      padding: const EdgeInsets.fromLTRB(18, 8, 18, 28),
                       children: [
-                        if (starred.isNotEmpty) ...[
+                        if (starred.isNotEmpty &&
+                            _selectedCategoryId == null) ...[
                           _SectionLabel(label: l10n.t('favorites.starred')),
-                          const SizedBox(height: 6),
-                          _StarredList(chapters: starred),
-                          const SizedBox(height: 14),
+                          const SizedBox(height: 8),
+                          _ChapterCard(chapters: starred, starred: true),
+                          const SizedBox(height: 18),
                         ],
-                        for (var i = 0; i < _categories.length; i++) ...[
-                          _CategoryTile(cat: _categories[i]),
-                          if (i < _categories.length - 1)
-                            const SizedBox(height: 10),
-                        ],
+                        if (filteredChapters.isEmpty)
+                          Padding(
+                            padding: const EdgeInsets.all(28),
+                            child: Text(
+                              l10n.t('common.noResults'),
+                              style: TextStyle(color: palette.textMuted),
+                              textAlign: TextAlign.center,
+                            ),
+                          )
+                        else
+                          _ChapterCard(chapters: filteredChapters),
                       ],
                     ),
         ),
       ],
+    );
+  }
+}
+
+class _CategoryFilterStrip extends StatelessWidget {
+  const _CategoryFilterStrip({
+    required this.categories,
+    required this.selectedId,
+    required this.allLabel,
+    required this.onPick,
+  });
+
+  final List<AzkarCategory> categories;
+  final int? selectedId;
+  final String allLabel;
+  final ValueChanged<int?> onPick;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    return Container(
+      height: 42,
+      decoration: BoxDecoration(
+        color: palette.bg,
+        border: Border(bottom: BorderSide(color: palette.line)),
+      ),
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.fromLTRB(18, 6, 18, 6),
+        itemCount: categories.length + 1,
+        separatorBuilder: (_, _) => const SizedBox(width: 6),
+        itemBuilder: (ctx, i) {
+          if (i == 0) {
+            return _Chip(
+              label: allLabel,
+              selected: selectedId == null,
+              onTap: () => onPick(null),
+            );
+          }
+          final c = categories[i - 1];
+          return _Chip(
+            label: c.name,
+            selected: selectedId == c.id,
+            onTap: () => onPick(c.id),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _Chip extends StatelessWidget {
+  const _Chip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: AppTokens.durationFast,
+        curve: AppTokens.ease,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 0),
+        decoration: BoxDecoration(
+          color: selected ? palette.accentSoft : palette.surface2,
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(
+            color: selected ? palette.accent : palette.line,
+            width: selected ? 1.2 : 1,
+          ),
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            color: selected ? palette.accentStrong : palette.text,
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
     );
   }
 }
@@ -112,23 +226,24 @@ class _SectionLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = context.palette;
     return Padding(
-      padding: const EdgeInsets.only(left: 4, top: 4, bottom: 2),
+      padding: const EdgeInsets.only(left: 4, top: 2, bottom: 2),
       child: Text(
-        label,
+        label.toUpperCase(),
         style: TextStyle(
           color: palette.textSubtle,
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-          letterSpacing: 0.4,
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.7,
         ),
       ),
     );
   }
 }
 
-class _StarredList extends StatelessWidget {
-  const _StarredList({required this.chapters});
+class _ChapterCard extends StatelessWidget {
+  const _ChapterCard({required this.chapters, this.starred = false});
   final List<AzkarChapter> chapters;
+  final bool starred;
 
   @override
   Widget build(BuildContext context) {
@@ -143,68 +258,18 @@ class _StarredList extends StatelessWidget {
       child: Column(
         children: [
           for (var i = 0; i < chapters.length; i++) ...[
-            _ChapterListRow(chapter: chapters[i], starred: true),
+            _ChapterRow(
+              chapter: chapters[i],
+              starred: starred,
+              showCategory: !starred,
+            ),
             if (i < chapters.length - 1)
-              Container(height: 1, color: palette.line),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Container(height: 1, color: palette.line),
+              ),
           ],
         ],
-      ),
-    );
-  }
-}
-
-class _CategoryTile extends StatefulWidget {
-  const _CategoryTile({required this.cat});
-  final AzkarCategory cat;
-  @override
-  State<_CategoryTile> createState() => _CategoryTileState();
-}
-
-class _CategoryTileState extends State<_CategoryTile> {
-  bool _down = false;
-  @override
-  Widget build(BuildContext context) {
-    final palette = context.palette;
-    final isRtl = Directionality.of(context) == TextDirection.rtl;
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTapDown: (_) => setState(() => _down = true),
-      onTapCancel: () => setState(() => _down = false),
-      onTapUp: (_) => setState(() => _down = false),
-      onTap: () => context.push('/azkars/category/${widget.cat.id}'),
-      child: AnimatedContainer(
-        duration: AppTokens.durationFast,
-        padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
-        decoration: BoxDecoration(
-          color: _down ? palette.surface2 : palette.surface,
-          border: Border.all(color: palette.line),
-          borderRadius: BorderRadius.circular(AppTokens.radius),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                widget.cat.name,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: palette.text,
-                  fontSize: 15.5,
-                  fontWeight: FontWeight.w600,
-                  height: 1.3,
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Icon(
-              isRtl
-                  ? Icons.chevron_left_rounded
-                  : Icons.chevron_right_rounded,
-              size: 18,
-              color: palette.textSubtle,
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -228,35 +293,30 @@ class _SearchResults extends StatelessWidget {
       );
     }
     return ListView(
-      padding: const EdgeInsets.fromLTRB(18, 4, 18, 28),
+      padding: const EdgeInsets.fromLTRB(18, 8, 18, 28),
       children: [
-        AppSurface(
-          padding: EdgeInsets.zero,
-          child: Column(
-            children: [
-              for (var i = 0; i < results.length; i++) ...[
-                _ChapterListRow(chapter: results[i]),
-                if (i < results.length - 1)
-                  Container(height: 1, color: palette.line),
-              ],
-            ],
-          ),
-        ),
+        _ChapterCard(chapters: results),
       ],
     );
   }
 }
 
-class _ChapterListRow extends StatefulWidget {
-  const _ChapterListRow({required this.chapter, this.starred = false});
+class _ChapterRow extends StatefulWidget {
+  const _ChapterRow({
+    required this.chapter,
+    this.starred = false,
+    this.showCategory = false,
+  });
+
   final AzkarChapter chapter;
   final bool starred;
+  final bool showCategory;
 
   @override
-  State<_ChapterListRow> createState() => _ChapterListRowState();
+  State<_ChapterRow> createState() => _ChapterRowState();
 }
 
-class _ChapterListRowState extends State<_ChapterListRow> {
+class _ChapterRowState extends State<_ChapterRow> {
   bool _down = false;
   @override
   Widget build(BuildContext context) {
@@ -271,24 +331,42 @@ class _ChapterListRowState extends State<_ChapterListRow> {
           '/azkars/chapter/${widget.chapter.id}?name=${Uri.encodeComponent(widget.chapter.name)}'),
       child: AnimatedContainer(
         duration: AppTokens.durationFast,
-        padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+        padding: const EdgeInsets.fromLTRB(16, 14, 12, 14),
         color: _down ? palette.surface2 : Colors.transparent,
         child: Row(
           children: [
             if (widget.starred) ...[
-              Icon(Icons.star_rounded,
-                  size: 16, color: palette.accent),
+              Icon(Icons.star_rounded, size: 17, color: palette.accent),
               const SizedBox(width: 10),
             ],
             Expanded(
-              child: Text(
-                widget.chapter.name,
-                style: TextStyle(
-                  color: palette.text,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500,
-                  height: 1.3,
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    widget.chapter.name,
+                    style: TextStyle(
+                      color: palette.text,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      height: 1.25,
+                    ),
+                  ),
+                  if (widget.showCategory) ...[
+                    const SizedBox(height: 3),
+                    Text(
+                      widget.chapter.categoryName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: palette.textSubtle,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ),
             Icon(

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../core/i18n/app_l10n.dart';
 import '../../core/services/notification_service.dart';
 import '../../core/theme/tokens.dart';
@@ -363,12 +364,32 @@ class SettingsPage extends ConsumerWidget {
                               color: palette.textSubtle, fontSize: 12),
                         ),
                         const SizedBox(height: 4),
-                        Text(
-                          '${l10n.t('settings.madeBy')} OneAboveAll1964',
-                          style: TextStyle(
-                              color: palette.textMuted,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500),
+                        GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () async {
+                            final uri = Uri.parse(
+                                'https://github.com/OneAboveAll1964');
+                            if (await canLaunchUrl(uri)) {
+                              await launchUrl(uri,
+                                  mode: LaunchMode.externalApplication);
+                            }
+                          },
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                '${l10n.t('settings.madeBy')} OneAboveAll1964',
+                                style: TextStyle(
+                                  color: palette.accent,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Icon(Icons.open_in_new_rounded,
+                                  size: 12, color: palette.accent),
+                            ],
+                          ),
                         ),
                       ],
                     ),

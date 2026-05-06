@@ -51,6 +51,7 @@ const ckbBadiniBundle = <String, String>{
   'qibla.enable': 'قیبلەنما چالاک بکە',
   'azkars.title': 'ئەزکار',
   'azkars.search': 'ل ئەزکار بگەڕە',
+  'azkars.all': 'هەمی',
   'azkars.items': 'ئایتم',
   'azkars.chapters': 'بەش',
   'azkars.count': 'ژمارە',

@@ -20,6 +20,7 @@
             android:layout_height="wrap_content"
             android:textSize="18sp"
             android:lineSpacingMultiplier="1.25"
+            android:fontFamily="@font/uthmanic_hafs"
             android:textDirection="rtl"
             android:layoutDirection="rtl"
             android:textColor="#15171A"

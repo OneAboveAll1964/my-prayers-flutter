@@ -37,8 +37,21 @@ class _AzkarsPageState extends ConsumerState<AzkarsPage> {
     final chapters = await HisnulMuslimRepository.instance
         .getChapters(langCode: lang);
     if (!mounted) return;
+    final allWord = l10n.t('azkars.all').toLowerCase();
+    final filtered = cats
+        .where((c) {
+          final n = c.name.trim().toLowerCase();
+          return n.isNotEmpty &&
+              n != allWord &&
+              n != 'all' &&
+              n != 'الكل' &&
+              n != 'كل' &&
+              n != 'هەموو' &&
+              n != 'هەمی';
+        })
+        .toList();
     setState(() {
-      _categories = cats;
+      _categories = filtered;
       _allChapters = chapters;
       _loading = false;
     });
@@ -240,14 +253,15 @@ class _SectionLabel extends StatelessWidget {
   }
 }
 
-class _ChapterCard extends StatelessWidget {
+class _ChapterCard extends ConsumerWidget {
   const _ChapterCard({required this.chapters, this.starred = false});
   final List<AzkarChapter> chapters;
   final bool starred;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final palette = context.palette;
+    final fav = ref.watch(favoritesProvider);
     return Container(
       decoration: BoxDecoration(
         color: palette.surface,
@@ -260,8 +274,11 @@ class _ChapterCard extends StatelessWidget {
           for (var i = 0; i < chapters.length; i++) ...[
             _ChapterRow(
               chapter: chapters[i],
-              starred: starred,
+              isStarred: fav.chapters.contains(chapters[i].id),
               showCategory: !starred,
+              onStar: () => ref
+                  .read(favoritesProvider.notifier)
+                  .toggleChapter(chapters[i].id),
             ),
             if (i < chapters.length - 1)
               Padding(
@@ -304,12 +321,14 @@ class _SearchResults extends StatelessWidget {
 class _ChapterRow extends StatefulWidget {
   const _ChapterRow({
     required this.chapter,
-    this.starred = false,
+    required this.isStarred,
+    required this.onStar,
     this.showCategory = false,
   });
 
   final AzkarChapter chapter;
-  final bool starred;
+  final bool isStarred;
+  final VoidCallback onStar;
   final bool showCategory;
 
   @override
@@ -331,14 +350,10 @@ class _ChapterRowState extends State<_ChapterRow> {
           '/azkars/chapter/${widget.chapter.id}?name=${Uri.encodeComponent(widget.chapter.name)}'),
       child: AnimatedContainer(
         duration: AppTokens.durationFast,
-        padding: const EdgeInsets.fromLTRB(16, 14, 12, 14),
+        padding: const EdgeInsets.fromLTRB(16, 12, 6, 12),
         color: _down ? palette.surface2 : Colors.transparent,
         child: Row(
           children: [
-            if (widget.starred) ...[
-              Icon(Icons.star_rounded, size: 17, color: palette.accent),
-              const SizedBox(width: 10),
-            ],
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -369,6 +384,24 @@ class _ChapterRowState extends State<_ChapterRow> {
                 ],
               ),
             ),
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: widget.onStar,
+              child: Container(
+                width: 40,
+                height: 40,
+                alignment: Alignment.center,
+                child: Icon(
+                  widget.isStarred
+                      ? Icons.star_rounded
+                      : Icons.star_outline_rounded,
+                  size: 20,
+                  color: widget.isStarred
+                      ? palette.accent
+                      : palette.textSubtle,
+                ),
+              ),
+            ),
             Icon(
               isRtl
                   ? Icons.chevron_left_rounded
@@ -376,6 +409,7 @@ class _ChapterRowState extends State<_ChapterRow> {
               size: 18,
               color: palette.textSubtle,
             ),
+            const SizedBox(width: 8),
           ],
         ),
       ),

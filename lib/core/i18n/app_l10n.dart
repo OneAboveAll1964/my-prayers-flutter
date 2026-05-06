@@ -78,18 +78,18 @@ class AppL10nDelegate extends LocalizationsDelegate<AppL10n> {
 
 const arabicFontLabels = {
   'uthmanic-hafs': 'Uthmani Hafs',
-  'qpc-hafs': 'QPC Hafs',
-  'qpc-tajweed': 'QPC v4 Tajweed',
+  'amiri-quran': 'Amiri Quran',
   'nastaleeq': 'KFGQPC Nastaleeq',
   'scheherazade': 'Scheherazade',
+  'naskh': 'Noto Naskh',
 };
 
 const arabicFontFamilies = {
   'uthmanic-hafs': 'UthmanicHafs',
-  'qpc-hafs': 'QpcHafs',
-  'qpc-tajweed': 'QpcV4Tajweed',
+  'amiri-quran': 'AmiriQuran',
   'nastaleeq': 'KfgqpcNastaleeq',
   'scheherazade': 'ScheherazadeNew',
+  'naskh': 'NotoNaskhArabic',
 };
 
 const langDisplayNames = {

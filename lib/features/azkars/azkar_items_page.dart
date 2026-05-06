@@ -56,6 +56,8 @@ class _AzkarItemsPageState extends ConsumerState<AzkarItemsPage> {
   Widget build(BuildContext context) {
     final palette = context.palette;
     final l10n = AppL10n.of(context);
+    final fav = ref.watch(favoritesProvider);
+    final isStarred = fav.chapters.contains(widget.chapterId);
 
     return Scaffold(
       backgroundColor: palette.bg,
@@ -66,16 +68,31 @@ class _AzkarItemsPageState extends ConsumerState<AzkarItemsPage> {
             PageHeader(
               title: widget.chapterName,
               back: true,
-              action: AppIconButton(
-                icon: Icons.text_fields_rounded,
-                semanticLabel: l10n.t('settings.arabicFont'),
-                onPressed: () {
-                  showAppSheet(
-                    context: context,
-                    title: l10n.t('settings.arabicFont'),
-                    builder: (ctx) => const ArabicFontPicker(),
-                  );
-                },
+              action: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  AppIconButton(
+                    icon: Icons.text_fields_rounded,
+                    semanticLabel: l10n.t('settings.arabicFont'),
+                    onPressed: () {
+                      showAppSheet(
+                        context: context,
+                        title: l10n.t('settings.arabicFont'),
+                        builder: (ctx) => const ArabicFontPicker(),
+                      );
+                    },
+                  ),
+                  AppIconButton(
+                    icon: isStarred
+                        ? Icons.star_rounded
+                        : Icons.star_outline_rounded,
+                    color: isStarred ? palette.accent : palette.textMuted,
+                    semanticLabel: 'Star',
+                    onPressed: () => ref
+                        .read(favoritesProvider.notifier)
+                        .toggleChapter(widget.chapterId),
+                  ),
+                ],
               ),
             ),
             Expanded(

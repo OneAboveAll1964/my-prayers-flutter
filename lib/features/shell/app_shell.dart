@@ -72,8 +72,8 @@ class _BottomTabBar extends StatelessWidget {
                 tab: const _TabSpec(
                   path: '__more__',
                   label: 'more',
-                  icon: Icons.more_horiz_rounded,
-                  activeIcon: Icons.more_horiz_rounded,
+                  icon: Icons.apps_outlined,
+                  activeIcon: Icons.apps_rounded,
                 ),
                 selected: false,
                 label: l10n.t('nav.more'),

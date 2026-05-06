@@ -6,22 +6,32 @@ enum WidgetContentType: String, AppEnum {
 
     static var typeDisplayRepresentation: TypeDisplayRepresentation = "Content"
     static var caseDisplayRepresentations: [WidgetContentType: DisplayRepresentation] = [
-        .ayah: DisplayRepresentation(title: "Ayah only"),
-        .azkar: DisplayRepresentation(title: "Azkar only"),
+        .ayah: DisplayRepresentation(title: "Ayah"),
+        .azkar: DisplayRepresentation(title: "Azkar"),
         .mix: DisplayRepresentation(title: "Both")
     ]
 }
 
-enum WidgetStyle: String, AppEnum {
-    case transparent, tinted, solid, accent, ornate
+enum WidgetLayout: String, AppEnum {
+    case standard = "default"
+    case centered
 
-    static var typeDisplayRepresentation: TypeDisplayRepresentation = "Style"
+    static var typeDisplayRepresentation: TypeDisplayRepresentation = "Layout"
+    static var caseDisplayRepresentations: [WidgetLayout: DisplayRepresentation] = [
+        .standard: DisplayRepresentation(title: "Default"),
+        .centered: DisplayRepresentation(title: "Centered")
+    ]
+}
+
+enum WidgetStyle: String, AppEnum {
+    case transparent, tinted, solid, accent
+
+    static var typeDisplayRepresentation: TypeDisplayRepresentation = "Background"
     static var caseDisplayRepresentations: [WidgetStyle: DisplayRepresentation] = [
-        .transparent: DisplayRepresentation(title: "Transparent"),
-        .tinted: DisplayRepresentation(title: "Tinted glass"),
-        .solid: DisplayRepresentation(title: "Solid card"),
-        .accent: DisplayRepresentation(title: "Accent green"),
-        .ornate: DisplayRepresentation(title: "Ornate frame")
+        .transparent: DisplayRepresentation(title: "Clear"),
+        .tinted: DisplayRepresentation(title: "Tinted"),
+        .solid: DisplayRepresentation(title: "Solid"),
+        .accent: DisplayRepresentation(title: "Green")
     ]
 }
 
@@ -37,14 +47,13 @@ enum WidgetTheme: String, AppEnum {
 }
 
 enum WidgetTextSize: String, AppEnum {
-    case small, medium, large, xlarge
+    case small, medium, large
 
     static var typeDisplayRepresentation: TypeDisplayRepresentation = "Text size"
     static var caseDisplayRepresentations: [WidgetTextSize: DisplayRepresentation] = [
         .small: DisplayRepresentation(title: "Small"),
         .medium: DisplayRepresentation(title: "Medium"),
-        .large: DisplayRepresentation(title: "Large"),
-        .xlarge: DisplayRepresentation(title: "Extra large")
+        .large: DisplayRepresentation(title: "Large")
     ]
 }
 
@@ -54,18 +63,19 @@ enum WidgetLanguage: String, AppEnum {
     static var typeDisplayRepresentation: TypeDisplayRepresentation = "Translation language"
     static var caseDisplayRepresentations: [WidgetLanguage: DisplayRepresentation] = [
         .english: DisplayRepresentation(title: "English"),
-        .arabic: DisplayRepresentation(title: "Arabic only"),
+        .arabic: DisplayRepresentation(title: "Arabic"),
         .kurdish: DisplayRepresentation(title: "Kurdish")
     ]
 }
 
 enum WidgetFont: String, AppEnum {
-    case uthmani, system
+    case uthmanic, scheherazade, naskh
 
     static var typeDisplayRepresentation: TypeDisplayRepresentation = "Arabic font"
     static var caseDisplayRepresentations: [WidgetFont: DisplayRepresentation] = [
-        .uthmani: DisplayRepresentation(title: "Uthmanic Hafs"),
-        .system: DisplayRepresentation(title: "System")
+        .uthmanic: DisplayRepresentation(title: "Uthmanic"),
+        .scheherazade: DisplayRepresentation(title: "Scheherazade"),
+        .naskh: DisplayRepresentation(title: "Naskh")
     ]
 }
 
@@ -76,11 +86,17 @@ struct PrayersWidgetConfigurationIntent: WidgetConfigurationIntent {
     @Parameter(title: "Content", default: WidgetContentType.mix)
     var contentType: WidgetContentType
 
-    @Parameter(title: "Style", default: WidgetStyle.tinted)
+    @Parameter(title: "Layout", default: WidgetLayout.standard)
+    var layout: WidgetLayout
+
+    @Parameter(title: "Background", default: WidgetStyle.transparent)
     var style: WidgetStyle
 
-    @Parameter(title: "Theme", default: WidgetTheme.system)
+    @Parameter(title: "Theme", default: WidgetTheme.dark)
     var theme: WidgetTheme
+
+    @Parameter(title: "Arabic font", default: WidgetFont.uthmanic)
+    var arabicFont: WidgetFont
 
     @Parameter(title: "Text size", default: WidgetTextSize.medium)
     var textSize: WidgetTextSize
@@ -93,14 +109,6 @@ struct PrayersWidgetConfigurationIntent: WidgetConfigurationIntent {
 
     @Parameter(title: "Show reference", default: true)
     var showReference: Bool
-
-    @Parameter(title: "Arabic font", default: WidgetFont.uthmani)
-    var arabicFont: WidgetFont
-
-    @Parameter(title: "Refresh every (hours)",
-               default: 6,
-               inclusiveRange: (1, 24))
-    var refreshHours: Int
 
     init() {}
 }

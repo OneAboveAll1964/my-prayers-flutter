@@ -14,6 +14,6 @@
     android:insetBottom="18dp">
     <bitmap
         android:src="@drawable/ic_launcher_foreground_src"
-        android:gravity="center"
+        android:gravity="fill"
         android:filter="true" />
 </inset>

@@ -66,4 +66,12 @@
         <item name="android:fontFamily">sans-serif-medium</item>
         <item name="android:background">@drawable/mp_primary_button</item>
     </style>
+
+    <style name="MpWidgetConfigTheme" parent="@android:style/Theme.DeviceDefault.Dialog.NoActionBar">
+        <item name="android:windowBackground">@color/config_background</item>
+        <item name="android:colorBackground">@color/config_background</item>
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:windowMinWidthMajor">94%</item>
+        <item name="android:windowMinWidthMinor">94%</item>
+    </style>
 </resources>

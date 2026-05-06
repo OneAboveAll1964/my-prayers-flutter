@@ -132,14 +132,14 @@ class WidgetConfigActivity : Activity() {
 
         randomize.setOnClickListener {
             persist(prefs.edit(),
-                groupType, groupStyle, groupLayout, groupTheme, groupFont, groupSize, groupShowTr, groupShowRef)
+                groupType, groupStyle, groupLayout, groupTheme, groupFont, groupSize, groupShowTr, groupLang, groupShowRef)
             WidgetRandomizer.rotate(this, widgetId)
             push()
         }
 
         save.setOnClickListener {
             persist(prefs.edit(),
-                groupType, groupStyle, groupLayout, groupTheme, groupFont, groupSize, groupShowTr, groupShowRef)
+                groupType, groupStyle, groupLayout, groupTheme, groupFont, groupSize, groupShowTr, groupLang, groupShowRef)
             WidgetRandomizer.rotate(this, widgetId)
             push()
             val result = Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId)
@@ -157,6 +157,7 @@ class WidgetConfigActivity : Activity() {
         groupFont: RadioGroup,
         groupSize: RadioGroup,
         groupShowTr: RadioGroup,
+        groupLang: RadioGroup,
         groupShowRef: RadioGroup
     ) {
         val type = when (groupType.checkedRadioButtonId) {

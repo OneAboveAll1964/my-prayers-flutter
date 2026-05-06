@@ -27,6 +27,15 @@ let shortAyahs: [ShortPiece] = [
         reference: "Al-Baqarah 2:152"
     ),
     ShortPiece(
+        arabic: "وَإِذَا سَأَلَكَ عِبَادِى عَنِّى فَإِنِّى قَرِيبٌ",
+        translation: [
+            "en": "And when My servants ask you concerning Me — indeed I am near.",
+            "ar": "وإذا سألك عبادي عني فإني قريب",
+            "ku": "هەرکات بەندەکانم لێم پرسیار کرد، من نزیکم"
+        ],
+        reference: "Al-Baqarah 2:186"
+    ),
+    ShortPiece(
         arabic: "لَا يُكَلِّفُ ٱللَّهُ نَفْسًا إِلَّا وُسْعَهَا",
         translation: [
             "en": "Allah does not charge a soul except [with that within] its capacity.",
@@ -43,6 +52,15 @@ let shortAyahs: [ShortPiece] = [
             "ku": "ئاگاداربن، تەنها بە یادی خوا دڵەکان ئارام دەگرن"
         ],
         reference: "Ar-Raʿd 13:28"
+    ),
+    ShortPiece(
+        arabic: "وَٱلَّذِينَ جَاهَدُوا۟ فِينَا لَنَهْدِيَنَّهُمْ سُبُلَنَا",
+        translation: [
+            "en": "And those who strive for Us — We will surely guide them to Our ways.",
+            "ar": "والذين جاهدوا فينا لنهدينهم سبلنا",
+            "ku": "ئەوانەی لە پێناوی ئێمەدا تێدەکۆشن، بێگومان ڕێگاکانمانیان پیشان دەدەین"
+        ],
+        reference: "Al-ʿAnkabūt 29:69"
     ),
     ShortPiece(
         arabic: "لَا تَقْنَطُوا۟ مِن رَّحْمَةِ ٱللَّهِ",
@@ -79,6 +97,24 @@ let shortAyahs: [ShortPiece] = [
             "ku": "پەروەردگارا، زانیاریم زیاد بکە"
         ],
         reference: "Ṭā Hā 20:114"
+    ),
+    ShortPiece(
+        arabic: "تُعِزُّ مَن تَشَآءُ وَتُذِلُّ مَن تَشَآءُ ۖ بِيَدِكَ ٱلْخَيْرُ",
+        translation: [
+            "en": "You honor whom You will and You humble whom You will. In Your hand is all good.",
+            "ar": "تعز من تشاء وتذل من تشاء بيدك الخير",
+            "ku": "هەرکەسێ ویست بەرز دەکەیتەوە و هەرکەسێ ویست نزم دەکەیتەوە"
+        ],
+        reference: "Āl ʿImrān 3:26"
+    ),
+    ShortPiece(
+        arabic: "إِنَّ مَعَ ٱلْعُسْرِ يُسْرًا",
+        translation: [
+            "en": "Indeed, with hardship will be ease.",
+            "ar": "إن مع العسر يسرا",
+            "ku": "بێگومان لەگەڵ سەختی، ئاسانی هەیە"
+        ],
+        reference: "Ash-Sharḥ 94:6"
     )
 ]
 
@@ -100,12 +136,20 @@ let shortAzkars: [ShortPiece] = [
     ),
     ShortPiece(
         arabic: "لَا إِلَٰهَ إِلَّا ٱللَّهُ",
-        translation: ["en": "There is no god but Allah.", "ar": "لا إله إلا الله", "ku": "هیچ خوایێک نییە جگە لە خوا"],
+        translation: [
+            "en": "There is no god but Allah.",
+            "ar": "لا إله إلا الله",
+            "ku": "هیچ خوایێک نییە جگە لە خوا"
+        ],
         reference: "Tahlil"
     ),
     ShortPiece(
         arabic: "أَسْتَغْفِرُ ٱللَّهَ",
-        translation: ["en": "I seek the forgiveness of Allah.", "ar": "أستغفر الله", "ku": "لە خوا داوای لێبووردن دەکەم"],
+        translation: [
+            "en": "I seek the forgiveness of Allah.",
+            "ar": "أستغفر الله",
+            "ku": "لە خوا داوای لێبووردن دەکەم"
+        ],
         reference: "Istighfar"
     ),
     ShortPiece(
@@ -125,6 +169,20 @@ let shortAzkars: [ShortPiece] = [
             "ku": "هیچ گۆڕان و هێزێک نییە جگە بە خوا"
         ],
         reference: "Hawqala"
+    ),
+    ShortPiece(
+        arabic: "بِٱسْمِ ٱللَّهِ",
+        translation: ["en": "In the name of Allah.", "ar": "بسم الله", "ku": "بە ناوی خوا"],
+        reference: "Bismillah"
+    ),
+    ShortPiece(
+        arabic: "إِنَّ ٱللَّهَ مَعَ ٱلصَّابِرِينَ",
+        translation: [
+            "en": "Indeed Allah is with the patient.",
+            "ar": "إن الله مع الصابرين",
+            "ku": "بێگومان خوا لەگەڵ ئارامگیرانە"
+        ],
+        reference: "Al-Baqarah 2:153"
     )
 ]
 
@@ -133,7 +191,6 @@ struct PrayersEntry: TimelineEntry {
     let arabic: String
     let translation: String
     let reference: String
-    let langCode: String
     let theme: String
     let textSize: String
     let showTranslation: Bool
@@ -143,16 +200,15 @@ struct PrayersConfigurationProvider: AppIntentTimelineProvider {
     typealias Entry = PrayersEntry
     typealias Intent = PrayersWidgetConfigurationIntent
 
-    let appGroup = "group.com.shkomaghdid.myprayers"
-
     func placeholder(in context: Context) -> PrayersEntry {
         return makeEntry(piece: shortAyahs[0], lang: "en", theme: "auto", size: "m", showTr: true)
     }
 
     func snapshot(for configuration: PrayersWidgetConfigurationIntent,
                   in context: Context) async -> PrayersEntry {
+        let piece = pickPiece(type: configuration.contentType, seed: Date())
         return makeEntry(
-            piece: pickPiece(type: configuration.contentType),
+            piece: piece,
             lang: configuration.language,
             theme: configuration.theme,
             size: configuration.textSize,
@@ -163,18 +219,28 @@ struct PrayersConfigurationProvider: AppIntentTimelineProvider {
     func timeline(for configuration: PrayersWidgetConfigurationIntent,
                   in context: Context) async -> Timeline<PrayersEntry> {
         let now = Date()
-        let entry = makeEntry(
-            piece: pickPiece(type: configuration.contentType),
-            lang: configuration.language,
-            theme: configuration.theme,
-            size: configuration.textSize,
-            showTr: configuration.showTranslation
-        )
-        let next = Calendar.current.date(byAdding: .hour, value: 6, to: now) ?? now
-        return Timeline(entries: [entry], policy: .after(next))
+        var entries: [PrayersEntry] = []
+        let cal = Calendar.current
+        let stepHours = configuration.refreshHours > 0 ? configuration.refreshHours : 6
+        for i in 0..<6 {
+            let when = cal.date(byAdding: .hour, value: i * stepHours, to: now) ?? now
+            let piece = pickPiece(type: configuration.contentType, seed: when)
+            entries.append(PrayersEntry(
+                date: when,
+                arabic: piece.arabic,
+                translation: piece.translation[langKey(for: configuration.language)]
+                    ?? piece.translation["en"] ?? "",
+                reference: piece.reference,
+                theme: configuration.theme,
+                textSize: configuration.textSize,
+                showTranslation: configuration.showTranslation
+            ))
+        }
+        let next = cal.date(byAdding: .hour, value: stepHours, to: now) ?? now
+        return Timeline(entries: entries, policy: .after(next))
     }
 
-    private func pickPiece(type: String) -> ShortPiece {
+    private func pickPiece(type: String, seed: Date) -> ShortPiece {
         let pool: [ShortPiece] = {
             switch type {
             case "ayah": return shortAyahs
@@ -182,32 +248,29 @@ struct PrayersConfigurationProvider: AppIntentTimelineProvider {
             default: return shortAyahs + shortAzkars
             }
         }()
-        if let stored = readStoredPick() { return stored }
-        return pool.randomElement() ?? shortAyahs[0]
+        let comps = Calendar.current.dateComponents([.year, .month, .day, .hour], from: seed)
+        let stable = ((comps.year ?? 0) * 100000)
+            + ((comps.month ?? 0) * 1000)
+            + ((comps.day ?? 0) * 24)
+            + (comps.hour ?? 0)
+        let idx = abs(stable) % max(pool.count, 1)
+        return pool[idx]
     }
 
-    private func readStoredPick() -> ShortPiece? {
-        guard let defaults = UserDefaults(suiteName: appGroup) else { return nil }
-        guard let arabic = defaults.string(forKey: "arabic") else { return nil }
-        let ref = defaults.string(forKey: "reference") ?? ""
-        let translations: [String: String] = [
-            "en": defaults.string(forKey: "translation_en") ?? defaults.string(forKey: "translation") ?? "",
-            "ar": defaults.string(forKey: "translation_ar") ?? "",
-            "ku": defaults.string(forKey: "translation_ku") ?? ""
-        ]
-        return ShortPiece(arabic: arabic, translation: translations, reference: ref)
+    private func langKey(for code: String) -> String {
+        if code == "ckb" || code == "ckb_Badini" { return "ku" }
+        return code
     }
 
     private func makeEntry(piece: ShortPiece, lang: String, theme: String,
                            size: String, showTr: Bool) -> PrayersEntry {
-        let key = (lang == "ckb" || lang == "ckb_Badini") ? "ku" : lang
+        let key = langKey(for: lang)
         let tr = piece.translation[key] ?? piece.translation["en"] ?? ""
         return PrayersEntry(
             date: Date(),
             arabic: piece.arabic,
             translation: tr,
             reference: piece.reference,
-            langCode: lang,
             theme: theme,
             textSize: size,
             showTranslation: showTr
@@ -264,7 +327,7 @@ struct PrayersWidgetView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(entry.arabic)
-                .font(.custom("AmiriQuran", size: arabicSize))
+                .font(.system(size: arabicSize, weight: .regular))
                 .foregroundColor(textColor)
                 .lineLimit(3)
                 .multilineTextAlignment(.leading)

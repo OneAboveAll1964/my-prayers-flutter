@@ -3,7 +3,7 @@ import WidgetKit
 
 struct PrayersWidgetConfigurationIntent: WidgetConfigurationIntent {
     static var title: LocalizedStringResource = "Configure"
-    static var description: IntentDescription? = "Configure your widget."
+    static var description: IntentDescription? = "Pick what kind of verse to show, and how it looks."
 
     @Parameter(title: "Type", default: "mix")
     var contentType: String
@@ -20,8 +20,8 @@ struct PrayersWidgetConfigurationIntent: WidgetConfigurationIntent {
     @Parameter(title: "Show translation", default: true)
     var showTranslation: Bool
 
-    @Parameter(title: "Randomize verse")
-    var randomize: Bool?
+    @Parameter(title: "Refresh interval (hours)", default: 6)
+    var refreshHours: Int
 
     init() {}
 }

@@ -122,18 +122,16 @@ class _SettingsLocationPageState extends ConsumerState<SettingsLocationPage> {
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(18, 8, 18, 24),
                 children: [
+                  const SizedBox(height: 6),
                   AppButton(
-                    label: l10n.t('home.useMyLocation'),
-                    icon: Icons.my_location_rounded,
+                    label: _detecting
+                        ? l10n.t('common.loading')
+                        : l10n.t('home.useMyLocation'),
+                    icon: _detecting ? null : Icons.my_location_rounded,
                     expand: true,
                     variant: AppButtonVariant.outline,
                     onPressed: _detecting ? null : _detect,
                   ),
-                  if (_detecting)
-                    const Padding(
-                      padding: EdgeInsets.only(top: 8),
-                      child: Center(child: AppSpinner(size: 20)),
-                    ),
                   if (_query.trim().isEmpty && fav.recentLocations.isNotEmpty) ...[
                     const SizedBox(height: 16),
                     _SectionLabel(label: l10n.t('favorites.recentLocations')),

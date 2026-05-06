@@ -192,7 +192,7 @@ struct PrayersWidgetView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(entry.piece.arabic)
-                .font(.custom("UthmanicHafs", size: arabicSize))
+                .font(.custom("KFGQPC HAFS Uthmanic Script", size: arabicSize))
                 .foregroundColor(textColor)
                 .lineLimit(lineLimitArabic)
                 .multilineTextAlignment(.trailing)

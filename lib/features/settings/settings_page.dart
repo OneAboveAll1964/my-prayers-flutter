@@ -404,26 +404,31 @@ class _TileState extends State<_Tile> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(
           children: [
-            Expanded(
-              child: Text(widget.label,
-                  style: TextStyle(color: palette.text, fontSize: 14)),
+            Text(
+              widget.label,
+              style: TextStyle(
+                color: palette.text,
+                fontSize: 15,
+                fontWeight: FontWeight.w500,
+              ),
             ),
-            Flexible(
+            const SizedBox(width: 12),
+            Expanded(
               child: Text(
                 widget.value,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.right,
                 style: TextStyle(
-                  color: palette.textMuted,
-                  fontSize: 13,
+                  color: palette.textSubtle,
+                  fontSize: 13.5,
                   fontWeight: FontWeight.w500,
                 ),
               ),
             ),
             const SizedBox(width: 6),
             Icon(Icons.chevron_right_rounded,
-                size: 18, color: palette.textMuted),
+                size: 18, color: palette.textSubtle),
           ],
         ),
       ),

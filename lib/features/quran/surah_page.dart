@@ -58,27 +58,40 @@ class _SurahPageState extends ConsumerState<SurahPage> {
 
     if (surah != null) {
       _saveLastRead(widget.initialAyah ?? 1);
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!_initialScrollDone) {
-          _initialScrollDone = true;
-          if (widget.initialAyah != null && widget.initialAyah! > 1) {
-            _scrollTo(widget.initialAyah!);
-          }
-        }
-      });
+      if (!_initialScrollDone &&
+          widget.initialAyah != null &&
+          widget.initialAyah! > 1) {
+        _initialScrollDone = true;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _scrollToAyah(widget.initialAyah!);
+        });
+      }
     }
   }
 
-  void _scrollTo(int ayahNum) {
-    final key = _ayahKeys[ayahNum];
-    final ctx = key?.currentContext;
-    if (ctx != null) {
-      Scrollable.ensureVisible(
-        ctx,
-        duration: const Duration(milliseconds: 320),
-        curve: AppTokens.ease,
-        alignment: 0.05,
-      );
+  Future<void> _scrollToAyah(int ayahNum) async {
+    if (!mounted || _surah == null) return;
+
+    if (_controller.hasClients) {
+      const estimatedHeight = 230.0;
+      final estimated = (ayahNum - 1) * estimatedHeight;
+      final maxScroll = _controller.position.maxScrollExtent;
+      _controller.jumpTo(estimated.clamp(0.0, maxScroll));
+    }
+
+    for (var attempt = 0; attempt < 12; attempt++) {
+      await Future.delayed(const Duration(milliseconds: 30));
+      if (!mounted) return;
+      final ctx = _ayahKeys[ayahNum]?.currentContext;
+      if (ctx != null) {
+        await Scrollable.ensureVisible(
+          ctx,
+          duration: const Duration(milliseconds: 260),
+          curve: AppTokens.ease,
+          alignment: 0.08,
+        );
+        return;
+      }
     }
   }
 

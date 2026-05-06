@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/i18n/app_l10n.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../shared/state/favorites_provider.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:ionicons/ionicons.dart';
 
 class LastReadCard extends StatefulWidget {
   const LastReadCard({super.key, required this.entry});
@@ -22,7 +22,7 @@ class _LastReadCardState extends State<LastReadCard> {
     final l10n = AppL10n.of(context);
     final isRtl = Directionality.of(context) == TextDirection.rtl;
     final chev =
-        isRtl ? LucideIcons.chevronLeft : LucideIcons.chevronRight;
+        isRtl ? Ionicons.chevron_back : Ionicons.chevron_forward;
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,

@@ -69,6 +69,90 @@ object WidgetRandomizer {
             ar = "رب زدني علما",
             ku = "پەروەردگارا، زانیاریم زیاد بکە",
             reference = "Ṭā Hā 20:114"
+        ),
+        Piece(
+            arabic = "وَإِذَا سَأَلَكَ عِبَادِى عَنِّى فَإِنِّى قَرِيبٌ",
+            en = "When My servants ask you concerning Me — indeed I am near.",
+            ar = "وإذا سألك عبادي عني فإني قريب",
+            ku = "هەرکات بەندەکانم لێم پرسیار کرد، من نزیکم",
+            reference = "Al-Baqarah 2:186"
+        ),
+        Piece(
+            arabic = "إِنَّ ٱللَّهَ مَعَ ٱلصَّابِرِينَ",
+            en = "Indeed Allah is with the patient.",
+            ar = "إن الله مع الصابرين",
+            ku = "بێگومان خوا لەگەڵ ئارامگیرانە",
+            reference = "Al-Baqarah 2:153"
+        ),
+        Piece(
+            arabic = "إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ",
+            en = "You alone we worship, and You alone we ask for help.",
+            ar = "إياك نعبد وإياك نستعين",
+            ku = "تەنها تۆ دەپەرستین و تەنها لە تۆ یارمەتی دەخوازین",
+            reference = "Al-Fātiḥah 1:5"
+        ),
+        Piece(
+            arabic = "تُعِزُّ مَن تَشَآءُ وَتُذِلُّ مَن تَشَآءُ",
+            en = "You honor whom You will and humble whom You will.",
+            ar = "تعز من تشاء وتذل من تشاء",
+            ku = "هەرکەسێ ویست بەرز دەکەیتەوە و هەرکەسێ ویست نزم",
+            reference = "Āl ʿImrān 3:26"
+        ),
+        Piece(
+            arabic = "وَكَفَىٰ بِٱللَّهِ وَكِيلًا",
+            en = "And Allah is sufficient as a Disposer of affairs.",
+            ar = "وكفى بالله وكيلا",
+            ku = "خوا بەسە وەک پشتیوان",
+            reference = "An-Nisā' 4:81"
+        ),
+        Piece(
+            arabic = "إِنَّ مَعَ ٱلْعُسْرِ يُسْرًا",
+            en = "Indeed, with hardship will be ease.",
+            ar = "إن مع العسر يسرا",
+            ku = "بێگومان لەگەڵ سەختی ئاسانی هەیە",
+            reference = "Ash-Sharḥ 94:6"
+        ),
+        Piece(
+            arabic = "وَلَذِكْرُ ٱللَّهِ أَكْبَرُ",
+            en = "And the remembrance of Allah is greater.",
+            ar = "ولذكر الله أكبر",
+            ku = "یادی خوا گەورەترە",
+            reference = "Al-ʿAnkabūt 29:45"
+        ),
+        Piece(
+            arabic = "حَسْبِىَ ٱللَّهُ",
+            en = "Allah is sufficient for me.",
+            ar = "حسبي الله",
+            ku = "خوام بەسە",
+            reference = "At-Tawbah 9:129"
+        ),
+        Piece(
+            arabic = "رَبَّنَآ ءَاتِنَا فِى ٱلدُّنْيَا حَسَنَةً",
+            en = "Our Lord, give us good in this world.",
+            ar = "ربنا آتنا في الدنيا حسنة",
+            ku = "پەروەردگارا، خێرمان بدەوە لە دونیا",
+            reference = "Al-Baqarah 2:201"
+        ),
+        Piece(
+            arabic = "وَهُوَ مَعَكُمْ أَيْنَ مَا كُنتُمْ",
+            en = "And He is with you wherever you are.",
+            ar = "وهو معكم أين ما كنتم",
+            ku = "ئەو لەگەڵتانە لە هەرکوێی بن",
+            reference = "Al-Ḥadīd 57:4"
+        ),
+        Piece(
+            arabic = "إِنَّ ٱللَّهَ غَفُورٌ رَّحِيمٌ",
+            en = "Indeed Allah is Forgiving, Merciful.",
+            ar = "إن الله غفور رحيم",
+            ku = "بێگومان خوا لێبووردە و میهرەبانە",
+            reference = "Al-Baqarah 2:173"
+        ),
+        Piece(
+            arabic = "ٱلْحَمْدُ لِلَّهِ رَبِّ ٱلْعَـٰلَمِينَ",
+            en = "All praise is for Allah — Lord of all worlds.",
+            ar = "الحمد لله رب العالمين",
+            ku = "سوپاس بۆ خوای جیهانان",
+            reference = "Al-Fātiḥah 1:2"
         )
     )
 

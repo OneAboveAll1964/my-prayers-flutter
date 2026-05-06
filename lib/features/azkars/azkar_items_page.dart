@@ -7,12 +7,13 @@ import '../../shared/data/hisnul_repository.dart';
 import '../../shared/models/azkar.dart';
 import '../../shared/state/favorites_provider.dart';
 import '../../shared/state/settings_provider.dart';
+import '../../shared/widgets/animated_toggle_icon.dart';
 import '../../shared/widgets/app_button.dart';
 import '../../shared/widgets/app_sheet.dart';
 import '../../shared/widgets/app_spinner.dart';
 import '../../shared/widgets/page_scaffold.dart';
 import '../settings/widgets/arabic_font_picker.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:ionicons/ionicons.dart';
 
 class AzkarItemsPage extends ConsumerStatefulWidget {
   const AzkarItemsPage({
@@ -73,7 +74,7 @@ class _AzkarItemsPageState extends ConsumerState<AzkarItemsPage> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   AppIconButton(
-                    icon: LucideIcons.type,
+                    icon: Ionicons.text_outline,
                     semanticLabel: l10n.t('settings.arabicFont'),
                     onPressed: () {
                       showAppSheet(
@@ -83,15 +84,25 @@ class _AzkarItemsPageState extends ConsumerState<AzkarItemsPage> {
                       );
                     },
                   ),
-                  AppIconButton(
-                    icon: isStarred
-                        ? LucideIcons.star
-                        : LucideIcons.star,
-                    color: isStarred ? palette.accent : palette.textMuted,
-                    semanticLabel: 'Star',
-                    onPressed: () => ref
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => ref
                         .read(favoritesProvider.notifier)
                         .toggleChapter(widget.chapterId),
+                    child: SizedBox(
+                      width: 44,
+                      height: 44,
+                      child: Center(
+                        child: AnimatedToggleIcon(
+                          outlineIcon: Ionicons.star_outline,
+                          filledIcon: Ionicons.star,
+                          active: isStarred,
+                          activeColor: palette.accent,
+                          inactiveColor: palette.textMuted,
+                          size: 22,
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -425,7 +436,7 @@ class _ResetButtonState extends State<_ResetButton> {
           color: _down ? palette.surface2 : Colors.transparent,
           borderRadius: BorderRadius.circular(999),
         ),
-        child: Icon(LucideIcons.refreshCw,
+        child: Icon(Ionicons.refresh,
             size: 18, color: palette.textMuted),
       ),
     );

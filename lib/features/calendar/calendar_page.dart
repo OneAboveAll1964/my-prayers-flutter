@@ -11,7 +11,7 @@ import '../../shared/state/settings_provider.dart';
 import '../../shared/widgets/app_button.dart';
 import '../../shared/widgets/app_spinner.dart';
 import '../../shared/widgets/page_scaffold.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:ionicons/ionicons.dart';
 
 class CalendarPage extends ConsumerStatefulWidget {
   const CalendarPage({super.key});
@@ -168,7 +168,7 @@ class _MonthSwitcher extends StatelessWidget {
       child: Row(
         children: [
           AppIconButton(
-            icon: LucideIcons.chevronLeft,
+            icon: Ionicons.chevron_back,
             onPressed: onPrev,
           ),
           Expanded(
@@ -184,7 +184,7 @@ class _MonthSwitcher extends StatelessWidget {
             ),
           ),
           AppIconButton(
-            icon: LucideIcons.chevronRight,
+            icon: Ionicons.chevron_forward,
             onPressed: onNext,
           ),
         ],

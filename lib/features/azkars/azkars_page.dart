@@ -9,7 +9,7 @@ import '../../shared/state/favorites_provider.dart';
 import '../../shared/widgets/app_field.dart';
 import '../../shared/widgets/app_spinner.dart';
 import '../../shared/widgets/page_scaffold.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:ionicons/ionicons.dart';
 
 class AzkarsPage extends ConsumerStatefulWidget {
   const AzkarsPage({super.key});
@@ -93,7 +93,7 @@ class _AzkarsPageState extends ConsumerState<AzkarsPage> {
           search: AppTextField(
             hintText: l10n.t('azkars.search'),
             prefix:
-                Icon(LucideIcons.search, size: 18, color: palette.textMuted),
+                Icon(Ionicons.search_outline, size: 18, color: palette.textMuted),
             onChanged: (v) {
               setState(() => _query = v);
               _runSearch(v);
@@ -395,8 +395,7 @@ class _ChapterRowState extends State<_ChapterRow> {
                 alignment: Alignment.center,
                 child: Icon(
                   widget.isStarred
-                      ? LucideIcons.star
-                      : LucideIcons.star,
+                      ? Ionicons.star : Ionicons.star_outline,
                   size: 20,
                   color: widget.isStarred
                       ? palette.accent
@@ -406,8 +405,8 @@ class _ChapterRowState extends State<_ChapterRow> {
             ),
             Icon(
               isRtl
-                  ? LucideIcons.chevronLeft
-                  : LucideIcons.chevronRight,
+                  ? Ionicons.chevron_back
+                  : Ionicons.chevron_forward,
               size: 18,
               color: palette.textSubtle,
             ),

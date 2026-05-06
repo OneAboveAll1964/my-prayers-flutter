@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/i18n/app_l10n.dart';
 import '../../core/theme/tokens.dart';
 import '../../shared/widgets/app_sheet.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:ionicons/ionicons.dart';
 
 class AppShell extends StatelessWidget {
   const AppShell({super.key, required this.child});
@@ -35,10 +35,10 @@ class _BottomTabBar extends StatelessWidget {
   final String activePath;
 
   static const _tabs = [
-    _TabSpec(path: '/', label: 'home', icon: LucideIcons.home, activeIcon: LucideIcons.home),
-    _TabSpec(path: '/azkars', label: 'azkars', icon: LucideIcons.bookOpen, activeIcon: LucideIcons.bookOpen),
-    _TabSpec(path: '/qibla', label: 'qibla', icon: LucideIcons.compass, activeIcon: LucideIcons.compass),
-    _TabSpec(path: '/quran', label: 'quran', icon: LucideIcons.bookOpen, activeIcon: LucideIcons.bookOpen),
+    _TabSpec(path: '/', label: 'home', icon: Ionicons.home_outline, activeIcon: Ionicons.home),
+    _TabSpec(path: '/azkars', label: 'azkars', icon: Ionicons.bookmark_outline, activeIcon: Ionicons.bookmark),
+    _TabSpec(path: '/qibla', label: 'qibla', icon: Ionicons.compass_outline, activeIcon: Ionicons.compass),
+    _TabSpec(path: '/quran', label: 'quran', icon: Ionicons.book_outline, activeIcon: Ionicons.book),
   ];
 
   @override
@@ -73,8 +73,8 @@ class _BottomTabBar extends StatelessWidget {
                 tab: const _TabSpec(
                   path: '__more__',
                   label: 'more',
-                  icon: LucideIcons.layoutGrid,
-                  activeIcon: LucideIcons.layoutGrid,
+                  icon: Ionicons.apps_outline,
+                  activeIcon: Ionicons.apps_outline,
                 ),
                 selected: false,
                 label: l10n.t('nav.more'),
@@ -164,10 +164,10 @@ class _TabButton extends StatelessWidget {
 
 class _MoreSheet extends StatelessWidget {
   static const _items = [
-    _MoreItem(path: '/calendar', label: 'calendar', icon: LucideIcons.calendarDays),
-    _MoreItem(path: '/names', label: 'names', icon: LucideIcons.listOrdered),
-    _MoreItem(path: '/tasbih', label: 'tasbih', icon: LucideIcons.target),
-    _MoreItem(path: '/settings', label: 'settings', icon: LucideIcons.sliders),
+    _MoreItem(path: '/calendar', label: 'calendar', icon: Ionicons.calendar_outline),
+    _MoreItem(path: '/names', label: 'names', icon: Ionicons.list_outline),
+    _MoreItem(path: '/tasbih', label: 'tasbih', icon: Ionicons.disc_outline),
+    _MoreItem(path: '/settings', label: 'settings', icon: Ionicons.settings_outline),
   ];
 
   @override

@@ -16,7 +16,7 @@ import '../../shared/widgets/segmented_control.dart';
 import 'widgets/arabic_font_picker.dart';
 import 'widgets/language_picker.dart';
 import 'widgets/method_picker.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:ionicons/ionicons.dart';
 
 class SettingsPage extends ConsumerWidget {
   const SettingsPage({super.key});
@@ -280,7 +280,7 @@ class SettingsPage extends ConsumerWidget {
                               ),
                               child: Row(
                                 children: [
-                                  Icon(LucideIcons.bellRing,
+                                  Icon(Ionicons.notifications_outline,
                                       size: 18, color: palette.accent),
                                   const SizedBox(width: 10),
                                   Expanded(
@@ -387,7 +387,7 @@ class SettingsPage extends ConsumerWidget {
                                 ),
                               ),
                               const SizedBox(width: 4),
-                              Icon(LucideIcons.externalLink,
+                              Icon(Ionicons.open_outline,
                                   size: 12, color: palette.accent),
                             ],
                           ),
@@ -499,7 +499,7 @@ class _TileState extends State<_Tile> {
               ),
             ),
             const SizedBox(width: 6),
-            Icon(LucideIcons.chevronRight,
+            Icon(Ionicons.chevron_forward,
                 size: 18, color: palette.textSubtle),
           ],
         ),
@@ -579,7 +579,7 @@ class _OffsetRow extends StatelessWidget {
             ),
           ),
           _StepButton(
-            icon: LucideIcons.minus,
+            icon: Ionicons.remove,
             enabled: canMinus,
             onTap: canMinus ? () => onChange(-1) : null,
           ),
@@ -597,7 +597,7 @@ class _OffsetRow extends StatelessWidget {
             ),
           ),
           _StepButton(
-            icon: LucideIcons.plus,
+            icon: Ionicons.add,
             enabled: canPlus,
             onTap: canPlus ? () => onChange(1) : null,
           ),

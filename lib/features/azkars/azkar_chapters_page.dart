@@ -8,7 +8,7 @@ import '../../shared/models/azkar.dart';
 import '../../shared/state/favorites_provider.dart';
 import '../../shared/widgets/app_spinner.dart';
 import '../../shared/widgets/page_scaffold.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:ionicons/ionicons.dart';
 
 class AzkarChaptersPage extends ConsumerStatefulWidget {
   const AzkarChaptersPage({super.key, required this.categoryId});
@@ -141,7 +141,7 @@ class _ChapterRowState extends State<_ChapterRow> {
               borderRadius: BorderRadius.circular(999),
             ),
             child: Icon(
-              widget.starred ? LucideIcons.star : LucideIcons.star,
+              widget.starred ? Ionicons.star : Ionicons.star_outline,
               color: widget.starred ? palette.accent : palette.textSubtle,
               size: 22,
             ),
@@ -172,8 +172,8 @@ class _ChapterRowState extends State<_ChapterRow> {
                   ),
                   Icon(
                     isRtl
-                        ? LucideIcons.chevronLeft
-                        : LucideIcons.chevronRight,
+                        ? Ionicons.chevron_back
+                        : Ionicons.chevron_forward,
                     size: 18,
                     color: palette.textSubtle,
                   ),

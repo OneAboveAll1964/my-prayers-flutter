@@ -28,9 +28,9 @@ class NotificationService {
       tz.setLocalLocation(tz.getLocation(localTzName));
     } catch (_) {
       try {
-        final offset = DateTime.now().timeZoneOffset.inHours;
+        final offsetMs = DateTime.now().timeZoneOffset.inMilliseconds;
         final candidate = tz.timeZoneDatabase.locations.values.firstWhere(
-          (l) => l.currentTimeZone.offset == offset * 3600 * 1000,
+          (l) => l.currentTimeZone.offset == offsetMs,
           orElse: () => tz.UTC,
         );
         tz.setLocalLocation(candidate);
@@ -78,9 +78,25 @@ class NotificationService {
     }
     if (Platform.isAndroid) {
       final status = await Permission.notification.request();
+      final android = _plugin.resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>();
+      if (android != null) {
+        final canExact = await android.canScheduleExactNotifications() ?? false;
+        if (!canExact) {
+          await android.requestExactAlarmsPermission();
+        }
+      }
       return status.isGranted;
     }
     return true;
+  }
+
+  Future<bool> _canScheduleExactAndroid() async {
+    if (!Platform.isAndroid) return true;
+    final android = _plugin.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
+    if (android == null) return false;
+    return (await android.canScheduleExactNotifications()) ?? false;
   }
 
   Future<void> cancelAll() => _plugin.cancelAll();
@@ -94,6 +110,11 @@ class NotificationService {
   }) async {
     await cancelAll();
     if (!enabled || location == null) return;
+
+    final canExact = await _canScheduleExactAndroid();
+    final scheduleMode = canExact
+        ? AndroidScheduleMode.exactAllowWhileIdle
+        : AndroidScheduleMode.inexactAllowWhileIdle;
 
     final now = DateTime.now();
     final repo = PrayerTimeRepository.instance;
@@ -129,22 +150,17 @@ class NotificationService {
           when: tz.TZDateTime.from(t, tz.local),
           title: labels[i],
           body: 'It is time for ${labels[i]} prayer',
+          mode: scheduleMode,
         );
       }
     }
   }
 
-  Future<void> _scheduleOne({
-    required int id,
-    required tz.TZDateTime when,
-    required String title,
-    required String body,
-  }) async {
-    await _plugin.zonedSchedule(
-      id,
-      title,
-      body,
-      when,
+  Future<void> showTest() async {
+    await _plugin.show(
+      99999,
+      'My Prayers',
+      'Notifications are working',
       const NotificationDetails(
         android: AndroidNotificationDetails(
           _channelId,
@@ -164,7 +180,72 @@ class NotificationService {
           interruptionLevel: InterruptionLevel.timeSensitive,
         ),
       ),
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
     );
+  }
+
+  Future<void> _scheduleOne({
+    required int id,
+    required tz.TZDateTime when,
+    required String title,
+    required String body,
+    required AndroidScheduleMode mode,
+  }) async {
+    try {
+      await _plugin.zonedSchedule(
+        id,
+        title,
+        body,
+        when,
+        const NotificationDetails(
+          android: AndroidNotificationDetails(
+            _channelId,
+            _channelName,
+            channelDescription: 'Plays adhan at scheduled prayer times',
+            importance: Importance.high,
+            priority: Priority.high,
+            playSound: true,
+            sound: RawResourceAndroidNotificationSound(_adhanResource),
+            category: AndroidNotificationCategory.alarm,
+          ),
+          iOS: DarwinNotificationDetails(
+            sound: 'adhan.caf',
+            presentSound: true,
+            presentAlert: true,
+            presentBanner: true,
+            interruptionLevel: InterruptionLevel.timeSensitive,
+          ),
+        ),
+        androidScheduleMode: mode,
+      );
+    } catch (_) {
+      try {
+        await _plugin.zonedSchedule(
+          id,
+          title,
+          body,
+          when,
+          const NotificationDetails(
+            android: AndroidNotificationDetails(
+              _channelId,
+              _channelName,
+              channelDescription: 'Plays adhan at scheduled prayer times',
+              importance: Importance.high,
+              priority: Priority.high,
+              playSound: true,
+              sound: RawResourceAndroidNotificationSound(_adhanResource),
+              category: AndroidNotificationCategory.alarm,
+            ),
+            iOS: DarwinNotificationDetails(
+              sound: 'adhan.caf',
+              presentSound: true,
+              presentAlert: true,
+              presentBanner: true,
+              interruptionLevel: InterruptionLevel.timeSensitive,
+            ),
+          ),
+          androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+        );
+      } catch (_) {}
+    }
   }
 }

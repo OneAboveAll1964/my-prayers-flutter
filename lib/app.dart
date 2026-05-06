@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -51,6 +52,8 @@ class MyPrayersApp extends ConsumerWidget {
       supportedLocales: supportedLocales,
       localizationsDelegates: const [
         AppL10nDelegate(),
+        _CkbMaterialDelegate(),
+        _CkbCupertinoDelegate(),
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
@@ -67,3 +70,26 @@ class MyPrayersApp extends ConsumerWidget {
   }
 }
 
+class _CkbMaterialDelegate
+    extends LocalizationsDelegate<MaterialLocalizations> {
+  const _CkbMaterialDelegate();
+  @override
+  bool isSupported(Locale locale) => locale.languageCode == 'ckb';
+  @override
+  Future<MaterialLocalizations> load(Locale locale) =>
+      GlobalMaterialLocalizations.delegate.load(const Locale('ar'));
+  @override
+  bool shouldReload(_CkbMaterialDelegate old) => false;
+}
+
+class _CkbCupertinoDelegate
+    extends LocalizationsDelegate<CupertinoLocalizations> {
+  const _CkbCupertinoDelegate();
+  @override
+  bool isSupported(Locale locale) => locale.languageCode == 'ckb';
+  @override
+  Future<CupertinoLocalizations> load(Locale locale) =>
+      GlobalCupertinoLocalizations.delegate.load(const Locale('ar'));
+  @override
+  bool shouldReload(_CkbCupertinoDelegate old) => false;
+}

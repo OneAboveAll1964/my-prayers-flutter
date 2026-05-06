@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import '../../core/i18n/app_l10n.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/utils/hijri.dart';
@@ -28,6 +27,7 @@ class HomePage extends ConsumerStatefulWidget {
 
 class _HomePageState extends ConsumerState<HomePage> {
   PrayerTime? _prayer;
+  PrayerTime? _tomorrowPrayer;
   bool _loading = false;
   late DateTime _date;
   Timer? _ticker;
@@ -36,8 +36,13 @@ class _HomePageState extends ConsumerState<HomePage> {
   void initState() {
     super.initState();
     _date = DateTime.now();
-    _ticker = Timer.periodic(const Duration(seconds: 30), (_) {
+    _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
       if (mounted) setState(() {});
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (ref.read(settingsProvider).location != null) {
+        _loadPrayer();
+      }
     });
   }
 
@@ -50,19 +55,29 @@ class _HomePageState extends ConsumerState<HomePage> {
   Future<void> _loadPrayer() async {
     final s = ref.read(settingsProvider);
     if (s.location == null) {
-      setState(() => _prayer = null);
+      setState(() {
+        _prayer = null;
+        _tomorrowPrayer = null;
+      });
       return;
     }
     setState(() => _loading = true);
-    final result = await PrayerTimeRepository.instance.getPrayerTimes(
+    final today = await PrayerTimeRepository.instance.getPrayerTimes(
       location: s.location!,
       date: _date,
       attribute: s.toAttribute(),
       useFixedPrayer: s.useFixedTimes,
     );
+    final tomorrow = await PrayerTimeRepository.instance.getPrayerTimes(
+      location: s.location!,
+      date: _date.add(const Duration(days: 1)),
+      attribute: s.toAttribute(),
+      useFixedPrayer: s.useFixedTimes,
+    );
     if (!mounted) return;
     setState(() {
-      _prayer = result;
+      _prayer = today;
+      _tomorrowPrayer = tomorrow;
       _loading = false;
     });
   }
@@ -98,11 +113,9 @@ class _HomePageState extends ConsumerState<HomePage> {
       }
     });
 
-    if (_prayer == null && !_loading && settings.location != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _loadPrayer());
-    }
-
     final idx = _findCurrentIndex(_prayer);
+    final lang = settings.language ??
+        Localizations.localeOf(context).languageCode;
 
     return Column(
       children: [
@@ -152,14 +165,13 @@ class _HomePageState extends ConsumerState<HomePage> {
               else if (_prayer != null) ...[
                 NextPrayerCountdown(
                   prayer: _prayer!,
-                  language: settings.language ??
-                      Localizations.localeOf(context).languageCode,
+                  tomorrowPrayer: _tomorrowPrayer,
+                  language: lang,
                 ),
                 PrayerCard(
                   prayer: _prayer!,
                   currentIndex: idx,
-                  language: settings.language ??
-                      Localizations.localeOf(context).languageCode,
+                  language: lang,
                 ),
               ],
               if (favorites.lastSurah != null)
@@ -179,13 +191,4 @@ class _HomePageState extends ConsumerState<HomePage> {
     }
     return true;
   }
-}
-
-String dayNameLocalised(DateTime d, String lang) {
-  return DateFormat.EEEE(_intlLocale(lang)).format(d);
-}
-
-String _intlLocale(String code) {
-  if (code == 'ckb' || code == 'ckb_Badini') return 'ar';
-  return code;
 }

@@ -7,8 +7,11 @@ import '../../shared/data/hisnul_repository.dart';
 import '../../shared/models/azkar.dart';
 import '../../shared/state/favorites_provider.dart';
 import '../../shared/state/settings_provider.dart';
+import '../../shared/widgets/app_button.dart';
+import '../../shared/widgets/app_sheet.dart';
 import '../../shared/widgets/app_spinner.dart';
 import '../../shared/widgets/page_scaffold.dart';
+import '../settings/widgets/arabic_font_picker.dart';
 
 class AzkarItemsPage extends ConsumerStatefulWidget {
   const AzkarItemsPage({
@@ -52,6 +55,7 @@ class _AzkarItemsPageState extends ConsumerState<AzkarItemsPage> {
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
+    final l10n = AppL10n.of(context);
 
     return Scaffold(
       backgroundColor: palette.bg,
@@ -59,7 +63,21 @@ class _AzkarItemsPageState extends ConsumerState<AzkarItemsPage> {
         bottom: false,
         child: Column(
           children: [
-            PageHeader(title: widget.chapterName, back: true),
+            PageHeader(
+              title: widget.chapterName,
+              back: true,
+              action: AppIconButton(
+                icon: Icons.text_fields_rounded,
+                semanticLabel: l10n.t('settings.arabicFont'),
+                onPressed: () {
+                  showAppSheet(
+                    context: context,
+                    title: l10n.t('settings.arabicFont'),
+                    builder: (ctx) => const ArabicFontPicker(),
+                  );
+                },
+              ),
+            ),
             Expanded(
               child: _loading
                   ? const PageLoader()
@@ -109,13 +127,15 @@ class _AzkarItemCard extends ConsumerWidget {
       notifier.setDhikr(item.id, 0);
     }
 
-    final card = Container(
+    final card = AnimatedContainer(
+      duration: AppTokens.durationFast,
+      curve: AppTokens.ease,
       decoration: BoxDecoration(
         color: palette.surface,
         borderRadius: BorderRadius.circular(AppTokens.radius),
         border: Border.all(
           color: reached ? palette.accent : palette.line,
-          width: reached ? 1.4 : 1,
+          width: 1,
         ),
       ),
       clipBehavior: Clip.hardEdge,
@@ -145,8 +165,11 @@ class _AzkarItemCard extends ConsumerWidget {
                   ),
                 ),
                 const Spacer(),
-                if (hasTarget && dhikr > 0)
-                  _ResetButton(onTap: reset),
+                if (hasTarget)
+                  _ResetButton(
+                    onTap: dhikr > 0 ? reset : null,
+                    visible: dhikr > 0,
+                  ),
               ],
             ),
           ),
@@ -168,15 +191,19 @@ class _AzkarItemCard extends ConsumerWidget {
                 ],
                 if (item.item != null && item.item!.isNotEmpty) ...[
                   const SizedBox(height: 8),
-                  Directionality(
-                    textDirection: TextDirection.rtl,
-                    child: Text(
-                      item.item!,
-                      style: TextStyle(
-                        color: palette.text,
-                        fontFamily: fontFamily,
-                        fontSize: 22,
-                        height: 2.1,
+                  SizedBox(
+                    width: double.infinity,
+                    child: Directionality(
+                      textDirection: TextDirection.rtl,
+                      child: Text(
+                        item.item!,
+                        textAlign: TextAlign.right,
+                        style: TextStyle(
+                          color: palette.text,
+                          fontFamily: fontFamily,
+                          fontSize: 22,
+                          height: 2.1,
+                        ),
                       ),
                     ),
                   ),
@@ -324,8 +351,9 @@ class _CounterBar extends StatelessWidget {
 }
 
 class _ResetButton extends StatefulWidget {
-  const _ResetButton({required this.onTap});
-  final VoidCallback onTap;
+  const _ResetButton({required this.onTap, required this.visible});
+  final VoidCallback? onTap;
+  final bool visible;
   @override
   State<_ResetButton> createState() => _ResetButtonState();
 }
@@ -337,7 +365,9 @@ class _ResetButtonState extends State<_ResetButton> {
     final palette = context.palette;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTapDown: (_) => setState(() => _down = true),
+      onTapDown: widget.onTap == null
+          ? null
+          : (_) => setState(() => _down = true),
       onTapCancel: () => setState(() => _down = false),
       onTapUp: (_) => setState(() => _down = false),
       onTap: widget.onTap,
@@ -350,8 +380,13 @@ class _ResetButtonState extends State<_ResetButton> {
           color: _down ? palette.surface2 : Colors.transparent,
           borderRadius: BorderRadius.circular(999),
         ),
-        child: Icon(Icons.refresh_rounded,
-            size: 18, color: palette.textMuted),
+        child: AnimatedOpacity(
+          duration: AppTokens.duration,
+          curve: AppTokens.ease,
+          opacity: widget.visible ? 1.0 : 0.0,
+          child: Icon(Icons.refresh_rounded,
+              size: 18, color: palette.textMuted),
+        ),
       ),
     );
   }

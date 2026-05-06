@@ -90,8 +90,8 @@ class _QiblaPageState extends ConsumerState<QiblaPage> {
 
     final bearing = qiblaBearing(loc.latitude, loc.longitude);
     final distance = distanceToKaabaKm(loc.latitude, loc.longitude);
-    final delta = ((bearing - _heading) + 360) % 360;
-    final aligned = _hasCompass && (delta < 4 || delta > 356);
+    final delta = (((bearing - _heading) + 540) % 360) - 180;
+    final aligned = _hasCompass && delta.abs() < 4;
 
     return Column(
       children: [
@@ -101,7 +101,7 @@ class _QiblaPageState extends ConsumerState<QiblaPage> {
             padding: const EdgeInsets.fromLTRB(18, 8, 18, 24),
             child: Column(
               children: [
-                const SizedBox(height: 12),
+                const SizedBox(height: 14),
                 Center(
                   child: _Compass(
                     bearing: bearing,
@@ -110,7 +110,7 @@ class _QiblaPageState extends ConsumerState<QiblaPage> {
                     aligned: aligned,
                   ),
                 ),
-                const SizedBox(height: 22),
+                const SizedBox(height: 24),
                 _StatList(
                   hasCompass: _hasCompass,
                   heading: _heading,
@@ -129,10 +129,10 @@ class _QiblaPageState extends ConsumerState<QiblaPage> {
                     aligned ? l10n.t('common.done') : l10n.t('qibla.calibrate'),
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      color:
-                          aligned ? palette.accent : palette.textMuted,
+                      color: aligned ? palette.accent : palette.textMuted,
                       fontSize: 13,
-                      fontWeight: aligned ? FontWeight.w600 : FontWeight.w500,
+                      fontWeight:
+                          aligned ? FontWeight.w600 : FontWeight.w500,
                     ),
                   ),
                 const SizedBox(height: 12),
@@ -162,14 +162,20 @@ class _Compass extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = context.palette;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppL10n.of(context);
+
     return LayoutBuilder(builder: (ctx, constraints) {
       final size = math.min(constraints.maxWidth, 340.0);
       final headingShown = hasCompass ? heading : 0.0;
+      final needleAngle = (bearing - headingShown);
+      final showHeading = hasCompass;
+
       return SizedBox(
         width: size,
         height: size,
         child: Stack(
           alignment: Alignment.center,
+          clipBehavior: Clip.none,
           children: [
             AnimatedContainer(
               duration: const Duration(milliseconds: 200),
@@ -198,48 +204,61 @@ class _Compass extends StatelessWidget {
                     textSubtle: palette.textSubtle,
                     line: palette.line,
                     qiblaBearing: bearing,
-                    aligned: aligned,
+                    headingShown: headingShown,
                     kaabaFill: isDark
                         ? const Color(0xFF0A0A0A)
-                        : const Color(0xFF1A1A1A),
+                        : const Color(0xFF111111),
                     kaabaBand: const Color(0xFFC9A14A),
                   ),
                 ),
               ),
             ),
-            Positioned(
-              top: -2,
-              child: _TopMarker(color: palette.accent),
+            AnimatedRotation(
+              duration: const Duration(milliseconds: 220),
+              curve: AppTokens.ease,
+              turns: needleAngle / 360.0,
+              child: SizedBox(
+                width: size,
+                height: size,
+                child: CustomPaint(
+                  painter: _NeedlePainter(
+                    accent: aligned ? palette.accentStrong : palette.accent,
+                    tail: palette.surface3,
+                    border: palette.lineStrong,
+                  ),
+                ),
+              ),
             ),
             Container(
-              width: 96,
-              height: 96,
+              width: size * 0.32,
+              height: size * 0.32,
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: palette.surface,
-                border: Border.all(color: palette.line),
+                border: Border.all(color: palette.lineStrong, width: 1.5),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    hasCompass
+                    showHeading
                         ? '${headingShown.round() % 360}°'
                         : '${bearing.round()}°',
                     style: TextStyle(
                       color: palette.text,
-                      fontSize: 24,
+                      fontSize: size * 0.085,
                       fontWeight: FontWeight.w700,
                       letterSpacing: -0.4,
+                      height: 1,
                       fontFeatures: const [FontFeature.tabularFigures()],
                     ),
                   ),
-                  const SizedBox(height: 1),
+                  const SizedBox(height: 3),
                   Text(
-                    hasCompass
-                        ? AppL10n.of(context).t('qibla.heading').toUpperCase()
-                        : AppL10n.of(context).t('qibla.bearing').toUpperCase(),
+                    showHeading
+                        ? l10n.t('qibla.heading').toUpperCase()
+                        : l10n.t('qibla.bearing').toUpperCase(),
                     style: TextStyle(
                       color: palette.textMuted,
                       fontSize: 9.5,
@@ -250,23 +269,17 @@ class _Compass extends StatelessWidget {
                 ],
               ),
             ),
+            Positioned(
+              top: -4,
+              child: CustomPaint(
+                size: const Size(20, 14),
+                painter: _TrianglePainter(color: palette.accent),
+              ),
+            ),
           ],
         ),
       );
     });
-  }
-}
-
-class _TopMarker extends StatelessWidget {
-  const _TopMarker({required this.color});
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return CustomPaint(
-      size: const Size(20, 14),
-      painter: _TrianglePainter(color: color),
-    );
   }
 }
 
@@ -297,7 +310,7 @@ class _DialPainter extends CustomPainter {
     required this.textSubtle,
     required this.line,
     required this.qiblaBearing,
-    required this.aligned,
+    required this.headingShown,
     required this.kaabaFill,
     required this.kaabaBand,
   });
@@ -308,7 +321,7 @@ class _DialPainter extends CustomPainter {
   final Color textSubtle;
   final Color line;
   final double qiblaBearing;
-  final bool aligned;
+  final double headingShown;
   final Color kaabaFill;
   final Color kaabaBand;
 
@@ -321,13 +334,13 @@ class _DialPainter extends CustomPainter {
       ..color = line
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1;
-    canvas.drawCircle(c, r - 18, innerRing);
+    canvas.drawCircle(c, r * 0.82, innerRing);
 
     for (var i = 0; i < 72; i++) {
       final angle = i * 5 * math.pi / 180 - math.pi / 2;
       final isCardinal = i % 18 == 0;
       final isMajor = i % 6 == 0;
-      final tickLen = isCardinal ? 12.0 : (isMajor ? 9.0 : 5.0);
+      final tickLen = isCardinal ? 13.0 : (isMajor ? 9.0 : 5.0);
       final p1 = Offset(c.dx + (r - 4) * math.cos(angle),
           c.dy + (r - 4) * math.sin(angle));
       final p2 = Offset(c.dx + (r - 4 - tickLen) * math.cos(angle),
@@ -345,8 +358,8 @@ class _DialPainter extends CustomPainter {
     const labels = ['N', 'E', 'S', 'W'];
     for (var i = 0; i < 4; i++) {
       final angle = i * 90 * math.pi / 180 - math.pi / 2;
-      final p = Offset(c.dx + (r - 32) * math.cos(angle),
-          c.dy + (r - 32) * math.sin(angle));
+      final p = Offset(c.dx + (r - 34) * math.cos(angle),
+          c.dy + (r - 34) * math.sin(angle));
       final tp = TextPainter(
         text: TextSpan(
           text: labels[i],
@@ -359,40 +372,93 @@ class _DialPainter extends CustomPainter {
         ),
         textDirection: TextDirection.ltr,
       )..layout();
-      tp.paint(canvas, p - Offset(tp.width / 2, tp.height / 2));
+      canvas.save();
+      canvas.translate(p.dx, p.dy);
+      canvas.rotate(headingShown * math.pi / 180);
+      tp.paint(canvas, Offset(-tp.width / 2, -tp.height / 2));
+      canvas.restore();
     }
 
     final qiblaAngle = (qiblaBearing - 90) * math.pi / 180;
     final kaabaCenter = Offset(
-      c.dx + (r - 36) * math.cos(qiblaAngle),
-      c.dy + (r - 36) * math.sin(qiblaAngle),
+      c.dx + (r - 18) * math.cos(qiblaAngle),
+      c.dy + (r - 18) * math.sin(qiblaAngle),
     );
-    const kaabaSize = 22.0;
+    const kaabaW = 18.0;
+    const kaabaH = 18.0;
+    canvas.save();
+    canvas.translate(kaabaCenter.dx, kaabaCenter.dy);
+    canvas.rotate(qiblaBearing * math.pi / 180);
     final kaabaRect = Rect.fromCenter(
-      center: kaabaCenter,
-      width: kaabaSize,
-      height: kaabaSize * 1.05,
+      center: Offset.zero,
+      width: kaabaW,
+      height: kaabaH,
     );
-    final kaabaPaint = Paint()..color = kaabaFill;
     canvas.drawRRect(
       RRect.fromRectAndRadius(kaabaRect, const Radius.circular(2)),
-      kaabaPaint,
+      Paint()..color = kaabaFill,
     );
-    final bandPaint = Paint()..color = kaabaBand;
     final bandRect = Rect.fromLTWH(
-      kaabaRect.left,
-      kaabaRect.top + kaabaRect.height * 0.34,
-      kaabaRect.width,
-      kaabaRect.height * 0.16,
+      kaabaRect.left + 2,
+      -1.5,
+      kaabaW - 4,
+      3,
     );
-    canvas.drawRect(bandRect, bandPaint);
+    canvas.drawRect(bandRect, Paint()..color = kaabaBand);
+    canvas.restore();
   }
 
   @override
   bool shouldRepaint(_DialPainter old) =>
       old.qiblaBearing != qiblaBearing ||
-      old.aligned != aligned ||
+      old.headingShown != headingShown ||
       old.accent != accent;
+}
+
+class _NeedlePainter extends CustomPainter {
+  _NeedlePainter({
+    required this.accent,
+    required this.tail,
+    required this.border,
+  });
+  final Color accent;
+  final Color tail;
+  final Color border;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final c = Offset(size.width / 2, size.height / 2);
+    final r = size.width / 2;
+
+    final tipLen = r * 0.72;
+    final tailLen = r * 0.72;
+    final width = r * 0.09;
+
+    final tip = Path()
+      ..moveTo(c.dx, c.dy - tipLen)
+      ..lineTo(c.dx + width, c.dy)
+      ..lineTo(c.dx - width, c.dy)
+      ..close();
+    canvas.drawPath(tip, Paint()..color = accent);
+
+    final tailPath = Path()
+      ..moveTo(c.dx, c.dy + tailLen)
+      ..lineTo(c.dx + width, c.dy)
+      ..lineTo(c.dx - width, c.dy)
+      ..close();
+    canvas.drawPath(tailPath, Paint()..color = tail);
+
+    final outline = Paint()
+      ..color = border.withValues(alpha: 0.35)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 0.7;
+    canvas.drawPath(tip, outline);
+    canvas.drawPath(tailPath, outline);
+  }
+
+  @override
+  bool shouldRepaint(_NeedlePainter old) =>
+      old.accent != accent || old.tail != tail;
 }
 
 class _StatList extends StatelessWidget {

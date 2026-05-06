@@ -11,12 +11,15 @@ Future<T?> showAppSheet<T>({
   return showModalBottomSheet<T>(
     context: context,
     isScrollControlled: true,
+    isDismissible: true,
+    enableDrag: true,
     barrierColor: Colors.black.withValues(alpha: isDark ? 0.6 : 0.4),
     backgroundColor: Colors.transparent,
     elevation: 0,
     useSafeArea: false,
     useRootNavigator: true,
     showDragHandle: false,
+    constraints: const BoxConstraints(),
     builder: (ctx) {
       return _SheetBody(
         title: title,
@@ -50,12 +53,11 @@ class _SheetBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final media = MediaQuery.of(context);
-    return Align(
-      alignment: Alignment.bottomCenter,
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        maxHeight: media.size.height - media.padding.top - 24,
+      ),
       child: Container(
-        constraints: BoxConstraints(
-          maxHeight: media.size.height - media.padding.top - 24,
-        ),
         decoration: BoxDecoration(
           color: bgColor,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(22)),

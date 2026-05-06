@@ -101,6 +101,7 @@ const enBundle = <String, String>{
   'settings.timeFormat': 'Time format',
   'settings.time12h': '12-hour',
   'settings.time24h': '24-hour',
+  'settings.arabicFontSize': 'Arabic font size',
   'calc.makkah': 'Umm al-Qura, Makkah',
   'calc.mwl': 'Muslim World League',
   'calc.isna': 'Islamic Society of North America',

@@ -101,6 +101,7 @@ const ckbBadiniBundle = <String, String>{
   'settings.timeFormat': 'شێوەیێ دەمی',
   'settings.time12h': '١٢ سەعەت',
   'settings.time24h': '٢٤ سەعەت',
+  'settings.arabicFontSize': 'مەزنایی فۆنتێ عەرەبی',
   'calc.makkah': 'ئوم القورا، مەککە',
   'calc.mwl': 'ڕابەری جیهانی ئیسلامی',
   'calc.isna': 'کۆما ئیسلامی ئەمەریکا',

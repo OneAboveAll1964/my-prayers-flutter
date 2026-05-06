@@ -101,6 +101,7 @@ const ckbBundle = <String, String>{
   'settings.timeFormat': 'شێوازی کات',
   'settings.time12h': '١٢ کاتژمێر',
   'settings.time24h': '٢٤ کاتژمێر',
+  'settings.arabicFontSize': 'قەبارەی فۆنتی عەرەبی',
   'calc.makkah': 'ئوم القورا، مەککە',
   'calc.mwl': 'ڕابەرایەتی جیهانی ئیسلامی',
   'calc.isna': 'کۆمەڵی ئیسلامی ئەمەریکای باکوور',

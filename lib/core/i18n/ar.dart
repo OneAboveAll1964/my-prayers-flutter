@@ -101,6 +101,7 @@ const arBundle = <String, String>{
   'settings.timeFormat': 'تنسيق الوقت',
   'settings.time12h': '١٢ ساعة',
   'settings.time24h': '٢٤ ساعة',
+  'settings.arabicFontSize': 'حجم الخط العربي',
   'calc.makkah': 'أم القرى، مكة',
   'calc.mwl': 'رابطة العالم الإسلامي',
   'calc.isna': 'الجمعية الإسلامية لأمريكا الشمالية',

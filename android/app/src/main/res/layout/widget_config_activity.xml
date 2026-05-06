@@ -92,11 +92,16 @@
 
             <TextView style="@style/MpConfigLabel" android:text="Arabic font" android:layout_marginTop="20dp" />
             <RadioGroup
-                android:id="@+id/group_font"
+                android:id="@+id/group_font_row1"
                 style="@style/MpSegmentGroup">
                 <RadioButton android:id="@+id/font_uthmanic" style="@style/MpSegmentItem" android:text="Uthmani" />
                 <RadioButton android:id="@+id/font_amiri" style="@style/MpSegmentItem" android:text="Amiri" />
                 <RadioButton android:id="@+id/font_nastaleeq" style="@style/MpSegmentItem" android:text="Nastaleeq" />
+            </RadioGroup>
+            <RadioGroup
+                android:id="@+id/group_font_row2"
+                style="@style/MpSegmentGroup"
+                android:layout_marginTop="6dp">
                 <RadioButton android:id="@+id/font_scheherazade" style="@style/MpSegmentItem" android:text="Scheherazade" />
                 <RadioButton android:id="@+id/font_naskh" style="@style/MpSegmentItem" android:text="Naskh" />
             </RadioGroup>

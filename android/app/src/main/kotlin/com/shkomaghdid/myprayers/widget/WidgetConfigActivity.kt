@@ -74,7 +74,8 @@ class WidgetConfigActivity : Activity() {
         val groupStyle = findViewById<RadioGroup>(R.id.group_style)
         val groupLayout = findViewById<RadioGroup>(R.id.group_layout)
         val groupTheme = findViewById<RadioGroup>(R.id.group_theme)
-        val groupFont = findViewById<RadioGroup>(R.id.group_font)
+        val groupFontRow1 = findViewById<RadioGroup>(R.id.group_font_row1)
+        val groupFontRow2 = findViewById<RadioGroup>(R.id.group_font_row2)
         val groupSize = findViewById<RadioGroup>(R.id.group_size)
         val groupShowTr = findViewById<RadioGroup>(R.id.group_show_tr)
         val groupLang = findViewById<RadioGroup>(R.id.group_lang)
@@ -108,17 +109,32 @@ class WidgetConfigActivity : Activity() {
             "ku" -> R.id.lang_ku
             else -> R.id.lang_en
         })
-        groupFont.check(when (prefs.getString("widget.${widgetId}.font", "uthmanic_hafs")) {
+        val savedFontKey = prefs.getString("widget.${widgetId}.font", "uthmanic_hafs")
+        val savedRow1Id = when (savedFontKey) {
             "amiri_quran" -> R.id.font_amiri
             "nastaleeq" -> R.id.font_nastaleeq
+            "uthmanic_hafs" -> R.id.font_uthmanic
+            else -> -1
+        }
+        val savedRow2Id = when (savedFontKey) {
             "scheherazade" -> R.id.font_scheherazade
             "noto_naskh" -> R.id.font_naskh
-            else -> R.id.font_uthmanic
-        })
+            else -> -1
+        }
+        if (savedRow1Id != -1) groupFontRow1.check(savedRow1Id)
+        if (savedRow2Id != -1) groupFontRow2.check(savedRow2Id)
+        if (savedRow1Id == -1 && savedRow2Id == -1) {
+            groupFontRow1.check(R.id.font_uthmanic)
+        }
 
         val fontPreview = findViewById<TextView>(R.id.font_preview)
+        fun checkedFontId(): Int =
+            if (groupFontRow1.checkedRadioButtonId != -1)
+                groupFontRow1.checkedRadioButtonId
+            else
+                groupFontRow2.checkedRadioButtonId
         fun updateFontPreview() {
-            val resId = when (groupFont.checkedRadioButtonId) {
+            val resId = when (checkedFontId()) {
                 R.id.font_amiri -> R.font.amiri_quran
                 R.id.font_nastaleeq -> R.font.kfgqpc_nastaleeq
                 R.id.font_scheherazade -> R.font.scheherazade
@@ -128,7 +144,25 @@ class WidgetConfigActivity : Activity() {
             fontPreview.typeface = ResourcesCompat.getFont(this, resId)
         }
         updateFontPreview()
-        groupFont.setOnCheckedChangeListener { _, _ -> updateFontPreview() }
+        var syncing = false
+        groupFontRow1.setOnCheckedChangeListener { _, checkedId ->
+            if (syncing) return@setOnCheckedChangeListener
+            if (checkedId != -1) {
+                syncing = true
+                groupFontRow2.clearCheck()
+                syncing = false
+                updateFontPreview()
+            }
+        }
+        groupFontRow2.setOnCheckedChangeListener { _, checkedId ->
+            if (syncing) return@setOnCheckedChangeListener
+            if (checkedId != -1) {
+                syncing = true
+                groupFontRow1.clearCheck()
+                syncing = false
+                updateFontPreview()
+            }
+        }
         groupSize.check(when (prefs.getString("widget.${widgetId}.size", "m")) {
             "s" -> R.id.size_s
             "l" -> R.id.size_l
@@ -150,14 +184,16 @@ class WidgetConfigActivity : Activity() {
 
         randomize.setOnClickListener {
             persist(prefs.edit(),
-                groupType, groupStyle, groupLayout, groupTheme, groupFont, groupSize, groupShowTr, groupLang, groupShowRef)
+                groupType, groupStyle, groupLayout, groupTheme,
+                checkedFontId(), groupSize, groupShowTr, groupLang, groupShowRef)
             WidgetRandomizer.rotate(this, widgetId)
             push()
         }
 
         save.setOnClickListener {
             persist(prefs.edit(),
-                groupType, groupStyle, groupLayout, groupTheme, groupFont, groupSize, groupShowTr, groupLang, groupShowRef)
+                groupType, groupStyle, groupLayout, groupTheme,
+                checkedFontId(), groupSize, groupShowTr, groupLang, groupShowRef)
             WidgetRandomizer.rotate(this, widgetId)
             push()
             val result = Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId)
@@ -172,7 +208,7 @@ class WidgetConfigActivity : Activity() {
         groupStyle: RadioGroup,
         groupLayout: RadioGroup,
         groupTheme: RadioGroup,
-        groupFont: RadioGroup,
+        checkedFontId: Int,
         groupSize: RadioGroup,
         groupShowTr: RadioGroup,
         groupLang: RadioGroup,
@@ -198,7 +234,7 @@ class WidgetConfigActivity : Activity() {
             R.id.theme_dark -> "dark"
             else -> "auto"
         }
-        val font = when (groupFont.checkedRadioButtonId) {
+        val font = when (checkedFontId) {
             R.id.font_amiri -> "amiri_quran"
             R.id.font_nastaleeq -> "nastaleeq"
             R.id.font_scheherazade -> "scheherazade"

@@ -157,11 +157,12 @@ class _CategoryFilterStrip extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = context.palette;
     return Container(
-      height: 42,
       decoration: BoxDecoration(
         color: palette.bg,
         border: Border(bottom: BorderSide(color: palette.line)),
       ),
+      padding: const EdgeInsets.only(bottom: 10),
+      height: 52,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.fromLTRB(18, 6, 18, 6),

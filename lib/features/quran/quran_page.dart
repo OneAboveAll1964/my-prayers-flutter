@@ -419,7 +419,7 @@ class _AyahBookmarkRowState extends ConsumerState<_AyahBookmarkRow> {
                         entry.arabicName,
                         style: TextStyle(
                           color: palette.text,
-                          fontFamily: 'AmiriQuran',
+                          fontFamily: 'UthmanicHafs',
                           fontSize: 16,
                         ),
                       ),

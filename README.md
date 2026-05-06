@@ -26,26 +26,36 @@ Android targets `compileSdk` from Flutter's pinned version, `minSdk = 24`. iOS t
 
 `com.shkomaghdid.myprayers` for both platforms.
 
-## iOS WidgetKit setup (one-time, in Xcode)
+## iOS WidgetKit setup
 
-The Swift source for the home-screen widget lives in `ios/MyPrayersWidget/`. Adding the extension target itself must be done once in Xcode:
+The widget is **fully self-contained** — no App Groups, no shared UserDefaults, no paid Apple Developer account needed. The widget extension picks an ayah/azkar deterministically from a bundled list using the current date+hour as the seed (so each refresh shows a different verse, but the same one for everyone configuring it the same way at the same hour).
+
+The Swift source for the widget lives in `ios/MyPrayersWidget/`:
+
+- `MyPrayersWidget.swift` — TimelineProvider, view, and `@main WidgetBundle` entry
+- `PrayersWidgetConfigurationIntent.swift` — AppIntent with the user-facing options (type / theme / size / language / show translation / refresh interval)
+
+**One-time Xcode steps if you are setting this up fresh** (already wired in this repo):
 
 1. `cd ios && pod install`
-   - If pod install fails with `Unable to find compatibility version string for object version 70`, your CocoaPods is too old for Xcode 16. Run `sudo gem install cocoapods` (or `brew upgrade cocoapods`) and retry. Xcode 16 generates `objectVersion = 70`; only `xcodeproj >= 1.28` understands it.
+   - If pod install fails with `Unable to find compatibility version string for object version 70`, this is a known unresolved CocoaPods/xcodeproj bug — even CocoaPods 1.16.2 still ships `xcodeproj 1.27.0`, which doesn't recognize Xcode 16's project format. Workaround: open `ios/Runner.xcodeproj/project.pbxproj` and change `objectVersion = 70;` to `objectVersion = 60;`. CocoaPods reads it and Xcode 16 still loads it fine. (Xcode may bump it back to 70 if you make a UI change that needs new features; just change it back if it does.)
+   - On macOS, install the latest CocoaPods via Homebrew: `brew install cocoapods`. The Homebrew binary lives at `/usr/local/opt/cocoapods/bin/pod` — invoke it directly to bypass any rbenv/system shim that's pinned to an older version.
 2. Open `ios/Runner.xcworkspace` in Xcode.
-3. **File → New → Target**, choose **Widget Extension**, name it `MyPrayersWidget`. Untick "Include Configuration Intent" (we ship our own `PrayersWidgetConfigurationIntent.swift`). Untick "Include Live Activity".
-4. When Xcode creates the target, **delete** the auto-generated `MyPrayersWidget.swift` and any auto-generated `Info.plist` and entitlements — replace them with the ones already on disk in `ios/MyPrayersWidget/`.
-5. In the new target's **Build Phases → Compile Sources**, add:
-   - `MyPrayersWidget.swift`
-   - `PrayersWidgetConfigurationIntent.swift`
-6. In **Build Phases → Copy Bundle Resources**, add `AmiriQuran-Regular.ttf` (already in `ios/MyPrayersWidget/`).
-7. In the new target's **Signing & Capabilities**, add:
-   - **App Groups** capability with group `group.com.shkomaghdid.myprayers`
-   - Same App Group on the **Runner** target (entitlements file is already at `ios/Runner/Runner.entitlements`)
-8. Set **Deployment Target = iOS 17.0** on the widget target.
-9. In the **Runner** target's **Info.plist**, the App Groups entitlement is already declared; just make sure Xcode picks up `Runner.entitlements` under the Runner target's **Code Signing Entitlements** build setting.
+3. **File → New → Target**, choose **Widget Extension**, name it `MyPrayersWidget`. Untick "Include Live Activity". Tick "Include Configuration Intent" — Xcode will scaffold an intent file you can immediately delete (we ship our own).
+4. After the target is created, in the Project Navigator delete the Xcode-generated `MyPrayersWidgetBundle.swift` and `MyPrayersWidgetControl.swift` — they conflict with our `@main` and we don't ship a Control widget.
+5. The synchronized folder in Xcode 16 will auto-pick up `MyPrayersWidget.swift` and `PrayersWidgetConfigurationIntent.swift` from disk; you don't need to add them manually.
+6. Set **Deployment Target = iOS 17.0** on the widget target (required by `AppIntentConfiguration`).
+7. In the widget target's **Build Settings**:
+   - Set `Code Signing Entitlements` to **empty** (we don't use App Groups)
+   - Set `Info.plist File` to **empty** (the synchronized folder + `GENERATE_INFOPLIST_FILE = YES` produces a valid widget Info.plist on its own)
+   - Bundle ID: `com.shkomaghdid.myprayers.MyPrayersWidget`
+8. **Signing & Capabilities** on the widget target: pick your Personal Team. Do **not** add the App Groups capability — it's not available on free dev accounts and the widget doesn't need it.
 
-After that, build & run normally; the widget shows up in the iOS widget gallery as **My Prayers**.
+The widget appears in the iOS widget gallery as **My Prayers**. Long-press it to enter the configuration screen with all six options.
+
+### What App Groups would unlock (optional, paid account)
+
+If you ever upgrade to a paid Apple Developer Program, you can add the **App Groups** capability with group `group.com.shkomaghdid.myprayers` to *both* the Runner and the Widget targets, and the app will be able to push specific verses (e.g., the user's bookmarked ayah) to the widget at runtime. Without App Groups, the widget still cycles through the bundled curated list — which is the design we shipped.
 
 ## Android home-screen widget
 

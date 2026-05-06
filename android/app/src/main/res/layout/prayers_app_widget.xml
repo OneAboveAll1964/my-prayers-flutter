@@ -16,7 +16,7 @@
         android:textDirection="rtl"
         android:layoutDirection="rtl"
         android:textColor="#15171A"
-        android:fontFamily="@font/amiri_quran_regular"
+        android:fontFamily="@font/uthmanic_hafs"
         android:textAlignment="textStart"
         android:maxLines="3"
         android:ellipsize="end"

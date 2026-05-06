@@ -233,7 +233,7 @@ class _AzkarItemCard extends ConsumerWidget {
                         style: TextStyle(
                           color: palette.text,
                           fontFamily: fontFamily,
-                          fontSize: 22 * arScale,
+                          fontSize: 22.0 * arScale,
                           height: 2.1,
                         ),
                       ),

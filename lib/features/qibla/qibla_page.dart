@@ -19,8 +19,9 @@ class QiblaPage extends ConsumerStatefulWidget {
 
 class _QiblaPageState extends ConsumerState<QiblaPage> {
   StreamSubscription<CompassEvent>? _sub;
-  double? _heading;
-  bool _hasCompass = true;
+  double _heading = 0;
+  bool _hasCompass = false;
+  bool _streamMissing = false;
 
   @override
   void initState() {
@@ -37,16 +38,16 @@ class _QiblaPageState extends ConsumerState<QiblaPage> {
   void _start() {
     final stream = FlutterCompass.events;
     if (stream == null) {
-      setState(() => _hasCompass = false);
+      setState(() => _streamMissing = true);
       return;
     }
     _sub = stream.listen((evt) {
       if (!mounted) return;
-      if (evt.heading == null) {
-        setState(() => _hasCompass = false);
-      } else {
-        setState(() => _heading = evt.heading);
-      }
+      if (evt.heading == null) return;
+      setState(() {
+        _heading = (evt.heading! + 360) % 360;
+        _hasCompass = true;
+      });
     });
   }
 
@@ -73,7 +74,7 @@ class _QiblaPageState extends ConsumerState<QiblaPage> {
                       textAlign: TextAlign.center,
                       style: TextStyle(color: palette.textMuted),
                     ),
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 16),
                     AppButton(
                       label: l10n.t('home.searchCity'),
                       onPressed: () => context.push('/settings/location'),
@@ -89,49 +90,54 @@ class _QiblaPageState extends ConsumerState<QiblaPage> {
 
     final bearing = qiblaBearing(loc.latitude, loc.longitude);
     final distance = distanceToKaabaKm(loc.latitude, loc.longitude);
-    final delta = ((bearing - (_heading ?? 0)) + 360) % 360;
-    final aligned = delta < 4 || delta > 356;
+    final delta = ((bearing - _heading) + 360) % 360;
+    final aligned = _hasCompass && (delta < 4 || delta > 356);
 
     return Column(
       children: [
         PageHeader(title: l10n.t('qibla.title')),
         Expanded(
-          child: PageBody(
-            children: [
-              Center(
-                child: SizedBox(
-                  width: 280,
-                  height: 280,
-                  child: _CompassView(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(18, 8, 18, 24),
+            child: Column(
+              children: [
+                const SizedBox(height: 12),
+                Center(
+                  child: _Compass(
                     bearing: bearing,
                     heading: _heading,
+                    hasCompass: _hasCompass,
                     aligned: aligned,
                   ),
                 ),
-              ),
-              _StatLine(
-                label: l10n.t('qibla.bearing'),
-                value: '${bearing.toStringAsFixed(1)}°',
-              ),
-              _StatLine(
-                label: l10n.t('qibla.heading'),
-                value: _heading == null
-                    ? '—'
-                    : '${_heading!.toStringAsFixed(1)}°',
-              ),
-              _StatLine(
-                label: l10n.t('qibla.distance'),
-                value: '$distance km',
-              ),
-              if (!_hasCompass)
-                Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: Text(
-                    l10n.t('qibla.noCompass'),
-                    style: TextStyle(color: palette.textMuted, fontSize: 13),
-                  ),
+                const SizedBox(height: 22),
+                _StatList(
+                  hasCompass: _hasCompass,
+                  heading: _heading,
+                  bearing: bearing,
+                  distance: distance,
                 ),
-            ],
+                const Spacer(),
+                if (_streamMissing)
+                  Text(
+                    l10n.t('qibla.noCompass'),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: palette.textMuted, fontSize: 13),
+                  )
+                else
+                  Text(
+                    aligned ? l10n.t('common.done') : l10n.t('qibla.calibrate'),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color:
+                          aligned ? palette.accent : palette.textMuted,
+                      fontSize: 13,
+                      fontWeight: aligned ? FontWeight.w600 : FontWeight.w500,
+                    ),
+                  ),
+                const SizedBox(height: 12),
+              ],
+            ),
           ),
         ),
       ],
@@ -139,151 +145,315 @@ class _QiblaPageState extends ConsumerState<QiblaPage> {
   }
 }
 
-class _CompassView extends StatelessWidget {
-  const _CompassView({
+class _Compass extends StatelessWidget {
+  const _Compass({
     required this.bearing,
     required this.heading,
+    required this.hasCompass,
     required this.aligned,
   });
 
   final double bearing;
-  final double? heading;
+  final double heading;
+  final bool hasCompass;
   final bool aligned;
 
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
-    final h = heading ?? 0;
-    final qiblaAngle = (bearing - h);
-    return AnimatedRotation(
-      turns: -h / 360.0,
-      duration: const Duration(milliseconds: 200),
-      curve: AppTokens.ease,
-      child: Container(
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: palette.surface,
-          border: Border.all(color: palette.line, width: 1.4),
-        ),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return LayoutBuilder(builder: (ctx, constraints) {
+      final size = math.min(constraints.maxWidth, 340.0);
+      final headingShown = hasCompass ? heading : 0.0;
+      return SizedBox(
+        width: size,
+        height: size,
         child: Stack(
           alignment: Alignment.center,
           children: [
-            CustomPaint(
-              size: const Size(280, 280),
-              painter: _CompassPainter(
-                ringColor: palette.line,
-                tickColor: palette.lineStrong,
-                northColor: palette.danger,
-                textColor: palette.textMuted,
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              curve: AppTokens.ease,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: palette.surface,
+                border: Border.all(
+                  color: aligned ? palette.accent : palette.lineStrong,
+                  width: aligned ? 2 : 1.4,
+                ),
               ),
             ),
-            Transform.rotate(
-              angle: qiblaAngle * math.pi / 180,
+            AnimatedRotation(
+              duration: const Duration(milliseconds: 220),
+              curve: AppTokens.ease,
+              turns: -headingShown / 360.0,
               child: SizedBox(
-                width: 280,
-                height: 280,
-                child: Align(
-                  alignment: Alignment.topCenter,
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 18),
-                    child: Container(
-                      width: 14,
-                      height: 14,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: aligned ? palette.accent : palette.text,
-                      ),
-                    ),
+                width: size,
+                height: size,
+                child: CustomPaint(
+                  painter: _DialPainter(
+                    accent: palette.accent,
+                    text: palette.text,
+                    textMuted: palette.textMuted,
+                    textSubtle: palette.textSubtle,
+                    line: palette.line,
+                    qiblaBearing: bearing,
+                    aligned: aligned,
+                    kaabaFill: isDark
+                        ? const Color(0xFF0A0A0A)
+                        : const Color(0xFF1A1A1A),
+                    kaabaBand: const Color(0xFFC9A14A),
                   ),
                 ),
               ),
             ),
+            Positioned(
+              top: -2,
+              child: _TopMarker(color: palette.accent),
+            ),
             Container(
-              width: 8,
-              height: 8,
+              width: 96,
+              height: 96,
+              alignment: Alignment.center,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: palette.textMuted,
+                color: palette.surface,
+                border: Border.all(color: palette.line),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    hasCompass
+                        ? '${headingShown.round() % 360}°'
+                        : '${bearing.round()}°',
+                    style: TextStyle(
+                      color: palette.text,
+                      fontSize: 24,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.4,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
+                  ),
+                  const SizedBox(height: 1),
+                  Text(
+                    hasCompass
+                        ? AppL10n.of(context).t('qibla.heading').toUpperCase()
+                        : AppL10n.of(context).t('qibla.bearing').toUpperCase(),
+                    style: TextStyle(
+                      color: palette.textMuted,
+                      fontSize: 9.5,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.7,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
         ),
-      ),
+      );
+    });
+  }
+}
+
+class _TopMarker extends StatelessWidget {
+  const _TopMarker({required this.color});
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      size: const Size(20, 14),
+      painter: _TrianglePainter(color: color),
     );
   }
 }
 
-class _CompassPainter extends CustomPainter {
-  _CompassPainter({
-    required this.ringColor,
-    required this.tickColor,
-    required this.northColor,
-    required this.textColor,
+class _TrianglePainter extends CustomPainter {
+  _TrianglePainter({required this.color});
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()..color = color;
+    final path = Path()
+      ..moveTo(0, 0)
+      ..lineTo(size.width, 0)
+      ..lineTo(size.width / 2, size.height)
+      ..close();
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(_TrianglePainter old) => old.color != color;
+}
+
+class _DialPainter extends CustomPainter {
+  _DialPainter({
+    required this.accent,
+    required this.text,
+    required this.textMuted,
+    required this.textSubtle,
+    required this.line,
+    required this.qiblaBearing,
+    required this.aligned,
+    required this.kaabaFill,
+    required this.kaabaBand,
   });
 
-  final Color ringColor;
-  final Color tickColor;
-  final Color northColor;
-  final Color textColor;
+  final Color accent;
+  final Color text;
+  final Color textMuted;
+  final Color textSubtle;
+  final Color line;
+  final double qiblaBearing;
+  final bool aligned;
+  final Color kaabaFill;
+  final Color kaabaBand;
 
   @override
   void paint(Canvas canvas, Size size) {
     final c = Offset(size.width / 2, size.height / 2);
     final r = size.width / 2;
 
-    for (var i = 0; i < 36; i++) {
-      final angle = i * 10 * math.pi / 180 - math.pi / 2;
-      final p1 = Offset(c.dx + (r - 2) * math.cos(angle),
-          c.dy + (r - 2) * math.sin(angle));
-      final tickLen = i % 9 == 0 ? 12.0 : 5.0;
-      final p2 = Offset(c.dx + (r - 2 - tickLen) * math.cos(angle),
-          c.dy + (r - 2 - tickLen) * math.sin(angle));
+    final innerRing = Paint()
+      ..color = line
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1;
+    canvas.drawCircle(c, r - 18, innerRing);
+
+    for (var i = 0; i < 72; i++) {
+      final angle = i * 5 * math.pi / 180 - math.pi / 2;
+      final isCardinal = i % 18 == 0;
+      final isMajor = i % 6 == 0;
+      final tickLen = isCardinal ? 12.0 : (isMajor ? 9.0 : 5.0);
+      final p1 = Offset(c.dx + (r - 4) * math.cos(angle),
+          c.dy + (r - 4) * math.sin(angle));
+      final p2 = Offset(c.dx + (r - 4 - tickLen) * math.cos(angle),
+          c.dy + (r - 4 - tickLen) * math.sin(angle));
       final paint = Paint()
-        ..color = i == 0 ? northColor : tickColor
-        ..strokeWidth = i == 0 ? 2.4 : 1.2;
+        ..strokeWidth = isCardinal ? 1.8 : (isMajor ? 1.3 : 1)
+        ..color = isCardinal
+            ? text
+            : (isMajor
+                ? textMuted
+                : textSubtle.withValues(alpha: 0.55));
       canvas.drawLine(p1, p2, paint);
     }
 
-    final labels = ['N', 'E', 'S', 'W'];
+    const labels = ['N', 'E', 'S', 'W'];
     for (var i = 0; i < 4; i++) {
       final angle = i * 90 * math.pi / 180 - math.pi / 2;
-      final p = Offset(c.dx + (r - 28) * math.cos(angle),
-          c.dy + (r - 28) * math.sin(angle));
+      final p = Offset(c.dx + (r - 32) * math.cos(angle),
+          c.dy + (r - 32) * math.sin(angle));
       final tp = TextPainter(
         text: TextSpan(
           text: labels[i],
           style: TextStyle(
-            color: i == 0 ? northColor : textColor,
-            fontWeight: FontWeight.w600,
-            fontSize: 14,
+            color: i == 0 ? accent : textMuted,
+            fontWeight: FontWeight.w700,
+            fontSize: 13,
+            letterSpacing: 0.4,
           ),
         ),
         textDirection: TextDirection.ltr,
       )..layout();
       tp.paint(canvas, p - Offset(tp.width / 2, tp.height / 2));
     }
+
+    final qiblaAngle = (qiblaBearing - 90) * math.pi / 180;
+    final kaabaCenter = Offset(
+      c.dx + (r - 36) * math.cos(qiblaAngle),
+      c.dy + (r - 36) * math.sin(qiblaAngle),
+    );
+    const kaabaSize = 22.0;
+    final kaabaRect = Rect.fromCenter(
+      center: kaabaCenter,
+      width: kaabaSize,
+      height: kaabaSize * 1.05,
+    );
+    final kaabaPaint = Paint()..color = kaabaFill;
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(kaabaRect, const Radius.circular(2)),
+      kaabaPaint,
+    );
+    final bandPaint = Paint()..color = kaabaBand;
+    final bandRect = Rect.fromLTWH(
+      kaabaRect.left,
+      kaabaRect.top + kaabaRect.height * 0.34,
+      kaabaRect.width,
+      kaabaRect.height * 0.16,
+    );
+    canvas.drawRect(bandRect, bandPaint);
   }
 
   @override
-  bool shouldRepaint(_CompassPainter old) =>
-      old.ringColor != ringColor || old.northColor != northColor;
+  bool shouldRepaint(_DialPainter old) =>
+      old.qiblaBearing != qiblaBearing ||
+      old.aligned != aligned ||
+      old.accent != accent;
 }
 
-class _StatLine extends StatelessWidget {
-  const _StatLine({required this.label, required this.value});
-  final String label;
-  final String value;
+class _StatList extends StatelessWidget {
+  const _StatList({
+    required this.hasCompass,
+    required this.heading,
+    required this.bearing,
+    required this.distance,
+  });
+
+  final bool hasCompass;
+  final double heading;
+  final double bearing;
+  final int distance;
 
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-      decoration: BoxDecoration(
-        color: palette.surface,
-        borderRadius: BorderRadius.circular(AppTokens.radius),
-        border: Border.all(color: palette.line),
+    final l10n = AppL10n.of(context);
+    return AppSurface(
+      padding: EdgeInsets.zero,
+      child: Column(
+        children: [
+          if (hasCompass) ...[
+            _Row(
+              label: l10n.t('qibla.heading'),
+              value: '${heading.round() % 360}°',
+            ),
+            Container(height: 1, color: palette.line),
+          ],
+          _Row(
+            label: l10n.t('qibla.bearing'),
+            value: '${bearing.round()}°',
+            accent: true,
+          ),
+          Container(height: 1, color: palette.line),
+          _Row(
+            label: l10n.t('qibla.distance'),
+            value: '$distance km',
+          ),
+        ],
       ),
+    );
+  }
+}
+
+class _Row extends StatelessWidget {
+  const _Row({
+    required this.label,
+    required this.value,
+    this.accent = false,
+  });
+  final String label;
+  final String value;
+  final bool accent;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
           Expanded(
@@ -295,9 +465,10 @@ class _StatLine extends StatelessWidget {
           Text(
             value,
             style: TextStyle(
-              color: palette.text,
+              color: accent ? palette.accent : palette.text,
               fontSize: 16,
               fontWeight: FontWeight.w700,
+              letterSpacing: -0.17,
               fontFeatures: const [FontFeature.tabularFigures()],
             ),
           ),

@@ -5,6 +5,7 @@ import '../../core/i18n/app_l10n.dart';
 import '../../core/theme/tokens.dart';
 import '../../shared/data/hisnul_repository.dart';
 import '../../shared/models/azkar.dart';
+import '../../shared/state/favorites_provider.dart';
 import '../../shared/widgets/app_field.dart';
 import '../../shared/widgets/app_spinner.dart';
 import '../../shared/widgets/page_scaffold.dart';
@@ -17,6 +18,7 @@ class AzkarsPage extends ConsumerStatefulWidget {
 
 class _AzkarsPageState extends ConsumerState<AzkarsPage> {
   List<AzkarCategory> _categories = [];
+  List<AzkarChapter> _allChapters = [];
   List<AzkarChapter> _searchResults = [];
   bool _loading = true;
   String _query = '';
@@ -29,11 +31,14 @@ class _AzkarsPageState extends ConsumerState<AzkarsPage> {
 
   Future<void> _load() async {
     final l10n = AppL10n.of(context);
-    final cats = await HisnulMuslimRepository.instance
-        .getCategories(langKey(l10n.locale));
+    final lang = langKey(l10n.locale);
+    final cats = await HisnulMuslimRepository.instance.getCategories(lang);
+    final chapters = await HisnulMuslimRepository.instance
+        .getChapters(langCode: lang);
     if (!mounted) return;
     setState(() {
       _categories = cats;
+      _allChapters = chapters;
       _loading = false;
     });
   }
@@ -54,6 +59,10 @@ class _AzkarsPageState extends ConsumerState<AzkarsPage> {
   Widget build(BuildContext context) {
     final l10n = AppL10n.of(context);
     final palette = context.palette;
+    final fav = ref.watch(favoritesProvider);
+    final starred = _allChapters
+        .where((c) => fav.chapters.contains(c.id))
+        .toList();
 
     return Column(
       children: [
@@ -61,7 +70,8 @@ class _AzkarsPageState extends ConsumerState<AzkarsPage> {
           title: l10n.t('azkars.title'),
           search: AppTextField(
             hintText: l10n.t('azkars.search'),
-            prefix: Icon(Icons.search_rounded, size: 18, color: palette.textMuted),
+            prefix:
+                Icon(Icons.search_rounded, size: 18, color: palette.textMuted),
             onChanged: (v) {
               setState(() => _query = v);
               _runSearch(v);
@@ -73,24 +83,72 @@ class _AzkarsPageState extends ConsumerState<AzkarsPage> {
               ? const PageLoader()
               : _query.trim().isNotEmpty
                   ? _SearchResults(results: _searchResults)
-                  : _CategoryList(categories: _categories),
+                  : ListView(
+                      padding: const EdgeInsets.fromLTRB(18, 4, 18, 28),
+                      children: [
+                        if (starred.isNotEmpty) ...[
+                          _SectionLabel(label: l10n.t('favorites.starred')),
+                          const SizedBox(height: 6),
+                          _StarredList(chapters: starred),
+                          const SizedBox(height: 14),
+                        ],
+                        for (var i = 0; i < _categories.length; i++) ...[
+                          _CategoryTile(cat: _categories[i]),
+                          if (i < _categories.length - 1)
+                            const SizedBox(height: 10),
+                        ],
+                      ],
+                    ),
         ),
       ],
     );
   }
 }
 
-class _CategoryList extends StatelessWidget {
-  const _CategoryList({required this.categories});
-  final List<AzkarCategory> categories;
+class _SectionLabel extends StatelessWidget {
+  const _SectionLabel({required this.label});
+  final String label;
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    return Padding(
+      padding: const EdgeInsets.only(left: 4, top: 4, bottom: 2),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: palette.textSubtle,
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.4,
+        ),
+      ),
+    );
+  }
+}
+
+class _StarredList extends StatelessWidget {
+  const _StarredList({required this.chapters});
+  final List<AzkarChapter> chapters;
 
   @override
   Widget build(BuildContext context) {
-    return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(18, 4, 18, 28),
-      itemCount: categories.length,
-      separatorBuilder: (ctx, i) => const SizedBox(height: 10),
-      itemBuilder: (ctx, i) => _CategoryTile(cat: categories[i]),
+    final palette = context.palette;
+    return Container(
+      decoration: BoxDecoration(
+        color: palette.surface,
+        borderRadius: BorderRadius.circular(AppTokens.radius),
+        border: Border.all(color: palette.line),
+      ),
+      clipBehavior: Clip.hardEdge,
+      child: Column(
+        children: [
+          for (var i = 0; i < chapters.length; i++) ...[
+            _ChapterListRow(chapter: chapters[i], starred: true),
+            if (i < chapters.length - 1)
+              Container(height: 1, color: palette.line),
+          ],
+        ],
+      ),
     );
   }
 }
@@ -190,8 +248,9 @@ class _SearchResults extends StatelessWidget {
 }
 
 class _ChapterListRow extends StatefulWidget {
-  const _ChapterListRow({required this.chapter});
+  const _ChapterListRow({required this.chapter, this.starred = false});
   final AzkarChapter chapter;
+  final bool starred;
 
   @override
   State<_ChapterListRow> createState() => _ChapterListRowState();
@@ -216,6 +275,11 @@ class _ChapterListRowState extends State<_ChapterListRow> {
         color: _down ? palette.surface2 : Colors.transparent,
         child: Row(
           children: [
+            if (widget.starred) ...[
+              Icon(Icons.star_rounded,
+                  size: 16, color: palette.accent),
+              const SizedBox(width: 10),
+            ],
             Expanded(
               child: Text(
                 widget.chapter.name,

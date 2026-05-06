@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/i18n/app_l10n.dart';
 import '../../core/theme/tokens.dart';
@@ -85,7 +86,6 @@ class _AzkarItemCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final palette = context.palette;
-    final l10n = AppL10n.of(context);
     final settings = ref.watch(settingsProvider);
     final fontFamily = arabicFontFamilies[settings.arabicFont] ?? 'UthmanicHafs';
     final fav = ref.watch(favoritesProvider);
@@ -93,254 +93,265 @@ class _AzkarItemCard extends ConsumerWidget {
 
     final dhikr = fav.dhikr[item.id] ?? 0;
     final target = item.count ?? 0;
-    final reached = target > 0 && dhikr >= target;
+    final hasTarget = target > 0;
+    final reached = hasTarget && dhikr >= target;
+    final progress = hasTarget ? (dhikr / target).clamp(0.0, 1.0) : 0.0;
 
-    return Container(
+    void increment() {
+      HapticFeedback.selectionClick();
+      final next = dhikr + 1;
+      final reset = next > target;
+      notifier.setDhikr(item.id, reset ? 0 : next);
+    }
+
+    void reset() {
+      HapticFeedback.lightImpact();
+      notifier.setDhikr(item.id, 0);
+    }
+
+    final card = Container(
       decoration: BoxDecoration(
         color: palette.surface,
         borderRadius: BorderRadius.circular(AppTokens.radius),
-        border: Border.all(color: palette.line),
+        border: Border.all(
+          color: reached ? palette.accent : palette.line,
+          width: reached ? 1.4 : 1,
+        ),
       ),
-      padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
+      clipBehavior: Clip.hardEdge,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Container(
-                width: 28,
-                height: 28,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: palette.surface2,
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: Text(
-                  '$index',
-                  style: TextStyle(
-                    color: palette.textMuted,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 12,
-                    fontFeatures: const [FontFeature.tabularFigures()],
+          Padding(
+            padding: const EdgeInsets.fromLTRB(18, 16, 12, 4),
+            child: Row(
+              children: [
+                Container(
+                  width: 28,
+                  height: 28,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: palette.surface2,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    '$index',
+                    style: TextStyle(
+                      color: palette.textMuted,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 12,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
                   ),
                 ),
-              ),
-              const Spacer(),
-              if (target > 0)
-                _CounterPill(
-                  count: dhikr,
-                  target: target,
-                  reached: reached,
-                  onTap: () => notifier.setDhikr(
-                      item.id, dhikr + 1 > target ? 0 : dhikr + 1),
-                  onReset: () => notifier.setDhikr(item.id, 0),
-                ),
-            ],
+                const Spacer(),
+                if (hasTarget && dhikr > 0)
+                  _ResetButton(onTap: reset),
+              ],
+            ),
           ),
-          if (item.topNote != null && item.topNote!.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            Text(
-              item.topNote!,
-              style: TextStyle(
-                color: palette.textMuted,
-                fontSize: 13.5,
-                height: 1.5,
-              ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(18, 0, 18, 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (item.topNote != null && item.topNote!.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    item.topNote!,
+                    style: TextStyle(
+                      color: palette.textMuted,
+                      fontSize: 13.5,
+                      height: 1.5,
+                    ),
+                  ),
+                ],
+                if (item.item != null && item.item!.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Directionality(
+                    textDirection: TextDirection.rtl,
+                    child: Text(
+                      item.item!,
+                      style: TextStyle(
+                        color: palette.text,
+                        fontFamily: fontFamily,
+                        fontSize: 22,
+                        height: 2.1,
+                      ),
+                    ),
+                  ),
+                ],
+                if (item.transliteration != null &&
+                    item.transliteration!.isNotEmpty) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    item.transliteration!,
+                    style: TextStyle(
+                      color: palette.text,
+                      fontSize: 13.5,
+                      fontStyle: FontStyle.italic,
+                      height: 1.55,
+                    ),
+                  ),
+                ],
+                if (item.translation != null &&
+                    item.translation!.isNotEmpty) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    item.translation!,
+                    style: TextStyle(
+                      color: palette.text,
+                      fontSize: 15,
+                      height: 1.7,
+                    ),
+                  ),
+                ],
+                if (item.bottomNote != null && item.bottomNote!.isNotEmpty) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    item.bottomNote!,
+                    style: TextStyle(
+                      color: palette.textMuted,
+                      fontSize: 13.5,
+                      height: 1.5,
+                    ),
+                  ),
+                ],
+                if (item.reference.isNotEmpty) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    item.reference,
+                    style: TextStyle(
+                      color: palette.textSubtle,
+                      fontSize: 12.5,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              ],
             ),
-          ],
-          if (item.item != null && item.item!.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            Directionality(
-              textDirection: TextDirection.rtl,
-              child: Text(
-                item.item!,
-                style: TextStyle(
-                  color: palette.text,
-                  fontFamily: fontFamily,
-                  fontSize: 21,
-                  height: 2.2,
-                ),
-              ),
+          ),
+          if (hasTarget)
+            _CounterBar(
+              count: dhikr,
+              target: target,
+              progress: progress,
+              reached: reached,
             ),
-          ],
-          if (item.transliteration != null &&
-              item.transliteration!.isNotEmpty) ...[
-            const SizedBox(height: 6),
-            Text(
-              item.transliteration!,
-              style: TextStyle(
-                color: palette.text,
-                fontSize: 13.5,
-                fontStyle: FontStyle.italic,
-                height: 1.55,
-              ),
-            ),
-          ],
-          if (item.translation != null && item.translation!.isNotEmpty) ...[
-            const SizedBox(height: 6),
-            Text(
-              item.translation!,
-              style: TextStyle(
-                color: palette.text,
-                fontSize: 15,
-                height: 1.7,
-              ),
-            ),
-          ],
-          if (item.bottomNote != null && item.bottomNote!.isNotEmpty) ...[
-            const SizedBox(height: 6),
-            Text(
-              item.bottomNote!,
-              style: TextStyle(
-                color: palette.textMuted,
-                fontSize: 13.5,
-                height: 1.5,
-              ),
-            ),
-          ],
-          if (item.reference.isNotEmpty) ...[
-            const SizedBox(height: 6),
-            Text(
-              item.reference,
-              style: TextStyle(
-                color: palette.textSubtle,
-                fontSize: 12.5,
-                height: 1.4,
-              ),
-            ),
-          ],
-          if (target == 0) ...[
-            const SizedBox(height: 8),
-            _ReadToggle(
-              done: dhikr > 0,
-              onToggle: () => notifier.setDhikr(item.id, dhikr > 0 ? 0 : 1),
-              label: l10n.t('azkars.tap'),
-            ),
-          ],
         ],
       ),
+    );
+
+    if (!hasTarget) return card;
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: increment,
+      child: card,
     );
   }
 }
 
-class _CounterPill extends StatefulWidget {
-  const _CounterPill({
+class _CounterBar extends StatelessWidget {
+  const _CounterBar({
     required this.count,
     required this.target,
+    required this.progress,
     required this.reached,
-    required this.onTap,
-    required this.onReset,
   });
   final int count;
   final int target;
+  final double progress;
   final bool reached;
-  final VoidCallback onTap;
-  final VoidCallback onReset;
-
-  @override
-  State<_CounterPill> createState() => _CounterPillState();
-}
-
-class _CounterPillState extends State<_CounterPill> {
-  bool _down = false;
 
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
-    final bg = widget.reached ? palette.accent : palette.accentSoft;
-    final fg = widget.reached ? palette.accentOn : palette.accentStrong;
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTapDown: (_) => setState(() => _down = true),
-          onTapCancel: () => setState(() => _down = false),
-          onTapUp: (_) => setState(() => _down = false),
-          onTap: widget.onTap,
-          child: AnimatedContainer(
-            duration: AppTokens.durationFast,
-            constraints: const BoxConstraints(minWidth: 64),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: _down ? palette.surface2 : bg,
-              borderRadius: BorderRadius.circular(999),
-            ),
-            child: Center(
-              child: RichText(
-                text: TextSpan(
+    final l10n = AppL10n.of(context);
+    return AnimatedContainer(
+      duration: AppTokens.durationFast,
+      color: reached ? palette.accent : palette.surface2,
+      padding: const EdgeInsets.fromLTRB(18, 14, 18, 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  reached
+                      ? l10n.t('common.done').toUpperCase()
+                      : l10n.t('azkars.tap'),
                   style: TextStyle(
-                    color: fg,
+                    color: reached
+                        ? palette.accentOn
+                        : palette.textMuted,
                     fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    fontFeatures: const [FontFeature.tabularFigures()],
+                    fontWeight: reached ? FontWeight.w700 : FontWeight.w600,
+                    letterSpacing: reached ? 0.7 : 0,
                   ),
-                  children: [
-                    TextSpan(text: '${widget.count}'),
-                    TextSpan(
-                      text: ' / ',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w500,
-                        color: fg.withValues(alpha: 0.6),
-                      ),
-                    ),
-                    TextSpan(text: '${widget.target}'),
-                  ],
                 ),
+              ),
+              Text(
+                '$count / $target',
+                style: TextStyle(
+                  color: reached ? palette.accentOn : palette.text,
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(999),
+            child: LinearProgressIndicator(
+              value: progress,
+              minHeight: 4,
+              backgroundColor: reached
+                  ? palette.accentOn.withValues(alpha: 0.2)
+                  : palette.surface3,
+              valueColor: AlwaysStoppedAnimation(
+                reached ? palette.accentOn : palette.accent,
               ),
             ),
           ),
-        ),
-        if (widget.count > 0) ...[
-          const SizedBox(width: 6),
-          GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: widget.onReset,
-            child: Container(
-              width: 28,
-              height: 28,
-              alignment: Alignment.center,
-              decoration: const BoxDecoration(shape: BoxShape.circle),
-              child: Icon(Icons.refresh_rounded,
-                  size: 16, color: palette.textMuted),
-            ),
-          ),
         ],
-      ],
+      ),
     );
   }
 }
 
-class _ReadToggle extends StatelessWidget {
-  const _ReadToggle({
-    required this.done,
-    required this.onToggle,
-    required this.label,
-  });
-  final bool done;
-  final VoidCallback onToggle;
-  final String label;
+class _ResetButton extends StatefulWidget {
+  const _ResetButton({required this.onTap});
+  final VoidCallback onTap;
+  @override
+  State<_ResetButton> createState() => _ResetButtonState();
+}
 
+class _ResetButtonState extends State<_ResetButton> {
+  bool _down = false;
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: onToggle,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      onTapDown: (_) => setState(() => _down = true),
+      onTapCancel: () => setState(() => _down = false),
+      onTapUp: (_) => setState(() => _down = false),
+      onTap: widget.onTap,
+      child: AnimatedContainer(
+        duration: AppTokens.durationFast,
+        width: 36,
+        height: 36,
+        alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: done ? palette.accent : palette.surface2,
+          color: _down ? palette.surface2 : Colors.transparent,
           borderRadius: BorderRadius.circular(999),
         ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: done ? palette.accentOn : palette.textMuted,
-            fontSize: 12.5,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
+        child: Icon(Icons.refresh_rounded,
+            size: 18, color: palette.textMuted),
       ),
     );
   }

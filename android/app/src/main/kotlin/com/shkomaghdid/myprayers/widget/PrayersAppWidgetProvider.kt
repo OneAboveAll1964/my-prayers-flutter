@@ -137,7 +137,7 @@ class PrayersAppWidgetProvider : AppWidgetProvider() {
             views.setInt(activeCardId, "setBackgroundResource", bgRes)
 
             if (isCentered) {
-                val centered = "۞ ‏$arabic‏ ۞"
+                val centered = "﴿ $arabic ﴾"
                 views.setTextViewText(R.id.widget_arabic_centered, centered)
                 views.setTextColor(R.id.widget_arabic_centered, textColor)
                 views.setTextViewTextSize(R.id.widget_arabic_centered,

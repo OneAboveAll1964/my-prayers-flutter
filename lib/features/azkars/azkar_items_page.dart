@@ -106,6 +106,7 @@ class _AzkarItemCard extends ConsumerWidget {
     final palette = context.palette;
     final settings = ref.watch(settingsProvider);
     final fontFamily = arabicFontFamilies[settings.arabicFont] ?? 'UthmanicHafs';
+    final arScale = settings.arabicFontScale;
     final fav = ref.watch(favoritesProvider);
     final notifier = ref.read(favoritesProvider.notifier);
 
@@ -232,7 +233,7 @@ class _AzkarItemCard extends ConsumerWidget {
                         style: TextStyle(
                           color: palette.text,
                           fontFamily: fontFamily,
-                          fontSize: 22,
+                          fontSize: 22 * arScale,
                           height: 2.1,
                         ),
                       ),

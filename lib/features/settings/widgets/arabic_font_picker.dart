@@ -13,7 +13,9 @@ class ArabicFontPicker extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsProvider);
     final palette = context.palette;
+    final l10n = AppL10n.of(context);
     final fonts = arabicFontFamilies.entries.toList();
+    final scale = settings.arabicFontScale;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -69,7 +71,7 @@ class ArabicFontPicker extends ConsumerWidget {
                           textAlign: TextAlign.right,
                           style: TextStyle(
                             color: palette.text,
-                            fontSize: 22,
+                            fontSize: 22 * scale,
                             height: 1.7,
                             fontFamily: entry.value,
                           ),
@@ -81,6 +83,51 @@ class ArabicFontPicker extends ConsumerWidget {
               ),
             ),
           ),
+        const SizedBox(height: 4),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          child: Row(
+            children: [
+              Text(
+                l10n.t('settings.arabicFontSize'),
+                style: TextStyle(
+                  color: palette.textMuted,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const Spacer(),
+              Text(
+                '${(scale * 100).round()}%',
+                style: TextStyle(
+                  color: palette.textMuted,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                ),
+              ),
+            ],
+          ),
+        ),
+        SliderTheme(
+          data: SliderThemeData(
+            trackHeight: 3,
+            activeTrackColor: palette.accent,
+            inactiveTrackColor: palette.line,
+            thumbColor: palette.accent,
+            overlayColor: palette.accentSoft,
+            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 9),
+            overlayShape: const RoundSliderOverlayShape(overlayRadius: 18),
+          ),
+          child: Slider(
+            value: scale.clamp(0.7, 1.6),
+            min: 0.7,
+            max: 1.6,
+            divisions: 18,
+            onChanged: (v) =>
+                ref.read(settingsProvider.notifier).setArabicFontScale(v),
+          ),
+        ),
       ],
     );
   }

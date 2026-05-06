@@ -22,6 +22,7 @@ class AppSettings {
     this.notificationsEnabled = true,
     this.perPrayerNotifications = const [true, false, true, true, true, true],
     this.timeFormat = '24h',
+    this.arabicFontScale = 1.0,
   });
 
   final AppThemeMode themeMode;
@@ -38,6 +39,7 @@ class AppSettings {
   final bool notificationsEnabled;
   final List<bool> perPrayerNotifications;
   final String timeFormat;
+  final double arabicFontScale;
 
   AppSettings copyWith({
     AppThemeMode? themeMode,
@@ -54,6 +56,7 @@ class AppSettings {
     bool? notificationsEnabled,
     List<bool>? perPrayerNotifications,
     String? timeFormat,
+    double? arabicFontScale,
   }) {
     return AppSettings(
       themeMode: themeMode ?? this.themeMode,
@@ -70,6 +73,7 @@ class AppSettings {
       notificationsEnabled: notificationsEnabled ?? this.notificationsEnabled,
       perPrayerNotifications: perPrayerNotifications ?? this.perPrayerNotifications,
       timeFormat: timeFormat ?? this.timeFormat,
+      arabicFontScale: arabicFontScale ?? this.arabicFontScale,
     );
   }
 
@@ -90,6 +94,7 @@ class AppSettings {
         'notificationsEnabled': notificationsEnabled,
         'perPrayerNotifications': perPrayerNotifications,
         'timeFormat': timeFormat,
+        'arabicFontScale': arabicFontScale,
       };
 
   factory AppSettings.fromJson(Map<String, dynamic> j) => AppSettings(
@@ -125,6 +130,7 @@ class AppSettings {
                 .toList() ??
             const [true, false, true, true, true, true],
         timeFormat: (j['timeFormat'] ?? '24h') as String,
+        arabicFontScale: (j['arabicFontScale'] as num?)?.toDouble() ?? 1.0,
       );
 
   PrayerAttribute toAttribute() => PrayerAttribute(
@@ -183,6 +189,8 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   void setPerPrayerNotifications(List<bool> list) =>
       update((s) => s.copyWith(perPrayerNotifications: list));
   void setTimeFormat(String v) => update((s) => s.copyWith(timeFormat: v));
+  void setArabicFontScale(double v) =>
+      update((s) => s.copyWith(arabicFontScale: v.clamp(0.7, 1.6)));
 }
 
 final settingsProvider =

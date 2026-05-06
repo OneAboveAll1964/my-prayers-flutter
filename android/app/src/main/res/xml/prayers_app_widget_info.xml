@@ -12,6 +12,5 @@
     android:targetCellHeight="2"
     android:updatePeriodMillis="0"
     android:widgetCategory="home_screen"
-    android:previewLayout="@layout/prayers_app_widget"
     android:description="@string/widget_description"
     android:widgetFeatures="reconfigurable" />

@@ -106,7 +106,7 @@ class PrayersAppWidgetProvider : AppWidgetProvider() {
                 "solid" -> if (nightMode) R.drawable.widget_bg_solid_dark else R.drawable.widget_bg_solid_light
                 "accent" -> R.drawable.widget_bg_accent
                 "tinted" -> if (nightMode) R.drawable.widget_bg_tinted_dark else R.drawable.widget_bg_tinted_light
-                else -> 0
+                else -> R.drawable.widget_bg_transparent
             }
 
             val isCentered = layout == "centered"
@@ -117,11 +117,7 @@ class PrayersAppWidgetProvider : AppWidgetProvider() {
 
             val activeCardId = if (isCentered)
                 R.id.widget_card_centered else R.id.widget_card_default
-            if (bgRes != 0) {
-                views.setInt(activeCardId, "setBackgroundResource", bgRes)
-            } else {
-                views.setInt(activeCardId, "setBackgroundColor", Color.TRANSPARENT)
-            }
+            views.setInt(activeCardId, "setBackgroundResource", bgRes)
 
             if (isCentered) {
                 val centeredArabic = "﴿  $arabic  ﴾"

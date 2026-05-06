@@ -150,10 +150,19 @@ class PrayersAppWidgetProvider : AppWidgetProvider() {
                 R.id.widget_card_centered else R.id.widget_card_default
             views.setInt(activeCardId, "setBackgroundResource", bgRes)
 
-            val widthDp = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 250)
-            val density = context.resources.displayMetrics.density
+            val displayMetrics = context.resources.displayMetrics
+            val density = displayMetrics.density
+            val screenWidthDp = (displayMetrics.widthPixels / density).toInt()
+            val optionsWidthDp = options.getInt(
+                AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 0
+            )
+            // On first add the launcher hasn't measured yet — fall back to screen
+            // width so the bitmap is always wide enough to be scaled DOWN by the
+            // ImageView (never blurry-upscaled). onAppWidgetOptionsChanged will
+            // re-render at the exact width once the launcher places the widget.
+            val widthDp = if (optionsWidthDp > 0) optionsWidthDp else screenWidthDp
             val padDp = 8 * 2
-            val widthPx = max(96, ((widthDp - padDp) * density).toInt())
+            val widthPx = max(192, ((widthDp - padDp) * density).toInt())
 
             val typeface = loadTypeface(context, font)
             val displayedArabic = if (isCentered) "﴿ $arabic ﴾" else arabic
@@ -249,7 +258,7 @@ class PrayersAppWidgetProvider : AppWidgetProvider() {
                 .setTextDirection(TextDirectionHeuristics.RTL)
                 .setLineSpacing(0f, 1.25f)
                 .setIncludePad(false)
-                .setMaxLines(4)
+                .setMaxLines(3)
                 .setEllipsize(android.text.TextUtils.TruncateAt.END)
             val layout = builder.build()
             val height = max(1, min(2000, layout.height + 4))

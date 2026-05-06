@@ -205,6 +205,55 @@ object WidgetRandomizer {
             ar = "لا حول ولا قوة إلا بالله",
             ku = "هیچ گۆڕان و هێزێک نییە جگە بە خوا",
             reference = "Hawqala"
+        ),
+        Piece(
+            arabic = "ٱللَّهُمَّ صَلِّ عَلَىٰ مُحَمَّدٍ",
+            en = "O Allah, send blessings upon Muhammad.",
+            ar = "اللهم صل على محمد",
+            ku = "خوایە، درود بنێرە بۆ موحەممەد",
+            reference = "Salawat"
+        ),
+        Piece(
+            arabic = "بِسْمِ ٱللَّهِ ٱلَّذِى لَا يَضُرُّ مَعَ ٱسْمِهِۦ شَىْءٌ",
+            en = "In the name of Allah, with whose name nothing can harm.",
+            ar = "بسم الله الذي لا يضر مع اسمه شيء",
+            ku = "بە ناوی خوا، هیچ زیانی بە ناوی ئەوەوە نییە",
+            reference = "Hisnul Muslim"
+        ),
+        Piece(
+            arabic = "ٱللَّهُمَّ بِكَ أَصْبَحْنَا",
+            en = "O Allah, by You we enter the morning.",
+            ar = "اللهم بك أصبحنا",
+            ku = "خوایە، بە تۆ بەیانیمان کرد",
+            reference = "Morning dhikr"
+        ),
+        Piece(
+            arabic = "ٱللَّهُمَّ بِكَ أَمْسَيْنَا",
+            en = "O Allah, by You we enter the evening.",
+            ar = "اللهم بك أمسينا",
+            ku = "خوایە، بە تۆ ئێوارەمان کرد",
+            reference = "Evening dhikr"
+        ),
+        Piece(
+            arabic = "رَضِيتُ بِٱللَّهِ رَبًّا",
+            en = "I am pleased with Allah as my Lord.",
+            ar = "رضيت بالله ربا",
+            ku = "ڕازیم بە خوا وەک پەروەردگار",
+            reference = "Hisnul Muslim"
+        ),
+        Piece(
+            arabic = "يَا حَىُّ يَا قَيُّومُ بِرَحْمَتِكَ أَسْتَغِيثُ",
+            en = "O Ever-Living, O Sustainer, by Your mercy I seek aid.",
+            ar = "يا حي يا قيوم برحمتك أستغيث",
+            ku = "ئەی زیندوو، ئەی کارلێهاتوو، بە ڕەحمەتی تۆ یارمەتی دەخوازم",
+            reference = "Hisnul Muslim"
+        ),
+        Piece(
+            arabic = "أَعُوذُ بِٱللَّهِ مِنَ ٱلشَّيْطَـٰنِ ٱلرَّجِيمِ",
+            en = "I seek refuge in Allah from the accursed Satan.",
+            ar = "أعوذ بالله من الشيطان الرجيم",
+            ku = "پەنا دەگرم بە خوا لە شەیتانی ڕەجیم",
+            reference = "Isti'adha"
         )
     )
 

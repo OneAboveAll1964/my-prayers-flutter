@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/i18n/app_l10n.dart';
 import '../../core/theme/tokens.dart';
+import '../../shared/widgets/animated_toggle_icon.dart';
 import '../../shared/widgets/app_sheet.dart';
 import 'package:ionicons/ionicons.dart';
 
@@ -142,8 +143,14 @@ class _TabButton extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(selected ? tab.activeIcon : tab.icon,
-              size: 22, color: color, weight: selected ? 600 : 400),
+          AnimatedToggleIcon(
+            outlineIcon: tab.icon,
+            filledIcon: tab.activeIcon,
+            active: selected,
+            activeColor: palette.accent,
+            inactiveColor: palette.textMuted,
+            size: 22,
+          ),
           const SizedBox(height: 3),
           Text(
             label,

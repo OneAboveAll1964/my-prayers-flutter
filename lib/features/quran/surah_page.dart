@@ -7,6 +7,7 @@ import '../../shared/data/quran_repository.dart';
 import '../../shared/models/quran.dart';
 import '../../shared/state/favorites_provider.dart';
 import '../../shared/state/settings_provider.dart';
+import '../../shared/widgets/animated_toggle_icon.dart';
 import '../../shared/widgets/app_button.dart';
 import '../../shared/widgets/app_sheet.dart';
 import '../../shared/widgets/app_spinner.dart';
@@ -225,13 +226,25 @@ class _SurahPageState extends ConsumerState<SurahPage> {
                       );
                     },
                   ),
-                  AppIconButton(
-                    icon: marked
-                        ? Ionicons.bookmark : Ionicons.bookmark_outline,
-                    color: marked ? palette.accent : palette.textMuted,
-                    onPressed: () => ref
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => ref
                         .read(favoritesProvider.notifier)
                         .toggleBookmarkSurah(widget.number),
+                    child: SizedBox(
+                      width: 44,
+                      height: 44,
+                      child: Center(
+                        child: AnimatedToggleIcon(
+                          outlineIcon: Ionicons.bookmark_outline,
+                          filledIcon: Ionicons.bookmark,
+                          active: marked,
+                          activeColor: palette.accent,
+                          inactiveColor: palette.textMuted,
+                          size: 22,
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -368,11 +381,13 @@ class _AyahRowState extends ConsumerState<_AyahRow> {
                       color: _downBm ? palette.surface2 : Colors.transparent,
                       borderRadius: BorderRadius.circular(999),
                     ),
-                    child: Icon(
-                      marked
-                          ? Ionicons.bookmark : Ionicons.bookmark_outline,
+                    child: AnimatedToggleIcon(
+                      outlineIcon: Ionicons.bookmark_outline,
+                      filledIcon: Ionicons.bookmark,
+                      active: marked,
+                      activeColor: palette.accent,
+                      inactiveColor: palette.textSubtle,
                       size: 18,
-                      color: marked ? palette.accent : palette.textSubtle,
                     ),
                   ),
                 ),

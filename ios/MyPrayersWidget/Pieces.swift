@@ -131,6 +131,69 @@ let shortAyahs: [ShortPiece] = [
             "ku": "پەروەردگارا، خێرمان بدەوە لە دونیا و لە قیامەت"
         ],
         reference: "Al-Baqarah 2:201"
+    ),
+    ShortPiece(
+        arabic: "وَكَفَىٰ بِٱللَّهِ وَكِيلًا",
+        translations: [
+            "en": "And Allah is sufficient as a Disposer of affairs.",
+            "ar": "وكفى بالله وكيلا",
+            "ku": "خوا بەسە وەک پشتیوان"
+        ],
+        reference: "An-Nisā' 4:81"
+    ),
+    ShortPiece(
+        arabic: "وَلَذِكْرُ ٱللَّهِ أَكْبَرُ",
+        translations: [
+            "en": "And the remembrance of Allah is greater.",
+            "ar": "ولذكر الله أكبر",
+            "ku": "یادی خوا گەورەترە"
+        ],
+        reference: "Al-ʿAnkabūt 29:45"
+    ),
+    ShortPiece(
+        arabic: "حَسْبِىَ ٱللَّهُ",
+        translations: [
+            "en": "Allah is sufficient for me.",
+            "ar": "حسبي الله",
+            "ku": "خوام بەسە"
+        ],
+        reference: "At-Tawbah 9:129"
+    ),
+    ShortPiece(
+        arabic: "وَهُوَ مَعَكُمْ أَيْنَ مَا كُنتُمْ",
+        translations: [
+            "en": "And He is with you wherever you are.",
+            "ar": "وهو معكم أين ما كنتم",
+            "ku": "ئەو لەگەڵتانە لە هەرکوێی بن"
+        ],
+        reference: "Al-Ḥadīd 57:4"
+    ),
+    ShortPiece(
+        arabic: "ٱلْحَمْدُ لِلَّهِ رَبِّ ٱلْعَـٰلَمِينَ",
+        translations: [
+            "en": "All praise is for Allah — Lord of all worlds.",
+            "ar": "الحمد لله رب العالمين",
+            "ku": "سوپاس بۆ خوای جیهانان"
+        ],
+        reference: "Al-Fātiḥah 1:2"
+    ),
+    ShortPiece(
+        arabic: "إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ",
+        translations: [
+            "en": "You alone we worship, and You alone we ask for help.",
+            "ar": "إياك نعبد وإياك نستعين",
+            "ku": "تەنها تۆ دەپەرستین و تەنها لە تۆ یارمەتی دەخوازین"
+        ],
+        reference: "Al-Fātiḥah 1:5"
+    ),
+    ShortPiece(
+        arabic: "إِنَّ ٱللَّهَ غَفُورٌ رَّحِيمٌ",
+        translations: [
+            "en": "Indeed Allah is Forgiving, Merciful.",
+            "ar": "إن الله غفور رحيم",
+            "ku": "بێگومان خوا لێبووردە و میهرەبانە"
+        ],
+        reference: "Al-Baqarah 2:173"
     )
 ]
 
@@ -215,6 +278,51 @@ let shortAzkars: [ShortPiece] = [
             "ku": "بە ناوی خوا، کە هیچ شت بە ناوی ئەو زیانی نییە"
         ],
         reference: "Hisnul Muslim"
+    ),
+    ShortPiece(
+        arabic: "ٱللَّهُمَّ صَلِّ عَلَىٰ مُحَمَّدٍ",
+        translations: [
+            "en": "O Allah, send blessings upon Muhammad.",
+            "ar": "اللهم صل على محمد",
+            "ku": "خوایە، درود بنێرە بۆ موحەممەد"
+        ],
+        reference: "Salawat"
+    ),
+    ShortPiece(
+        arabic: "ٱللَّهُمَّ بِكَ أَصْبَحْنَا",
+        translations: [
+            "en": "O Allah, by You we enter the morning.",
+            "ar": "اللهم بك أصبحنا",
+            "ku": "خوایە، بە تۆ بەیانیمان کرد"
+        ],
+        reference: "Morning dhikr"
+    ),
+    ShortPiece(
+        arabic: "ٱللَّهُمَّ بِكَ أَمْسَيْنَا",
+        translations: [
+            "en": "O Allah, by You we enter the evening.",
+            "ar": "اللهم بك أمسينا",
+            "ku": "خوایە، بە تۆ ئێوارەمان کرد"
+        ],
+        reference: "Evening dhikr"
+    ),
+    ShortPiece(
+        arabic: "رَضِيتُ بِٱللَّهِ رَبًّا",
+        translations: [
+            "en": "I am pleased with Allah as my Lord.",
+            "ar": "رضيت بالله ربا",
+            "ku": "ڕازیم بە خوا وەک پەروەردگار"
+        ],
+        reference: "Hisnul Muslim"
+    ),
+    ShortPiece(
+        arabic: "أَعُوذُ بِٱللَّهِ مِنَ ٱلشَّيْطَـٰنِ ٱلرَّجِيمِ",
+        translations: [
+            "en": "I seek refuge in Allah from the accursed Satan.",
+            "ar": "أعوذ بالله من الشيطان الرجيم",
+            "ku": "پەنا دەگرم بە خوا لە شەیتانی ڕەجیم"
+        ],
+        reference: "Isti'adha"
     )
 ]
 

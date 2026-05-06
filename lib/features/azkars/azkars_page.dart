@@ -9,6 +9,7 @@ import '../../shared/state/favorites_provider.dart';
 import '../../shared/widgets/app_field.dart';
 import '../../shared/widgets/app_spinner.dart';
 import '../../shared/widgets/page_scaffold.dart';
+import '../../shared/widgets/animated_toggle_icon.dart';
 import 'package:ionicons/ionicons.dart';
 
 class AzkarsPage extends ConsumerStatefulWidget {
@@ -393,13 +394,13 @@ class _ChapterRowState extends State<_ChapterRow> {
                 width: 40,
                 height: 40,
                 alignment: Alignment.center,
-                child: Icon(
-                  widget.isStarred
-                      ? Ionicons.star : Ionicons.star_outline,
+                child: AnimatedToggleIcon(
+                  outlineIcon: Ionicons.star_outline,
+                  filledIcon: Ionicons.star,
+                  active: widget.isStarred,
+                  activeColor: palette.accent,
+                  inactiveColor: palette.textSubtle,
                   size: 20,
-                  color: widget.isStarred
-                      ? palette.accent
-                      : palette.textSubtle,
                 ),
               ),
             ),

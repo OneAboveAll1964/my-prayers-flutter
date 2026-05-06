@@ -68,6 +68,8 @@ private extension WidgetFont {
     var fontName: String {
         switch self {
         case .uthmanic:    return "KFGQPC HAFS Uthmanic Script"
+        case .amiri:       return "Amiri Quran"
+        case .nastaleeq:   return "KFGQPC Nastaleeq"
         case .scheherazade: return "Scheherazade New"
         case .naskh:        return "Noto Naskh Arabic"
         }

@@ -69,13 +69,15 @@ enum WidgetLanguage: String, AppEnum {
 }
 
 enum WidgetFont: String, AppEnum {
-    case uthmanic, scheherazade, naskh
+    case uthmanic, amiri, nastaleeq, scheherazade, naskh
 
     static var typeDisplayRepresentation: TypeDisplayRepresentation = "Arabic font"
     static var caseDisplayRepresentations: [WidgetFont: DisplayRepresentation] = [
-        .uthmanic: DisplayRepresentation(title: "Uthmanic"),
+        .uthmanic: DisplayRepresentation(title: "Uthmani Hafs"),
+        .amiri: DisplayRepresentation(title: "Amiri Quran"),
+        .nastaleeq: DisplayRepresentation(title: "KFGQPC Nastaleeq"),
         .scheherazade: DisplayRepresentation(title: "Scheherazade"),
-        .naskh: DisplayRepresentation(title: "Naskh")
+        .naskh: DisplayRepresentation(title: "Noto Naskh")
     ]
 }
 

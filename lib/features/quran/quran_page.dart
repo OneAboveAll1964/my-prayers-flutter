@@ -14,6 +14,7 @@ import '../../shared/widgets/app_spinner.dart';
 import '../../shared/widgets/page_scaffold.dart';
 import '../home/widgets/last_read_card.dart';
 import '../settings/widgets/arabic_font_picker.dart';
+import '../../shared/widgets/animated_toggle_icon.dart';
 import 'package:ionicons/ionicons.dart';
 
 class QuranPage extends ConsumerStatefulWidget {
@@ -296,11 +297,13 @@ class _SurahRowState extends State<_SurahRow> {
               color: _downBm ? palette.surface2 : Colors.transparent,
               borderRadius: BorderRadius.circular(999),
             ),
-            child: Icon(
-              widget.bookmarked
-                  ? Ionicons.bookmark : Ionicons.bookmark_outline,
+            child: AnimatedToggleIcon(
+              outlineIcon: Ionicons.bookmark_outline,
+              filledIcon: Ionicons.bookmark,
+              active: widget.bookmarked,
+              activeColor: palette.accent,
+              inactiveColor: palette.textSubtle,
               size: 18,
-              color: widget.bookmarked ? palette.accent : palette.textSubtle,
             ),
           ),
         ),

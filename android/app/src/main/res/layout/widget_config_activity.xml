@@ -95,7 +95,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:background="@drawable/segment_track"
+                android:background="@drawable/segment_track_squared"
                 android:padding="3dp">
                 <RadioGroup
                     android:id="@+id/group_font_row1"

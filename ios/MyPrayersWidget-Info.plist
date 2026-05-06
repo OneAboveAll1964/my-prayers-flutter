@@ -28,6 +28,8 @@
 	<key>UIAppFonts</key>
 	<array>
 		<string>UthmanicHafs.ttf</string>
+		<string>AmiriQuran.ttf</string>
+		<string>KfgqpcNastaleeq.ttf</string>
 		<string>ScheherazadeNew-Regular.ttf</string>
 		<string>NotoNaskhArabic-Regular.ttf</string>
 	</array>

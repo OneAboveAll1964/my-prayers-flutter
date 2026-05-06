@@ -1,4 +1,4 @@
-package com.shkomaghdid.my_prayers_flutter
+package com.shkomaghdid.myprayers
 
 import io.flutter.embedding.android.FlutterActivity
 

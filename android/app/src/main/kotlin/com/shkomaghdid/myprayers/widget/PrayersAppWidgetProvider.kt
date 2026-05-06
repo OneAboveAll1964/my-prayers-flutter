@@ -76,9 +76,9 @@ class PrayersAppWidgetProvider : AppWidgetProvider() {
             val sizeKey = prefs.getString("widget.${widgetId}.size", "m")
 
             val (arSize, trSize, refSize) = when (sizeKey) {
-                "s" -> Triple(14f, 10f, 9f)
-                "l" -> Triple(28f, 15f, 12f)
-                else -> Triple(18f, 12f, 10f)
+                "s" -> Triple(18f, 11f, 9f)
+                "l" -> Triple(36f, 17f, 13f)
+                else -> Triple(26f, 14f, 11f)
             }
 
             val nightMode = when (theme) {
@@ -125,7 +125,8 @@ class PrayersAppWidgetProvider : AppWidgetProvider() {
             views.setInt(activeCardId, "setBackgroundResource", bgRes)
 
             if (isCentered) {
-                views.setTextViewText(R.id.widget_arabic_centered, arabic)
+                val centered = "۞ ‏$arabic‏ ۞"
+                views.setTextViewText(R.id.widget_arabic_centered, centered)
                 views.setTextColor(R.id.widget_arabic_centered, textColor)
                 views.setTextViewTextSize(R.id.widget_arabic_centered,
                     android.util.TypedValue.COMPLEX_UNIT_SP, arSize)

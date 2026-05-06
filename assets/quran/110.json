@@ -1,0 +1,48 @@
+{
+  "number": 110,
+  "name": "سُورَةُ النَّصۡرِ",
+  "englishName": "An-Nasr",
+  "englishNameTranslation": "Divine Support",
+  "revelationType": "Medinan",
+  "ayahs": [
+    {
+      "number": 6214,
+      "numberInSurah": 1,
+      "arabic": "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ إِذَا جَآءَ نَصْرُ ٱللَّهِ وَٱلْفَتْحُ",
+      "translations": {
+        "en": "When the victory of Allah has come and the conquest,",
+        "ar": "إذا تمَّ لك -أيها الرسول- النصر على كفار قريش، وتم لك فتح \"مكة\".",
+        "ku": "کاتێ یارمه‌تی و کۆمه‌کی خوا دێت، شاری مه‌ککه ڕزگار ده‌کرێت و ده‌رگای ئازادی واڵا ده‌کرێت."
+      },
+      "juz": 30,
+      "page": 603,
+      "sajda": false
+    },
+    {
+      "number": 6215,
+      "numberInSurah": 2,
+      "arabic": "وَرَأَيْتَ ٱلنَّاسَ يَدْخُلُونَ فِى دِينِ ٱللَّهِ أَفْوَاجًۭا",
+      "translations": {
+        "en": "And you see the people entering into the religion of Allah in multitudes,",
+        "ar": "ورأيت الكثير من الناس يدخلون في الإسلام جماعات جماعات.",
+        "ku": "خه‌ڵکیشت بینی پۆل پۆل ده‌چنه ڕیزی ئاینی خواوه‌."
+      },
+      "juz": 30,
+      "page": 603,
+      "sajda": false
+    },
+    {
+      "number": 6216,
+      "numberInSurah": 3,
+      "arabic": "فَسَبِّحْ بِحَمْدِ رَبِّكَ وَٱسْتَغْفِرْهُ ۚ إِنَّهُۥ كَانَ تَوَّابًۢا",
+      "translations": {
+        "en": "Then exalt [Him] with praise of your Lord and ask forgiveness of Him. Indeed, He is ever Accepting of repentance.",
+        "ar": "إذا وقع ذلك فتهيأ للقاء ربك بالإكثار من التسبيح بحمده والإكثار من استغفاره، إنه كان توابًا على المسبحين والمستغفرين، يتوب عليهم ويرحمهم ويقبل توبتهم.",
+        "ku": "ئه‌وسا ئیتر تۆ سوپاس و ستایشی په‌روه‌ردگارت بکه و داوای لێ خۆش بوونی لێ بکه‌، چونکه به‌ڕاستی خوا زۆر چاوپۆشی ده‌کات و تۆبه وه‌رگره (.. ئومێده له ئاینده‌یه‌کی نزیکدا، خوای باڵاده‌ست سه‌رکه‌وتنێک ببه‌خشێت، ئه‌و کاته ئیمانداران هه‌ست ده‌که‌ن ئه‌م سوره‌ته تازه دابه‌زیوه‌)."
+      },
+      "juz": 30,
+      "page": 603,
+      "sajda": false
+    }
+  ]
+}

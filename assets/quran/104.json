@@ -1,0 +1,126 @@
+{
+  "number": 104,
+  "name": "سُورَةُ الهُمَزَةِ",
+  "englishName": "Al-Humaza",
+  "englishNameTranslation": "The Traducer",
+  "revelationType": "Meccan",
+  "ayahs": [
+    {
+      "number": 6180,
+      "numberInSurah": 1,
+      "arabic": "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ وَيْلٌۭ لِّكُلِّ هُمَزَةٍۢ لُّمَزَةٍ",
+      "translations": {
+        "en": "Woe to every scorner and mocker",
+        "ar": "شر وهلاك لكل مغتاب للناس، طعان فيهم.",
+        "ku": "هاوارو ئاهو ناڵه بۆ هه‌ر که‌سێك که به شوێن که‌م و کووڕیدا ده‌گه‌ڕێت و له عه‌یب و عاری خه‌ڵکی ده‌دوێت."
+      },
+      "juz": 30,
+      "page": 601,
+      "sajda": false
+    },
+    {
+      "number": 6181,
+      "numberInSurah": 2,
+      "arabic": "ٱلَّذِى جَمَعَ مَالًۭا وَعَدَّدَهُۥ",
+      "translations": {
+        "en": "Who collects wealth and [continuously] counts it.",
+        "ar": "الذي كان همُّه جمع المال وتعداده.",
+        "ku": "ئه‌و که‌سه‌ی ماڵ و سامانی زۆری کۆ کردۆته‌وه‌و هه‌ر خه‌ریکی ژماردنێتی و (دڵی پێی خۆشه‌، ڕه‌زیله‌و به‌خشنده نیه‌)."
+      },
+      "juz": 30,
+      "page": 601,
+      "sajda": false
+    },
+    {
+      "number": 6182,
+      "numberInSurah": 3,
+      "arabic": "يَحْسَبُ أَنَّ مَالَهُۥٓ أَخْلَدَهُۥ",
+      "translations": {
+        "en": "He thinks that his wealth will make him immortal.",
+        "ar": "يظن أنه ضَمِنَ لنفسه بهذا المال الذي جمعه، الخلود في الدنيا والإفلات من الحساب.",
+        "ku": "واده‌زانێت به‌ڕاستی که ماڵ و سامانه‌که‌ی ده‌بێته هۆی ته‌مه‌ن درێژی و نه‌مریی بۆی؟"
+      },
+      "juz": 30,
+      "page": 601,
+      "sajda": false
+    },
+    {
+      "number": 6183,
+      "numberInSurah": 4,
+      "arabic": "كَلَّا ۖ لَيُنۢبَذَنَّ فِى ٱلْحُطَمَةِ",
+      "translations": {
+        "en": "No! He will surely be thrown into the Crusher.",
+        "ar": "ليس الأمر كما ظن، ليُطرحنَّ في النار التي تهشم كل ما يُلْقى فيها.",
+        "ku": "نه‌خێر سوێند به‌خوا به سووکی و ڕیسوایی فڕێ ده‌درێته ناو (حطمة) وه‌."
+      },
+      "juz": 30,
+      "page": 601,
+      "sajda": false
+    },
+    {
+      "number": 6184,
+      "numberInSurah": 5,
+      "arabic": "وَمَآ أَدْرَىٰكَ مَا ٱلْحُطَمَةُ",
+      "translations": {
+        "en": "And what can make you know what is the Crusher?",
+        "ar": "وما أدراك -أيها الرسول- ما حقيقة النار؟",
+        "ku": "جا تۆ چووزانی (حطمة) چیه‌؟"
+      },
+      "juz": 30,
+      "page": 601,
+      "sajda": false
+    },
+    {
+      "number": 6185,
+      "numberInSurah": 6,
+      "arabic": "نَارُ ٱللَّهِ ٱلْمُوقَدَةُ",
+      "translations": {
+        "en": "It is the fire of Allah, [eternally] fueled,",
+        "ar": "إنها نار الله الموقدة التي من شدتها تنفُذ من الأجسام إلى القلوب.",
+        "ku": "بریتی یه له ئاگری داگیرساوو بڵێسه‌داری خوا."
+      },
+      "juz": 30,
+      "page": 601,
+      "sajda": false
+    },
+    {
+      "number": 6186,
+      "numberInSurah": 7,
+      "arabic": "ٱلَّتِى تَطَّلِعُ عَلَى ٱلْأَفْـِٔدَةِ",
+      "translations": {
+        "en": "Which mounts directed at the hearts.",
+        "ar": "إنها نار الله الموقدة التي من شدتها تنفُذ من الأجسام إلى القلوب.",
+        "ku": "ئه‌و ئاگره‌ی ڕوو ده‌کاته ناو جه‌رگه‌ی دڵ و ده‌روونه‌کان (که مه‌ڵبه‌ندی کوفرو خوانه‌ناسی و ڕه‌زیلی یه‌)"
+      },
+      "juz": 30,
+      "page": 601,
+      "sajda": false
+    },
+    {
+      "number": 6187,
+      "numberInSurah": 8,
+      "arabic": "إِنَّهَا عَلَيْهِم مُّؤْصَدَةٌۭ",
+      "translations": {
+        "en": "Indeed, Hellfire will be closed down upon them",
+        "ar": "إنها عليهم مطبَقة في سلاسل وأغلال مطوَّلة؛ لئلا يخرجوا منها.",
+        "ku": "بێگومان ئه‌و ئاگرو دۆزه‌خه له شوێنێکدایه که سه‌رگیراوو ده‌رگا داخراوه له‌سه‌ریان (ڕێگه‌ی قوتار بوونی نیه‌)."
+      },
+      "juz": 30,
+      "page": 601,
+      "sajda": false
+    },
+    {
+      "number": 6188,
+      "numberInSurah": 9,
+      "arabic": "فِى عَمَدٍۢ مُّمَدَّدَةٍۭ",
+      "translations": {
+        "en": "In extended columns.",
+        "ar": "إنها عليهم مطبَقة في سلاسل وأغلال مطوَّلة؛ لئلا يخرجوا منها.",
+        "ku": "(خوا نه‌ناسان له‌وێ) له‌ناو چه‌ند ستوونێکی ئاگرینی درێژدان (هیچ جم و جوڵێکیان بۆ ناکرێت)."
+      },
+      "juz": 30,
+      "page": 601,
+      "sajda": false
+    }
+  ]
+}

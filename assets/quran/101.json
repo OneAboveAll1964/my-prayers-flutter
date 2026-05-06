@@ -1,0 +1,152 @@
+{
+  "number": 101,
+  "name": "سُورَةُ القَارِعَةِ",
+  "englishName": "Al-Qaari'a",
+  "englishNameTranslation": "The Calamity",
+  "revelationType": "Meccan",
+  "ayahs": [
+    {
+      "number": 6158,
+      "numberInSurah": 1,
+      "arabic": "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ ٱلْقَارِعَةُ",
+      "translations": {
+        "en": "The Striking Calamity -",
+        "ar": "الساعة التي تقرع قلوب الناس بأهوالها.",
+        "ku": "(یه‌کێکه له ناوه‌کانی ڕۆژی قیامه‌ت) واته‌: ئه‌و گرمه‌یه‌یی دڵان ده‌له‌رزێنێت."
+      },
+      "juz": 30,
+      "page": 600,
+      "sajda": false
+    },
+    {
+      "number": 6159,
+      "numberInSurah": 2,
+      "arabic": "مَا ٱلْقَارِعَةُ",
+      "translations": {
+        "en": "What is the Striking Calamity?",
+        "ar": "أيُّ شيء هذه القارعة؟",
+        "ku": "ئاخۆ_القارعه‌_چی بێت؟"
+      },
+      "juz": 30,
+      "page": 600,
+      "sajda": false
+    },
+    {
+      "number": 6160,
+      "numberInSurah": 3,
+      "arabic": "وَمَآ أَدْرَىٰكَ مَا ٱلْقَارِعَةُ",
+      "translations": {
+        "en": "And what can make you know what is the Striking Calamity?",
+        "ar": "وأيُّ شيء أعلمك بها؟",
+        "ku": "(تۆ ئه‌ی ئینسان) چی فێری کردویت که‌_القارعه‌_چی یه‌!!"
+      },
+      "juz": 30,
+      "page": 600,
+      "sajda": false
+    },
+    {
+      "number": 6161,
+      "numberInSurah": 4,
+      "arabic": "يَوْمَ يَكُونُ ٱلنَّاسُ كَٱلْفَرَاشِ ٱلْمَبْثُوثِ",
+      "translations": {
+        "en": "It is the Day when people will be like moths, dispersed,",
+        "ar": "في ذلك اليوم يكون الناس في كثرتهم وتفرقهم وحركتهم كالفراش المنتشر، وهو الذي يتساقط في النار.",
+        "ku": "ئه‌و ڕۆژه خه‌ڵکی وه‌کو په‌پووله‌ی سه‌رگه‌ردان په‌رش و بڵاو ده‌بنه‌وه‌."
+      },
+      "juz": 30,
+      "page": 600,
+      "sajda": false
+    },
+    {
+      "number": 6162,
+      "numberInSurah": 5,
+      "arabic": "وَتَكُونُ ٱلْجِبَالُ كَٱلْعِهْنِ ٱلْمَنفُوشِ",
+      "translations": {
+        "en": "And the mountains will be like wool, fluffed up.",
+        "ar": "وتكون الجبال كالصوف متعدد الألوان الذي يُنْفَش باليد، فيصير هباء ويزول.",
+        "ku": "کێوه‌کانیش وه‌کو خوری شیکراوه‌یان لێ دێت (سووك ده‌بن و چاڵ و چۆڵیان پێ پڕ ده‌کرێته‌وه‌)."
+      },
+      "juz": 30,
+      "page": 600,
+      "sajda": false
+    },
+    {
+      "number": 6163,
+      "numberInSurah": 6,
+      "arabic": "فَأَمَّا مَن ثَقُلَتْ مَوَٰزِينُهُۥ",
+      "translations": {
+        "en": "Then as for one whose scales are heavy [with good deeds],",
+        "ar": "فأما من رجحت موازين حسناته، فهو في حياة مرضية في الجنة.",
+        "ku": "جا ئه‌وه‌ی ته‌رازووی خێری سه‌نگین بێت."
+      },
+      "juz": 30,
+      "page": 600,
+      "sajda": false
+    },
+    {
+      "number": 6164,
+      "numberInSurah": 7,
+      "arabic": "فَهُوَ فِى عِيشَةٍۢ رَّاضِيَةٍۢ",
+      "translations": {
+        "en": "He will be in a pleasant life.",
+        "ar": "فأما من رجحت موازين حسناته، فهو في حياة مرضية في الجنة.",
+        "ku": "ئه‌وه له بارودۆخێکی خۆش و ئاسووده‌دا ژیان ده‌باته سه‌رو زۆر پێی ڕازیه‌."
+      },
+      "juz": 30,
+      "page": 600,
+      "sajda": false
+    },
+    {
+      "number": 6165,
+      "numberInSurah": 8,
+      "arabic": "وَأَمَّا مَنْ خَفَّتْ مَوَٰزِينُهُۥ",
+      "translations": {
+        "en": "But as for one whose scales are light,",
+        "ar": "وأما من خفت موازين حسناته، ورجحت موازين سيئاته، فمأواه جهنم.",
+        "ku": "ئه‌وه‌ش ته‌رازووی (خێرو چاکه‌ی) سووك بێت (گوناهی زۆر بێت)."
+      },
+      "juz": 30,
+      "page": 600,
+      "sajda": false
+    },
+    {
+      "number": 6166,
+      "numberInSurah": 9,
+      "arabic": "فَأُمُّهُۥ هَاوِيَةٌۭ",
+      "translations": {
+        "en": "His refuge will be an abyss.",
+        "ar": "وأما من خفت موازين حسناته، ورجحت موازين سيئاته، فمأواه جهنم.",
+        "ku": "ئه‌وه دایکی ئه‌و دۆزه‌خه (باوه‌شی بۆ کردۆته‌وه‌)"
+      },
+      "juz": 30,
+      "page": 600,
+      "sajda": false
+    },
+    {
+      "number": 6167,
+      "numberInSurah": 10,
+      "arabic": "وَمَآ أَدْرَىٰكَ مَا هِيَهْ",
+      "translations": {
+        "en": "And what can make you know what that is?",
+        "ar": "وما أدراك -أيها الرسول- ما هذه الهاوية؟",
+        "ku": "جا تۆ چووزانی (هاویه‌) چیه‌؟!"
+      },
+      "juz": 30,
+      "page": 600,
+      "sajda": false
+    },
+    {
+      "number": 6168,
+      "numberInSurah": 11,
+      "arabic": "نَارٌ حَامِيَةٌۢ",
+      "translations": {
+        "en": "It is a Fire, intensely hot.",
+        "ar": "إنها نار قد حَمِيت من الوقود عليها.",
+        "ku": "ئاگرێکی زۆر سوتێنه‌رو بڵێسه‌داره (هه‌رگیز خامۆش نابێت و تینی که‌م ناکات و له کۆڵی نابێته‌وه‌)."
+      },
+      "juz": 30,
+      "page": 600,
+      "sajda": false
+    }
+  ]
+}

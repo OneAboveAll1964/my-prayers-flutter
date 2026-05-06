@@ -1,0 +1,42 @@
+name: my_prayers_flutter
+description: My Prayers - prayer times, azkars, qibla, quran. Mobile companion to my-prayers-web.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.11.5
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  flutter_riverpod: ^2.6.1
+  sqflite: ^2.4.1
+  path_provider: ^2.1.5
+  path: ^1.9.1
+  shared_preferences: ^2.5.2
+  go_router: ^16.0.0
+  intl: ^0.20.2
+  geolocator: ^14.0.0
+  permission_handler: ^12.0.0
+  flutter_compass: ^0.8.1
+  flutter_local_notifications: ^19.0.0
+  timezone: ^0.10.0
+  audioplayers: ^6.1.0
+  home_widget: ^0.7.0
+  google_fonts: ^6.2.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+  generate: false
+  assets:
+    - assets/db/
+    - assets/quran/
+    - assets/audio/
+    - assets/widget/

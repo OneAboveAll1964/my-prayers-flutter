@@ -209,8 +209,6 @@ class _DayCard extends StatelessWidget {
   final bool today;
   final String intl;
 
-  static const _labels = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
-
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;

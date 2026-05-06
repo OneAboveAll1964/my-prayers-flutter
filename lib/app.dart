@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/i18n/app_l10n.dart';
 import 'core/router/router.dart';
@@ -50,7 +51,9 @@ class MyPrayersApp extends ConsumerWidget {
       supportedLocales: supportedLocales,
       localizationsDelegates: const [
         AppL10nDelegate(),
-        ...GlobalLocalizationDelegates.delegates,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
       ],
       routerConfig: appRouter,
     );
@@ -64,10 +67,3 @@ class MyPrayersApp extends ConsumerWidget {
   }
 }
 
-class GlobalLocalizationDelegates {
-  static const delegates = <LocalizationsDelegate>[
-    DefaultMaterialLocalizations.delegate,
-    DefaultWidgetsLocalizations.delegate,
-    DefaultCupertinoLocalizations.delegate,
-  ];
-}

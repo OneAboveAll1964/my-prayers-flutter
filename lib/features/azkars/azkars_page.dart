@@ -20,12 +20,10 @@ class _AzkarsPageState extends ConsumerState<AzkarsPage> {
   List<AzkarChapter> _searchResults = [];
   bool _loading = true;
   String _query = '';
-  late String _lang;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _lang = AppL10n.of(context).locale.languageCode;
     _load();
   }
 

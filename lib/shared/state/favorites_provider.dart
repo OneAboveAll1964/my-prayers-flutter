@@ -73,7 +73,7 @@ class AyahBookmarkEntry {
 }
 
 class TasbihState {
-  TasbihState({this.count = 0, this.total = 0, this.target = 33});
+  const TasbihState({this.count = 0, this.total = 0, this.target = 33});
   final int count;
   final int total;
   final int target;

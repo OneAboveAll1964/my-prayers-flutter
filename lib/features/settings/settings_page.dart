@@ -7,7 +7,6 @@ import '../../core/theme/tokens.dart';
 import '../../shared/models/prayer_time.dart';
 import '../../shared/state/settings_provider.dart';
 import '../../shared/widgets/app_field.dart';
-import '../../shared/widgets/app_sheet.dart';
 import '../../shared/widgets/app_toggle.dart';
 import '../../shared/widgets/page_scaffold.dart';
 import '../../shared/widgets/segmented_control.dart';

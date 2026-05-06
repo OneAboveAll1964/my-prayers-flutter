@@ -15,8 +15,6 @@ class TasbihPage extends ConsumerStatefulWidget {
 }
 
 class _TasbihPageState extends ConsumerState<TasbihPage> {
-  static const _targets = [33, 99, 100, -1];
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppL10n.of(context);

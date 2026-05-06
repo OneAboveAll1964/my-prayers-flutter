@@ -34,10 +34,10 @@ class _BottomTabBar extends StatelessWidget {
   final String activePath;
 
   static const _tabs = [
-    _TabSpec(path: '/', label: 'home', icon: Icons.home_outlined, activeIcon: Icons.home_rounded),
-    _TabSpec(path: '/azkars', label: 'azkars', icon: Icons.menu_book_outlined, activeIcon: Icons.menu_book_rounded),
-    _TabSpec(path: '/qibla', label: 'qibla', icon: Icons.explore_outlined, activeIcon: Icons.explore_rounded),
-    _TabSpec(path: '/quran', label: 'quran', icon: Icons.auto_stories_outlined, activeIcon: Icons.auto_stories_rounded),
+    _TabSpec(path: '/', label: 'home', icon: Icons.cottage_outlined, activeIcon: Icons.cottage_rounded),
+    _TabSpec(path: '/azkars', label: 'azkars', icon: Icons.bookmarks_outlined, activeIcon: Icons.bookmarks_rounded),
+    _TabSpec(path: '/qibla', label: 'qibla', icon: Icons.near_me_outlined, activeIcon: Icons.near_me_rounded),
+    _TabSpec(path: '/quran', label: 'quran', icon: Icons.menu_book_outlined, activeIcon: Icons.menu_book_rounded),
   ];
 
   @override

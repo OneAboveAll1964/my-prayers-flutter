@@ -3,12 +3,12 @@ import 'package:flutter/material.dart';
 class AppTokens {
   AppTokens._();
 
-  static const accentLight = Color(0xFF1F8A4C);
-  static const accentLightStrong = Color(0xFF186B3B);
-  static const accentLightSoft = Color(0xFFE6F3EC);
-  static const accentDark = Color(0xFF34C97A);
-  static const accentDarkStrong = Color(0xFF2BB96D);
-  static const accentDarkSoft = Color(0xFF173626);
+  static const accentLight = Color(0xFF2E7C4F);
+  static const accentLightStrong = Color(0xFF1F5C39);
+  static const accentLightSoft = Color(0xFFE6EFE9);
+  static const accentDark = Color(0xFF5BAE82);
+  static const accentDarkStrong = Color(0xFF4A9870);
+  static const accentDarkSoft = Color(0xFF1E2C25);
 
   static const bgLight = Color(0xFFFBFBFA);
   static const surfaceLight = Color(0xFFFFFFFF);

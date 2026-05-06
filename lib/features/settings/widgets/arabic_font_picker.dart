@@ -60,15 +60,19 @@ class ArabicFontPicker extends ConsumerWidget {
                       ],
                     ),
                     const SizedBox(height: 8),
-                    Directionality(
-                      textDirection: TextDirection.rtl,
-                      child: Text(
-                        _previewText,
-                        style: TextStyle(
-                          color: palette.text,
-                          fontSize: 22,
-                          height: 1.7,
-                          fontFamily: entry.value,
+                    SizedBox(
+                      width: double.infinity,
+                      child: Directionality(
+                        textDirection: TextDirection.rtl,
+                        child: Text(
+                          _previewText,
+                          textAlign: TextAlign.right,
+                          style: TextStyle(
+                            color: palette.text,
+                            fontSize: 22,
+                            height: 1.7,
+                            fontFamily: entry.value,
+                          ),
                         ),
                       ),
                     ),

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/i18n/app_l10n.dart';
@@ -13,9 +14,20 @@ import '../../shared/widgets/page_scaffold.dart';
 import '../settings/widgets/arabic_font_picker.dart';
 
 class SurahPage extends ConsumerStatefulWidget {
-  const SurahPage({super.key, required this.number, this.initialAyah});
+  const SurahPage({
+    super.key,
+    required this.number,
+    this.initialAyah,
+    this.englishName,
+    this.arabicName,
+    this.ayahCount,
+  });
+
   final int number;
   final int? initialAyah;
+  final String? englishName;
+  final String? arabicName;
+  final int? ayahCount;
 
   @override
   ConsumerState<SurahPage> createState() => _SurahPageState();
@@ -27,7 +39,8 @@ class _SurahPageState extends ConsumerState<SurahPage> {
   late final ScrollController _controller;
   final Map<int, GlobalKey> _ayahKeys = {};
   int _visibleAyah = 1;
-  bool _initialScrollDone = false;
+  bool _initialScrollScheduled = false;
+  Timer? _scrollDebounce;
 
   @override
   void initState() {
@@ -58,10 +71,10 @@ class _SurahPageState extends ConsumerState<SurahPage> {
 
     if (surah != null) {
       _saveLastRead(widget.initialAyah ?? 1);
-      if (!_initialScrollDone &&
+      if (!_initialScrollScheduled &&
           widget.initialAyah != null &&
           widget.initialAyah! > 1) {
-        _initialScrollDone = true;
+        _initialScrollScheduled = true;
         WidgetsBinding.instance.addPostFrameCallback((_) {
           _scrollToAyah(widget.initialAyah!);
         });
@@ -71,31 +84,56 @@ class _SurahPageState extends ConsumerState<SurahPage> {
 
   Future<void> _scrollToAyah(int ayahNum) async {
     if (!mounted || _surah == null) return;
-
-    if (_controller.hasClients) {
-      const estimatedHeight = 230.0;
-      final estimated = (ayahNum - 1) * estimatedHeight;
-      final maxScroll = _controller.position.maxScrollExtent;
-      _controller.jumpTo(estimated.clamp(0.0, maxScroll));
+    if (!_controller.hasClients) {
+      await Future.delayed(const Duration(milliseconds: 50));
+      if (!mounted || !_controller.hasClients) return;
     }
 
-    for (var attempt = 0; attempt < 12; attempt++) {
-      await Future.delayed(const Duration(milliseconds: 30));
+    const estHeight = 280.0;
+    var targetOffset = (ayahNum - 1) * estHeight;
+
+    for (var pass = 0; pass < 6; pass++) {
+      if (!mounted || !_controller.hasClients) return;
+      final maxScroll = _controller.position.maxScrollExtent;
+      _controller.jumpTo(targetOffset.clamp(0.0, maxScroll));
+
+      await Future.delayed(const Duration(milliseconds: 60));
       if (!mounted) return;
+
       final ctx = _ayahKeys[ayahNum]?.currentContext;
       if (ctx != null) {
-        await Scrollable.ensureVisible(
-          ctx,
-          duration: const Duration(milliseconds: 260),
-          curve: AppTokens.ease,
-          alignment: 0.08,
-        );
-        return;
+        final box = ctx.findRenderObject() as RenderBox?;
+        if (box != null && box.attached && _controller.hasClients) {
+          final viewport = _controller.position.viewportDimension;
+          final globalY = box.localToGlobal(Offset.zero).dy;
+          final scrollableBox =
+              Scrollable.maybeOf(ctx)?.context.findRenderObject() as RenderBox?;
+          final viewportTop =
+              scrollableBox?.localToGlobal(Offset.zero).dy ?? 0;
+          final relY = globalY - viewportTop;
+          final delta = relY - viewport * 0.06;
+          final newOffset =
+              (_controller.offset + delta).clamp(0.0, _controller.position.maxScrollExtent);
+          await _controller.animateTo(
+            newOffset,
+            duration: const Duration(milliseconds: 240),
+            curve: AppTokens.ease,
+          );
+          return;
+        }
       }
+
+      targetOffset += estHeight * 4;
     }
   }
 
   void _onScroll() {
+    _scrollDebounce?.cancel();
+    _scrollDebounce = Timer(const Duration(milliseconds: 80), _detectVisible);
+  }
+
+  void _detectVisible() {
+    if (!mounted) return;
     int? best;
     double? bestY;
     _ayahKeys.forEach((number, key) {
@@ -128,8 +166,28 @@ class _SurahPageState extends ConsumerState<SurahPage> {
 
   @override
   void dispose() {
+    _scrollDebounce?.cancel();
     _controller.dispose();
     super.dispose();
+  }
+
+  String get _displayTitle {
+    if (_surah != null) return _surah!.englishName;
+    if (widget.englishName != null && widget.englishName!.isNotEmpty) {
+      return widget.englishName!;
+    }
+    return AppL10n.of(context).t('quran.title');
+  }
+
+  String? get _displaySubtitle {
+    final l10n = AppL10n.of(context);
+    if (_surah != null) {
+      return '${_surah!.ayahs.length} ${l10n.t('quran.ayahs')}';
+    }
+    if (widget.ayahCount != null) {
+      return '${widget.ayahCount} ${l10n.t('quran.ayahs')}';
+    }
+    return null;
   }
 
   @override
@@ -148,10 +206,8 @@ class _SurahPageState extends ConsumerState<SurahPage> {
         child: Column(
           children: [
             PageHeader(
-              title: _surah?.englishName ?? l10n.t('quran.title'),
-              subtitle: _surah == null
-                  ? null
-                  : '${_surah!.ayahs.length} ${l10n.t('quran.ayahs')}',
+              title: _displayTitle,
+              subtitle: _displaySubtitle,
               back: true,
               action: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -192,6 +248,7 @@ class _SurahPageState extends ConsumerState<SurahPage> {
                         )
                       : ListView.separated(
                           controller: _controller,
+                          physics: const ClampingScrollPhysics(),
                           padding:
                               const EdgeInsets.fromLTRB(18, 4, 18, 32),
                           itemCount: _surah!.ayahs.length,
@@ -321,16 +378,19 @@ class _AyahRowState extends ConsumerState<_AyahRow> {
           ),
           Container(height: 1, color: palette.line),
           const SizedBox(height: 14),
-          Directionality(
-            textDirection: TextDirection.rtl,
-            child: Text(
-              ayah.arabic,
-              textAlign: TextAlign.right,
-              style: TextStyle(
-                color: palette.text,
-                fontFamily: widget.fontFamily,
-                fontSize: 26,
-                height: 2.4,
+          SizedBox(
+            width: double.infinity,
+            child: Directionality(
+              textDirection: TextDirection.rtl,
+              child: Text(
+                ayah.arabic,
+                textAlign: TextAlign.right,
+                style: TextStyle(
+                  color: palette.text,
+                  fontFamily: widget.fontFamily,
+                  fontSize: 26,
+                  height: 2.4,
+                ),
               ),
             ),
           ),

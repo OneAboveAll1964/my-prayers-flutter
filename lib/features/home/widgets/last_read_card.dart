@@ -29,7 +29,11 @@ class _LastReadCardState extends State<LastReadCard> {
       onTapCancel: () => setState(() => _down = false),
       onTapUp: (_) => setState(() => _down = false),
       onTap: () => context.push(
-          '/quran/${widget.entry.number}?ayah=${widget.entry.lastAyah}'),
+        '/quran/${widget.entry.number}?ayah=${widget.entry.lastAyah}'
+        '&name=${Uri.encodeComponent(widget.entry.englishName)}'
+        '&ar=${Uri.encodeComponent(widget.entry.name)}'
+        '&n=${widget.entry.ayahCount}',
+      ),
       child: AnimatedContainer(
         duration: AppTokens.durationFast,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),

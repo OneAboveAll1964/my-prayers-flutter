@@ -33,4 +33,18 @@ Future<void> main() async {
       child: const MyPrayersApp(),
     ),
   );
+
+  WidgetsBinding.instance.addPostFrameCallback((_) async {
+    final granted = await NotificationService.instance.requestPermissions();
+    final s = settings.debugState;
+    if (granted && s.location != null && s.notificationsEnabled) {
+      await NotificationService.instance.reschedule(
+        location: s.location,
+        attribute: s.toAttribute(),
+        useFixed: s.useFixedTimes,
+        enabled: s.notificationsEnabled,
+        perPrayer: s.perPrayerNotifications,
+      );
+    }
+  });
 }

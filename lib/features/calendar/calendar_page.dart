@@ -289,7 +289,7 @@ class _DayCard extends StatelessWidget {
               physics: const NeverScrollableScrollPhysics(),
               mainAxisSpacing: 10,
               crossAxisSpacing: 14,
-              childAspectRatio: 3.0,
+              childAspectRatio: 2.3,
               children: [
                 for (var i = 0; i < prayer!.all.length; i++)
                   _Cell(

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="config_background">#0E1013</color>
+    <color name="config_text">#F1F3F5</color>
+    <color name="config_text_muted">#B6BBC2</color>
+    <color name="config_segment_track">#1C2025</color>
+    <color name="config_segment_track_selected">#16191D</color>
+    <color name="config_segment_border">#232830</color>
+</resources>

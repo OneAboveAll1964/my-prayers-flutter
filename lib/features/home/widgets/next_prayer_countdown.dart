@@ -40,12 +40,7 @@ class NextPrayerCountdown extends StatelessWidget {
       label = l10n.t('prayers.${prayerKeys[nextIdx]}');
       previousAt = nextIdx > 0
           ? times[nextIdx - 1]
-          : (tomorrowPrayer != null
-              ? times.last.subtract(
-                  Duration(seconds: tomorrowPrayer!.fajr
-                      .difference(times.last)
-                      .inSeconds))
-              : times.first.subtract(const Duration(hours: 6)));
+          : times.first.subtract(const Duration(hours: 6));
     } else if (tomorrowPrayer != null) {
       nextAt = tomorrowPrayer!.fajr;
       label = l10n.t('prayers.fajr');
@@ -69,6 +64,8 @@ class NextPrayerCountdown extends StatelessWidget {
         : '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
     final atTime = DateFormat.Hm(intl).format(nextAt);
 
+    final onAccent = palette.accentOn;
+
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 18, 20, 16),
       decoration: BoxDecoration(
@@ -80,74 +77,67 @@ class NextPrayerCountdown extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Row(
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text(
                 l10n.t('home.next').toUpperCase(),
                 style: TextStyle(
-                  fontSize: 11.5,
+                  fontSize: 12,
                   fontWeight: FontWeight.w700,
-                  color: palette.accentOn.withValues(alpha: 0.75),
+                  color: onAccent.withValues(alpha: 0.78),
                   letterSpacing: 1.4,
                 ),
               ),
-              const SizedBox(width: 10),
-              Container(
-                width: 4,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: 3),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: palette.accentOn.withValues(alpha: 0.5),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
+              Flexible(
                 child: Text(
-                  '$label · $atTime',
+                  label,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.end,
                   style: TextStyle(
-                    fontSize: 13.5,
+                    fontSize: 17,
                     fontWeight: FontWeight.w700,
-                    color: palette.accentOn,
-                    fontFeatures: const [FontFeature.tabularFigures()],
+                    color: onAccent,
+                    letterSpacing: -0.2,
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Expanded(
+              Flexible(
+                fit: FlexFit.tight,
                 child: FittedBox(
                   fit: BoxFit.scaleDown,
-                  alignment: Alignment.centerLeft,
+                  alignment: AlignmentDirectional.centerStart,
                   child: Text(
                     timeStr,
                     style: TextStyle(
-                      fontSize: 56,
+                      fontSize: 52,
                       fontWeight: FontWeight.w700,
-                      color: palette.accentOn,
-                      letterSpacing: -1.6,
+                      color: onAccent,
+                      letterSpacing: -1.5,
                       height: 1,
                       fontFeatures: const [FontFeature.tabularFigures()],
                     ),
                   ),
                 ),
               ),
+              const SizedBox(width: 12),
               Padding(
-                padding: const EdgeInsets.only(left: 12, bottom: 6),
+                padding: const EdgeInsets.only(bottom: 6),
                 child: Text(
-                  l10n.t('home.remaining'),
+                  atTime,
                   style: TextStyle(
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.w700,
-                    color: palette.accentOn.withValues(alpha: 0.65),
-                    letterSpacing: 1.2,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: onAccent.withValues(alpha: 0.85),
+                    fontFeatures: const [FontFeature.tabularFigures()],
                   ),
                 ),
               ),
@@ -160,15 +150,10 @@ class NextPrayerCountdown extends StatelessWidget {
               height: 4,
               child: Stack(
                 children: [
-                  Container(color: palette.accentOn.withValues(alpha: 0.18)),
+                  Container(color: onAccent.withValues(alpha: 0.18)),
                   FractionallySizedBox(
                     widthFactor: progress,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: palette.accentOn,
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                    ),
+                    child: Container(color: onAccent),
                   ),
                 ],
               ),

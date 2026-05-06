@@ -207,7 +207,12 @@ class _SurahRowState extends State<_SurahRow> {
             onTapDown: (_) => setState(() => _downBody = true),
             onTapCancel: () => setState(() => _downBody = false),
             onTapUp: (_) => setState(() => _downBody = false),
-            onTap: () => context.push('/quran/${widget.item.number}'),
+            onTap: () => context.push(
+              '/quran/${widget.item.number}'
+              '?name=${Uri.encodeComponent(widget.item.englishName)}'
+              '&ar=${Uri.encodeComponent(widget.item.name)}'
+              '&n=${widget.item.ayahCount}',
+            ),
             child: AnimatedContainer(
               duration: AppTokens.durationFast,
               color: _downBody ? palette.surface2 : Colors.transparent,
@@ -355,8 +360,11 @@ class _AyahBookmarkRowState extends ConsumerState<_AyahBookmarkRow> {
             onTapDown: (_) => setState(() => _downBody = true),
             onTapCancel: () => setState(() => _downBody = false),
             onTapUp: (_) => setState(() => _downBody = false),
-            onTap: () =>
-                context.push('/quran/${entry.surah}?ayah=${entry.ayah}'),
+            onTap: () => context.push(
+              '/quran/${entry.surah}?ayah=${entry.ayah}'
+              '&name=${Uri.encodeComponent(entry.surahName)}'
+              '&ar=${Uri.encodeComponent(entry.arabicName)}',
+            ),
             child: AnimatedContainer(
               duration: AppTokens.durationFast,
               color: _downBody ? palette.surface2 : Colors.transparent,

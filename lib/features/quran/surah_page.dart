@@ -83,10 +83,9 @@ class _SurahPageState extends ConsumerState<SurahPage> {
   }
 
   void _onScroll() {
-    final scrollOffset = _controller.offset;
     int? best;
     double? bestY;
-    _ayahKeys.forEach((num, key) {
+    _ayahKeys.forEach((number, key) {
       final ctx = key.currentContext;
       if (ctx == null) return;
       final box = ctx.findRenderObject() as RenderBox?;
@@ -94,14 +93,13 @@ class _SurahPageState extends ConsumerState<SurahPage> {
       final pos = box.localToGlobal(Offset.zero).dy;
       if (pos > 80 && (bestY == null || pos < bestY!)) {
         bestY = pos;
-        best = num;
+        best = number;
       }
     });
     if (best != null && best != _visibleAyah) {
       _visibleAyah = best!;
       _saveLastRead(_visibleAyah);
     }
-    final _ = scrollOffset;
   }
 
   void _saveLastRead(int ayah) {
@@ -181,9 +179,11 @@ class _SurahPageState extends ConsumerState<SurahPage> {
                         )
                       : ListView.separated(
                           controller: _controller,
-                          padding: const EdgeInsets.fromLTRB(18, 12, 18, 32),
+                          padding:
+                              const EdgeInsets.fromLTRB(18, 4, 18, 32),
                           itemCount: _surah!.ayahs.length,
-                          separatorBuilder: (_, __) => const SizedBox(height: 10),
+                          separatorBuilder: (ctx, i) =>
+                              const SizedBox(height: 12),
                           itemBuilder: (ctx, i) {
                             final a = _surah!.ayahs[i];
                             return _AyahRow(
@@ -202,7 +202,7 @@ class _SurahPageState extends ConsumerState<SurahPage> {
   }
 }
 
-class _AyahRow extends ConsumerWidget {
+class _AyahRow extends ConsumerStatefulWidget {
   const _AyahRow({
     super.key,
     required this.ayah,
@@ -215,11 +215,20 @@ class _AyahRow extends ConsumerWidget {
   final String fontFamily;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_AyahRow> createState() => _AyahRowState();
+}
+
+class _AyahRowState extends ConsumerState<_AyahRow> {
+  bool _downBm = false;
+
+  @override
+  Widget build(BuildContext context) {
     final palette = context.palette;
     final fav = ref.watch(favoritesProvider);
-    final marked = fav.ayahs
-        .any((a) => a.surah == surah.number && a.ayah == ayah.numberInSurah);
+    final marked = fav.ayahs.any((a) =>
+        a.surah == widget.surah.number && a.ayah == widget.ayah.numberInSurah);
+    final ayah = widget.ayah;
+    final surah = widget.surah;
 
     return Container(
       decoration: BoxDecoration(
@@ -227,76 +236,88 @@ class _AyahRow extends ConsumerWidget {
         borderRadius: BorderRadius.circular(AppTokens.radius),
         border: Border.all(color: palette.line),
       ),
-      padding: const EdgeInsets.fromLTRB(18, 14, 18, 16),
+      padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Container(
-                width: 30,
-                height: 30,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: palette.accentSoft,
-                  borderRadius: BorderRadius.circular(99),
-                ),
-                child: Text(
-                  '${ayah.numberInSurah}',
-                  style: TextStyle(
-                    color: palette.accent,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    fontFeatures: const [FontFeature.tabularFigures()],
-                  ),
-                ),
-              ),
-              const Spacer(),
-              Text(
-                'Juz ${ayah.juz}',
-                style:
-                    TextStyle(color: palette.textSubtle, fontSize: 11.5),
-              ),
-              const SizedBox(width: 8),
-              GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () => ref
-                    .read(favoritesProvider.notifier)
-                    .toggleBookmarkAyah(
-                      surah.number,
-                      ayah.numberInSurah,
-                      surahName: surah.englishName,
-                      arabicName: surah.name,
-                      preview: ayah.translation.isNotEmpty
-                          ? ayah.translation
-                          : ayah.arabic.characters.take(80).toString(),
-                    ),
-                child: SizedBox(
+          Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: Row(
+              children: [
+                Container(
                   width: 30,
                   height: 30,
-                  child: Center(
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: palette.accentSoft,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    '${ayah.numberInSurah}',
+                    style: TextStyle(
+                      color: palette.accentStrong,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  'Juz ${ayah.juz}',
+                  style:
+                      TextStyle(color: palette.textSubtle, fontSize: 11.5),
+                ),
+                const SizedBox(width: 6),
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTapDown: (_) => setState(() => _downBm = true),
+                  onTapCancel: () => setState(() => _downBm = false),
+                  onTapUp: (_) => setState(() => _downBm = false),
+                  onTap: () => ref
+                      .read(favoritesProvider.notifier)
+                      .toggleBookmarkAyah(
+                        surah.number,
+                        ayah.numberInSurah,
+                        surahName: surah.englishName,
+                        arabicName: surah.name,
+                        preview: ayah.translation.isNotEmpty
+                            ? ayah.translation
+                            : ayah.arabic.characters.take(80).toString(),
+                      ),
+                  child: AnimatedContainer(
+                    duration: AppTokens.durationFast,
+                    width: 32,
+                    height: 32,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: _downBm ? palette.surface2 : Colors.transparent,
+                      borderRadius: BorderRadius.circular(999),
+                    ),
                     child: Icon(
                       marked
                           ? Icons.bookmark_rounded
                           : Icons.bookmark_outline_rounded,
-                      size: 16,
-                      color: marked ? palette.accent : palette.textMuted,
+                      size: 18,
+                      color: marked ? palette.accent : palette.textSubtle,
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-          const SizedBox(height: 12),
+          Container(height: 1, color: palette.line),
+          const SizedBox(height: 14),
           Directionality(
             textDirection: TextDirection.rtl,
             child: Text(
               ayah.arabic,
+              textAlign: TextAlign.right,
               style: TextStyle(
                 color: palette.text,
-                fontFamily: fontFamily,
-                fontSize: 24,
-                height: 1.95,
+                fontFamily: widget.fontFamily,
+                fontSize: 26,
+                height: 2.4,
               ),
             ),
           ),
@@ -305,9 +326,9 @@ class _AyahRow extends ConsumerWidget {
             Text(
               ayah.translation,
               style: TextStyle(
-                color: palette.textMuted,
-                fontSize: 14.5,
-                height: 1.55,
+                color: palette.text,
+                fontSize: 15,
+                height: 1.7,
               ),
             ),
           ],

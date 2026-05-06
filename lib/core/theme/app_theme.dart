@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'tokens.dart';
 
@@ -66,8 +67,9 @@ class AppTheme {
       primaryIconTheme: IconThemeData(color: palette.accent),
       pageTransitionsTheme: const PageTransitionsTheme(
         builders: {
-          TargetPlatform.android: CupertinoPageTransitionBuilder(),
-          TargetPlatform.iOS: CupertinoPageTransitionBuilder(),
+          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.android: ZoomPageTransitionsBuilder(),
         },
       ),
       appBarTheme: AppBarTheme(
@@ -108,17 +110,3 @@ class AppTheme {
   }
 }
 
-class CupertinoPageTransitionBuilder extends PageTransitionsBuilder {
-  const CupertinoPageTransitionBuilder();
-  @override
-  Widget buildTransitions<T>(PageRoute<T> route, BuildContext context,
-      Animation<double> animation, Animation<double> secondaryAnimation, Widget child) {
-    return SlideTransition(
-      position: Tween<Offset>(
-        begin: const Offset(0.06, 0),
-        end: Offset.zero,
-      ).animate(CurvedAnimation(parent: animation, curve: AppTokens.ease)),
-      child: FadeTransition(opacity: animation, child: child),
-    );
-  }
-}

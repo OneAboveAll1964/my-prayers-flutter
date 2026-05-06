@@ -78,9 +78,8 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
           children: [
             PageHeader(title: l10n.t('calendar.title'), back: true),
             _MonthSwitcher(
-              year: _year,
-              month: _month,
-              monthLabel: DateFormat.yMMMM(intl).format(DateTime(_year, _month)),
+              monthLabel:
+                  DateFormat.yMMMM(intl).format(DateTime(_year, _month)),
               onPrev: () {
                 setState(() {
                   if (_month == 1) {
@@ -118,20 +117,20 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
                     )
                   : _loading
                       ? const PageLoader()
-                      : ListView.builder(
-                          padding: const EdgeInsets.fromLTRB(18, 8, 18, 24),
+                      : ListView.separated(
+                          padding:
+                              const EdgeInsets.fromLTRB(18, 4, 18, 28),
                           itemCount: _entries.length,
+                          separatorBuilder: (ctx, i) =>
+                              const SizedBox(height: 10),
                           itemBuilder: (ctx, i) {
                             final e = _entries[i];
                             final today = isSameDay(e.key, now);
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 8),
-                              child: _DayCard(
-                                date: e.key,
-                                prayer: e.value,
-                                today: today,
-                                intl: intl,
-                              ),
+                            return _DayCard(
+                              date: e.key,
+                              prayer: e.value,
+                              today: today,
+                              intl: intl,
                             );
                           },
                         ),
@@ -150,15 +149,11 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
 
 class _MonthSwitcher extends StatelessWidget {
   const _MonthSwitcher({
-    required this.year,
-    required this.month,
     required this.monthLabel,
     required this.onPrev,
     required this.onNext,
   });
 
-  final int year;
-  final int month;
   final String monthLabel;
   final VoidCallback onPrev;
   final VoidCallback onNext;
@@ -167,7 +162,7 @@ class _MonthSwitcher extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = context.palette;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(14, 6, 14, 6),
+      padding: const EdgeInsets.fromLTRB(14, 0, 14, 6),
       child: Row(
         children: [
           AppIconButton(
@@ -218,10 +213,9 @@ class _DayCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: today ? palette.accentSoft : palette.surface,
         borderRadius: BorderRadius.circular(AppTokens.radius),
-        border: Border.all(
-            color: today ? palette.accent.withValues(alpha: 0.4) : palette.line),
+        border: Border.all(color: today ? palette.accent : palette.line),
       ),
-      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -230,49 +224,81 @@ class _DayCard extends StatelessWidget {
               Text(
                 DateFormat.d().format(date),
                 style: TextStyle(
-                  color: today ? palette.accent : palette.text,
-                  fontSize: 20,
+                  color: today ? palette.accentStrong : palette.text,
+                  fontSize: 22,
                   fontWeight: FontWeight.w700,
+                  letterSpacing: -0.4,
                   fontFeatures: const [FontFeature.tabularFigures()],
                 ),
               ),
-              const SizedBox(width: 8),
-              Text(
-                DateFormat.E(intl).format(date),
-                style: TextStyle(
-                  color: palette.textMuted,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                ),
+              const SizedBox(width: 10),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    DateFormat.E(intl).format(date),
+                    style: TextStyle(
+                      color: today ? palette.accentStrong : palette.textMuted,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    formatHijriDayMonth(
+                        date, intl == 'ar' ? 'ar' : 'en'),
+                    style: TextStyle(
+                      color: today
+                          ? palette.accentStrong.withValues(alpha: 0.7)
+                          : palette.textSubtle,
+                      fontSize: 11.5,
+                    ),
+                  ),
+                ],
               ),
-              const Spacer(),
-              Text(
-                formatHijriDayMonth(
-                    date, intl == 'ar' ? 'ar' : 'en'),
-                style: TextStyle(
-                  color: palette.textSubtle,
-                  fontSize: 12,
+              if (today) ...[
+                const Spacer(),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 10, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: palette.accent,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    'TODAY',
+                    style: TextStyle(
+                      color: palette.accentOn,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.6,
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ],
           ),
           if (prayer != null) ...[
             const SizedBox(height: 10),
-            Wrap(
-              spacing: 12,
-              runSpacing: 6,
+            Container(height: 1, color: today ? palette.accent.withValues(alpha: 0.18) : palette.line),
+            const SizedBox(height: 10),
+            GridView.count(
+              crossAxisCount: 3,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              mainAxisSpacing: 10,
+              crossAxisSpacing: 14,
+              childAspectRatio: 3.0,
               children: [
                 for (var i = 0; i < prayer!.all.length; i++)
-                  _Pill(
+                  _Cell(
                     label: l10n.t('prayers.${prayerKeys[i]}'),
                     value: DateFormat.Hm(intl).format(prayer!.all[i]),
+                    today: today,
                   ),
               ],
             ),
-          ] else ...[
-            const SizedBox(height: 8),
-            Text(l10n.t('common.error'),
-                style: TextStyle(color: palette.textMuted, fontSize: 12)),
           ],
         ],
       ),
@@ -280,38 +306,42 @@ class _DayCard extends StatelessWidget {
   }
 }
 
-class _Pill extends StatelessWidget {
-  const _Pill({required this.label, required this.value});
+class _Cell extends StatelessWidget {
+  const _Cell({required this.label, required this.value, required this.today});
   final String label;
   final String value;
+  final bool today;
 
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: palette.surface2,
-        borderRadius: BorderRadius.circular(99),
-        border: Border.all(color: palette.line),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(label,
-              style: TextStyle(
-                  color: palette.textMuted,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500)),
-          const SizedBox(width: 6),
-          Text(value,
-              style: TextStyle(
-                  color: palette.text,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  fontFeatures: const [FontFeature.tabularFigures()])),
-        ],
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            color: today ? palette.accentStrong : palette.textMuted,
+            fontSize: 11.5,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 1),
+        Text(
+          value,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            color: today ? palette.accentStrong : palette.text,
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            fontFeatures: const [FontFeature.tabularFigures()],
+          ),
+        ),
+      ],
     );
   }
 }

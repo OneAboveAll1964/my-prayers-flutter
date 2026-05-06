@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/theme/tokens.dart';
 
 class PageHeader extends StatelessWidget {
@@ -22,63 +23,53 @@ class PageHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
+    final isRtl = Directionality.of(context) == TextDirection.rtl;
     return Container(
-      padding: const EdgeInsets.fromLTRB(6, 6, 6, 8),
-      decoration: BoxDecoration(
-        color: palette.bg,
-        border: Border(bottom: BorderSide(color: palette.line)),
-      ),
+      color: palette.bg,
+      padding: const EdgeInsets.fromLTRB(18, 10, 18, 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
             children: [
-              SizedBox(
-                width: 44,
-                height: 44,
-                child: back
-                    ? IconButton(
-                        icon: Icon(
-                          Directionality.of(context) == TextDirection.rtl
-                              ? Icons.arrow_forward_rounded
-                              : Icons.arrow_back_rounded,
-                          color: palette.text,
-                          size: 22,
-                        ),
-                        onPressed: onBack ?? () => Navigator.of(context).maybePop(),
-                      )
-                    : const SizedBox.shrink(),
-              ),
+              if (back) ...[
+                _BackButton(
+                  onTap: onBack ?? () => _safePop(context),
+                  isRtl: isRtl,
+                ),
+                const SizedBox(width: 8),
+              ],
               Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: TextStyle(
-                          color: palette.text,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: -0.2,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        color: palette.text,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.4,
+                        height: 1.15,
                       ),
-                      if (subtitle != null)
-                        Text(
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (subtitle != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text(
                           subtitle!,
                           style: TextStyle(
-                            color: palette.textSubtle,
-                            fontSize: 12,
+                            color: palette.textMuted,
+                            fontSize: 13.5,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                    ],
-                  ),
+                      ),
+                  ],
                 ),
               ),
               if (action != null) action!,
@@ -86,10 +77,57 @@ class PageHeader extends StatelessWidget {
           ),
           if (search != null)
             Padding(
-              padding: const EdgeInsets.fromLTRB(12, 6, 12, 4),
+              padding: const EdgeInsets.only(top: 10),
               child: search!,
             ),
         ],
+      ),
+    );
+  }
+
+  static void _safePop(BuildContext context) {
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      context.go('/');
+    }
+  }
+}
+
+class _BackButton extends StatefulWidget {
+  const _BackButton({required this.onTap, required this.isRtl});
+  final VoidCallback onTap;
+  final bool isRtl;
+
+  @override
+  State<_BackButton> createState() => _BackButtonState();
+}
+
+class _BackButtonState extends State<_BackButton> {
+  bool _down = false;
+  @override
+  Widget build(BuildContext context) {
+    final p = context.palette;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTapDown: (_) => setState(() => _down = true),
+      onTapCancel: () => setState(() => _down = false),
+      onTapUp: (_) => setState(() => _down = false),
+      onTap: widget.onTap,
+      child: AnimatedContainer(
+        duration: AppTokens.durationFast,
+        width: 36,
+        height: 36,
+        decoration: BoxDecoration(
+          color: _down ? p.surface2 : Colors.transparent,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        alignment: Alignment.center,
+        child: Icon(
+          widget.isRtl ? Icons.arrow_forward_rounded : Icons.arrow_back_rounded,
+          color: p.text,
+          size: 20,
+        ),
       ),
     );
   }
@@ -118,7 +156,7 @@ class PageBody extends StatelessWidget {
     }
     return ListView(
       controller: controller,
-      padding: padding ?? const EdgeInsets.fromLTRB(18, 8, 18, 24),
+      padding: padding ?? const EdgeInsets.fromLTRB(18, 4, 18, 28),
       physics: const ClampingScrollPhysics(),
       children: list,
     );
@@ -164,7 +202,7 @@ class TapRow extends StatefulWidget {
     super.key,
     required this.child,
     this.onTap,
-    this.padding = const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+    this.padding = const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
   });
 
   final Widget child;

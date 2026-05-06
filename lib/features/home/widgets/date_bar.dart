@@ -13,43 +13,41 @@ class DateBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = context.palette;
     final l10n = AppL10n.of(context);
-    final intlLocale = _intlLocale(l10n.locale.languageCode);
-    final day = DateFormat.EEEE(intlLocale).format(gregorian);
-    final dateLine = DateFormat.yMMMMd(intlLocale).format(gregorian);
+    final intl = _intlLocale(l10n.locale.languageCode);
+    final day = DateFormat.EEEE(intl).format(gregorian);
+    final dateLine = DateFormat.MMMd(intl).format(gregorian);
 
-    return Container(
-      padding: const EdgeInsets.fromLTRB(18, 16, 18, 14),
-      decoration: BoxDecoration(
-        color: palette.surface,
-        borderRadius: BorderRadius.circular(AppTokens.radius),
-        border: Border.all(color: palette.line),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(2, 4, 2, 0),
+      child: Wrap(
+        crossAxisAlignment: WrapCrossAlignment.center,
+        spacing: 8,
         children: [
           Text(
             day,
             style: TextStyle(
-              color: palette.textSubtle,
-              fontSize: 13,
+              color: palette.textMuted,
+              fontSize: 13.5,
               fontWeight: FontWeight.w500,
             ),
           ),
-          const SizedBox(height: 4),
+          Text('·', style: TextStyle(color: palette.textSubtle, fontSize: 13.5)),
           Text(
             dateLine,
             style: TextStyle(
-              color: palette.text,
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
-              letterSpacing: -0.4,
+              color: palette.textMuted,
+              fontSize: 13.5,
+              fontWeight: FontWeight.w500,
             ),
           ),
-          const SizedBox(height: 2),
+          Text('·', style: TextStyle(color: palette.textSubtle, fontSize: 13.5)),
           Text(
             hijri,
-            style: TextStyle(color: palette.textMuted, fontSize: 13),
+            style: TextStyle(
+              color: palette.textMuted,
+              fontSize: 13.5,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ],
       ),

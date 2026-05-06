@@ -41,6 +41,9 @@ flutter:
     - assets/audio/
     - assets/widget/
   fonts:
+    - family: UthmanicHafs
+      fonts:
+        - asset: assets/fonts/UthmanicHafs.ttf
     - family: AmiriQuran
       fonts:
         - asset: assets/fonts/AmiriQuran-Regular.ttf

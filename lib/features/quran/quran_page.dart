@@ -7,6 +7,7 @@ import '../../shared/data/quran_repository.dart';
 import '../../shared/models/quran.dart';
 import '../../shared/state/favorites_provider.dart';
 import '../../shared/state/settings_provider.dart';
+import '../../shared/widgets/app_button.dart';
 import '../../shared/widgets/app_field.dart';
 import '../../shared/widgets/app_sheet.dart';
 import '../../shared/widgets/app_spinner.dart';
@@ -58,6 +59,7 @@ class _QuranPageState extends ConsumerState<QuranPage> {
 
     final bookmarked =
         _list.where((s) => fav.surahs.contains(s.number)).toList();
+    final font = arabicFontFamilies[settings.arabicFont] ?? 'AmiriQuran';
 
     return Column(
       children: [
@@ -69,51 +71,39 @@ class _QuranPageState extends ConsumerState<QuranPage> {
                 Icon(Icons.search_rounded, size: 18, color: palette.textMuted),
             onChanged: (v) => setState(() => _query = v),
           ),
-          action: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () {
+          action: AppIconButton(
+            icon: Icons.text_fields_rounded,
+            semanticLabel: l10n.t('settings.arabicFont'),
+            onPressed: () {
               showAppSheet(
                 context: context,
                 title: l10n.t('settings.arabicFont'),
                 builder: (ctx) => const ArabicFontPicker(),
               );
             },
-            child: SizedBox(
-              width: 44,
-              height: 44,
-              child: Center(
-                child: Icon(Icons.text_fields_rounded,
-                    size: 20, color: palette.textMuted),
-              ),
-            ),
           ),
         ),
         Expanded(
           child: _loading
               ? const PageLoader()
               : ListView(
-                  padding: const EdgeInsets.fromLTRB(18, 12, 18, 24),
+                  padding: const EdgeInsets.fromLTRB(18, 4, 18, 28),
                   children: [
                     if (q.isEmpty && fav.lastSurah != null)
                       LastReadCard(entry: fav.lastSurah!),
                     if (q.isEmpty && bookmarked.isNotEmpty) ...[
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 14),
                       _SectionLabel(label: l10n.t('favorites.bookmarked')),
                       const SizedBox(height: 6),
-                      _SurahList(
-                        items: bookmarked,
-                        arabicFont:
-                            arabicFontFamilies[settings.arabicFont] ??
-                                'AmiriQuran',
-                      ),
+                      _SurahList(items: bookmarked, arabicFont: font),
                     ],
                     if (q.isEmpty && fav.ayahs.isNotEmpty) ...[
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 14),
                       _SectionLabel(label: l10n.t('favorites.bookmarkedAyahs')),
                       const SizedBox(height: 6),
                       _AyahBookmarksList(items: fav.ayahs),
                     ],
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 14),
                     if (filtered.isEmpty)
                       Padding(
                         padding: const EdgeInsets.all(20),
@@ -123,12 +113,7 @@ class _QuranPageState extends ConsumerState<QuranPage> {
                         ),
                       )
                     else
-                      _SurahList(
-                        items: filtered,
-                        arabicFont:
-                            arabicFontFamilies[settings.arabicFont] ??
-                                'AmiriQuran',
-                      ),
+                      _SurahList(items: filtered, arabicFont: font),
                   ],
                 ),
         ),
@@ -144,25 +129,26 @@ class _SectionLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = context.palette;
     return Padding(
-      padding: const EdgeInsets.only(left: 4, top: 6, bottom: 4),
+      padding: const EdgeInsets.only(left: 4, top: 4, bottom: 4),
       child: Text(label,
           style: TextStyle(
               color: palette.textSubtle,
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              letterSpacing: 0.2)),
+              letterSpacing: 0.4)),
     );
   }
 }
 
-class _SurahList extends StatelessWidget {
+class _SurahList extends ConsumerWidget {
   const _SurahList({required this.items, required this.arabicFont});
   final List<SurahMeta> items;
   final String arabicFont;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final palette = context.palette;
+    final fav = ref.watch(favoritesProvider);
     return Container(
       decoration: BoxDecoration(
         color: palette.surface,
@@ -173,7 +159,14 @@ class _SurahList extends StatelessWidget {
       child: Column(
         children: [
           for (var i = 0; i < items.length; i++) ...[
-            _SurahRow(item: items[i], arabicFont: arabicFont),
+            _SurahRow(
+              item: items[i],
+              arabicFont: arabicFont,
+              bookmarked: fav.surahs.contains(items[i].number),
+              onBookmarkTap: () => ref
+                  .read(favoritesProvider.notifier)
+                  .toggleBookmarkSurah(items[i].number),
+            ),
             if (i < items.length - 1)
               Container(height: 1, color: palette.line),
           ],
@@ -184,87 +177,129 @@ class _SurahList extends StatelessWidget {
 }
 
 class _SurahRow extends StatefulWidget {
-  const _SurahRow({required this.item, required this.arabicFont});
+  const _SurahRow({
+    required this.item,
+    required this.arabicFont,
+    required this.bookmarked,
+    required this.onBookmarkTap,
+  });
   final SurahMeta item;
   final String arabicFont;
+  final bool bookmarked;
+  final VoidCallback onBookmarkTap;
   @override
   State<_SurahRow> createState() => _SurahRowState();
 }
 
 class _SurahRowState extends State<_SurahRow> {
-  bool _down = false;
+  bool _downBody = false;
+  bool _downBm = false;
+
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
     final l10n = AppL10n.of(context);
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTapDown: (_) => setState(() => _down = true),
-      onTapCancel: () => setState(() => _down = false),
-      onTapUp: (_) => setState(() => _down = false),
-      onTap: () => context.push('/quran/${widget.item.number}'),
-      child: AnimatedContainer(
-        duration: AppTokens.durationFast,
-        color: _down ? palette.surface2 : Colors.transparent,
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        child: Row(
-          children: [
-            Container(
-              width: 32,
-              height: 32,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: palette.accentSoft,
-                borderRadius: BorderRadius.circular(99),
-              ),
-              child: Text(
-                '${widget.item.number}',
-                style: TextStyle(
-                  color: palette.accent,
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w700,
-                  fontFeatures: const [FontFeature.tabularFigures()],
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+    return Row(
+      children: [
+        Expanded(
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTapDown: (_) => setState(() => _downBody = true),
+            onTapCancel: () => setState(() => _downBody = false),
+            onTapUp: (_) => setState(() => _downBody = false),
+            onTap: () => context.push('/quran/${widget.item.number}'),
+            child: AnimatedContainer(
+              duration: AppTokens.durationFast,
+              color: _downBody ? palette.surface2 : Colors.transparent,
+              padding: const EdgeInsets.fromLTRB(16, 14, 12, 14),
+              child: Row(
                 children: [
-                  Text(
-                    widget.item.englishName,
-                    style: TextStyle(
-                      fontSize: 14.5,
-                      color: palette.text,
-                      fontWeight: FontWeight.w600,
+                  Container(
+                    width: 32,
+                    height: 32,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: palette.surface2,
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(
+                      '${widget.item.number}',
+                      style: TextStyle(
+                        color: palette.textMuted,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 1),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.item.englishName,
+                          style: TextStyle(
+                            fontSize: 15,
+                            color: palette.text,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '${widget.item.englishNameTranslation} · ${widget.item.ayahCount} ${l10n.t('quran.ayahs')}',
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            color: palette.textMuted,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 10),
                   Text(
-                    '${widget.item.englishNameTranslation} · ${widget.item.ayahCount} ${l10n.t('quran.ayahs')}',
+                    widget.item.name,
                     style: TextStyle(
-                      fontSize: 11,
-                      color: palette.textSubtle,
+                      color: palette.text,
+                      fontFamily: widget.arabicFont,
+                      fontSize: 19,
                     ),
                   ),
                 ],
               ),
             ),
-            Text(
-              widget.item.name,
-              style: TextStyle(
-                color: palette.text,
-                fontFamily: widget.arabicFont,
-                fontSize: 18,
-              ),
-            ),
-            const SizedBox(width: 6),
-            Icon(Icons.chevron_right_rounded,
-                size: 18, color: palette.textMuted),
-          ],
+          ),
         ),
-      ),
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTapDown: (_) => setState(() => _downBm = true),
+          onTapCancel: () => setState(() => _downBm = false),
+          onTapUp: (_) => setState(() => _downBm = false),
+          onTap: widget.onBookmarkTap,
+          child: AnimatedContainer(
+            duration: AppTokens.durationFast,
+            margin: const EdgeInsets.only(right: 8),
+            width: 44,
+            height: 44,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: _downBm ? palette.surface2 : Colors.transparent,
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Icon(
+              widget.bookmarked
+                  ? Icons.bookmark_rounded
+                  : Icons.bookmark_outline_rounded,
+              size: 18,
+              color: widget.bookmarked ? palette.accent : palette.textSubtle,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -296,77 +331,127 @@ class _AyahBookmarksList extends ConsumerWidget {
   }
 }
 
-class _AyahBookmarkRow extends ConsumerWidget {
+class _AyahBookmarkRow extends ConsumerStatefulWidget {
   const _AyahBookmarkRow({required this.entry});
   final AyahBookmarkEntry entry;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_AyahBookmarkRow> createState() => _AyahBookmarkRowState();
+}
+
+class _AyahBookmarkRowState extends ConsumerState<_AyahBookmarkRow> {
+  bool _downBody = false;
+  bool _downRm = false;
+
+  @override
+  Widget build(BuildContext context) {
     final palette = context.palette;
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: () => context.push('/quran/${entry.surah}?ayah=${entry.ayah}'),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        child: Row(
-          children: [
-            SizedBox(
-              width: 50,
-              child: Text(
-                '${entry.surah}:${entry.ayah}',
-                style: TextStyle(
-                  color: palette.accent,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  fontFeatures: const [FontFeature.tabularFigures()],
-                ),
-              ),
-            ),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+    final entry = widget.entry;
+    return Row(
+      children: [
+        Expanded(
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTapDown: (_) => setState(() => _downBody = true),
+            onTapCancel: () => setState(() => _downBody = false),
+            onTapUp: (_) => setState(() => _downBody = false),
+            onTap: () =>
+                context.push('/quran/${entry.surah}?ayah=${entry.ayah}'),
+            child: AnimatedContainer(
+              duration: AppTokens.durationFast,
+              color: _downBody ? palette.surface2 : Colors.transparent,
+              padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
+              child: Row(
                 children: [
-                  Text(
-                    entry.surahName,
-                    style: TextStyle(
-                      color: palette.text,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: palette.accentSoft,
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(
+                      '${entry.surah}:${entry.ayah}',
+                      style: TextStyle(
+                        color: palette.accentStrong,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
                     ),
                   ),
-                  if (entry.preview.isNotEmpty)
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          entry.surahName,
+                          style: TextStyle(
+                            color: palette.text,
+                            fontSize: 14.5,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        if (entry.preview.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 2),
+                            child: Text(
+                              entry.preview,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: palette.textSubtle,
+                                fontSize: 12.5,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  if (entry.arabicName.isNotEmpty)
                     Padding(
-                      padding: const EdgeInsets.only(top: 1),
+                      padding: const EdgeInsets.only(left: 8),
                       child: Text(
-                        entry.preview,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                        entry.arabicName,
                         style: TextStyle(
-                          color: palette.textSubtle,
-                          fontSize: 12,
+                          color: palette.text,
+                          fontFamily: 'AmiriQuran',
+                          fontSize: 16,
                         ),
                       ),
                     ),
                 ],
               ),
             ),
-            GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () => ref
-                  .read(favoritesProvider.notifier)
-                  .toggleBookmarkAyah(entry.surah, entry.ayah),
-              child: SizedBox(
-                width: 44,
-                height: 44,
-                child: Center(
-                  child: Icon(Icons.bookmark_rounded,
-                      size: 16, color: palette.accent),
-                ),
-              ),
-            ),
-          ],
+          ),
         ),
-      ),
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTapDown: (_) => setState(() => _downRm = true),
+          onTapCancel: () => setState(() => _downRm = false),
+          onTapUp: (_) => setState(() => _downRm = false),
+          onTap: () => ref
+              .read(favoritesProvider.notifier)
+              .toggleBookmarkAyah(entry.surah, entry.ayah),
+          child: AnimatedContainer(
+            duration: AppTokens.durationFast,
+            margin: const EdgeInsets.only(right: 8),
+            width: 44,
+            height: 44,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: _downRm ? palette.surface2 : Colors.transparent,
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Icon(Icons.bookmark_rounded,
+                size: 16, color: palette.accent),
+          ),
+        ),
+      ],
     );
   }
 }

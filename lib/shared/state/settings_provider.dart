@@ -10,7 +10,7 @@ class AppSettings {
   AppSettings({
     this.themeMode = AppThemeMode.auto,
     this.language,
-    this.arabicFont = 'amiri-quran',
+    this.arabicFont = 'uthmanic-hafs',
     this.location,
     this.calculationMethod = CalculationMethod.makkah,
     this.asrMethod = AsrMethod.shafii,
@@ -93,7 +93,7 @@ class AppSettings {
           orElse: () => AppThemeMode.auto,
         ),
         language: j['language'] as String?,
-        arabicFont: (j['arabicFont'] ?? 'amiri-quran') as String,
+        arabicFont: (j['arabicFont'] ?? 'uthmanic-hafs') as String,
         location: j['location'] != null
             ? AppLocation.fromJson(j['location'] as Map<String, dynamic>)
             : null,

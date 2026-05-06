@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -7,10 +8,13 @@ import '../../core/theme/tokens.dart';
 import '../../shared/models/prayer_time.dart';
 import '../../shared/state/settings_provider.dart';
 import '../../shared/widgets/app_field.dart';
+import '../../shared/widgets/app_sheet.dart';
 import '../../shared/widgets/app_toggle.dart';
 import '../../shared/widgets/page_scaffold.dart';
 import '../../shared/widgets/segmented_control.dart';
 import 'widgets/arabic_font_picker.dart';
+import 'widgets/language_picker.dart';
+import 'widgets/method_picker.dart';
 
 class SettingsPage extends ConsumerWidget {
   const SettingsPage({super.key});
@@ -62,7 +66,13 @@ class SettingsPage extends ConsumerWidget {
                         _Tile(
                           label: l10n.t('settings.language'),
                           value: langDisplayNames[lang] ?? lang,
-                          onTap: () => context.push('/settings/language'),
+                          onTap: () => showAppSheet(
+                            context: context,
+                            title: l10n.t('settings.language'),
+                            builder: (sheetCtx) => LanguagePicker(
+                              onPick: () => Navigator.of(sheetCtx).pop(),
+                            ),
+                          ),
                         ),
                         _Divider(),
                         _Tile(
@@ -74,7 +84,16 @@ class SettingsPage extends ConsumerWidget {
                         _Tile(
                           label: l10n.t('settings.calculationMethod'),
                           value: l10n.t('calc.${settings.calculationMethod.name}'),
-                          onTap: () => context.push('/settings/method'),
+                          onTap: () => showAppSheet(
+                            context: context,
+                            title: l10n.t('settings.calculationMethod'),
+                            builder: (sheetCtx) => MethodPicker(
+                              onPick: () {
+                                Navigator.of(sheetCtx).pop();
+                                _rescheduleNotifications(ref);
+                              },
+                            ),
+                          ),
                         ),
                       ],
                     ),
@@ -428,29 +447,166 @@ class _OffsetEditor extends StatelessWidget {
     final palette = context.palette;
     final l10n = AppL10n.of(context);
     return AppSurface(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+      padding: EdgeInsets.zero,
       child: Column(
         children: [
-          for (var i = 0; i < prayerKeys.length; i++)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      l10n.t('prayers.${prayerKeys[i]}'),
-                      style: TextStyle(color: palette.text, fontSize: 14),
-                    ),
-                  ),
-                  AppNumberField(
-                    value: offsets[i],
-                    allowNegative: true,
-                    onChanged: (v) => onChange(i, v.toInt()),
-                  ),
-                ],
+          for (var i = 0; i < prayerKeys.length; i++) ...[
+            _OffsetRow(
+              label: l10n.t('prayers.${prayerKeys[i]}'),
+              value: offsets[i],
+              minutesLabel: l10n.t('settings.minutes'),
+              onChange: (delta) {
+                final next = (offsets[i] + delta).clamp(-30, 30);
+                onChange(i, next);
+              },
+            ),
+            if (i < prayerKeys.length - 1)
+              Container(height: 1, color: palette.line),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _OffsetRow extends StatelessWidget {
+  const _OffsetRow({
+    required this.label,
+    required this.value,
+    required this.minutesLabel,
+    required this.onChange,
+  });
+
+  final String label;
+  final int value;
+  final String minutesLabel;
+  final ValueChanged<int> onChange;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    final canMinus = value > -30;
+    final canPlus = value < 30;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(
+                color: palette.text,
+                fontSize: 14.5,
+                fontWeight: FontWeight.w500,
               ),
             ),
+          ),
+          _StepButton(
+            icon: Icons.remove_rounded,
+            enabled: canMinus,
+            onTap: canMinus ? () => onChange(-1) : null,
+          ),
+          SizedBox(
+            width: 76,
+            child: Text(
+              '${value > 0 ? '+' : ''}$value $minutesLabel',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: value == 0 ? palette.textMuted : palette.text,
+                fontSize: 13.5,
+                fontWeight: FontWeight.w600,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
+            ),
+          ),
+          _StepButton(
+            icon: Icons.add_rounded,
+            enabled: canPlus,
+            onTap: canPlus ? () => onChange(1) : null,
+          ),
         ],
+      ),
+    );
+  }
+}
+
+class _StepButton extends StatefulWidget {
+  const _StepButton({
+    required this.icon,
+    required this.enabled,
+    required this.onTap,
+  });
+  final IconData icon;
+  final bool enabled;
+  final VoidCallback? onTap;
+
+  @override
+  State<_StepButton> createState() => _StepButtonState();
+}
+
+class _StepButtonState extends State<_StepButton> {
+  bool _down = false;
+  Timer? _repeat;
+
+  @override
+  void dispose() {
+    _repeat?.cancel();
+    super.dispose();
+  }
+
+  void _startRepeat() {
+    if (widget.onTap == null) return;
+    _repeat?.cancel();
+    _repeat = Timer(const Duration(milliseconds: 380), () {
+      _repeat = Timer.periodic(const Duration(milliseconds: 70), (_) {
+        widget.onTap?.call();
+      });
+    });
+  }
+
+  void _stopRepeat() {
+    _repeat?.cancel();
+    _repeat = null;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    final disabled = !widget.enabled;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTapDown: (_) {
+        if (!disabled) {
+          setState(() => _down = true);
+          _startRepeat();
+        }
+      },
+      onTapCancel: () {
+        setState(() => _down = false);
+        _stopRepeat();
+      },
+      onTapUp: (_) {
+        setState(() => _down = false);
+        _stopRepeat();
+      },
+      onTap: widget.onTap,
+      child: AnimatedContainer(
+        duration: AppTokens.durationFast,
+        width: 32,
+        height: 32,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: disabled
+              ? palette.surface2
+              : (_down ? palette.surface3 : palette.surface2),
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: palette.line),
+        ),
+        child: Icon(
+          widget.icon,
+          size: 16,
+          color: disabled ? palette.textSubtle : palette.text,
+        ),
       ),
     );
   }

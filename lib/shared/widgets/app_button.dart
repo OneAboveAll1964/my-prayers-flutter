@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/tokens.dart';
 
-enum AppButtonVariant { solid, outline, ghost, danger }
+enum AppButtonVariant { solid, outline, ghost, soft, danger }
+
+enum AppButtonSize { sm, md, lg }
 
 class AppButton extends StatefulWidget {
   const AppButton({
@@ -9,17 +11,17 @@ class AppButton extends StatefulWidget {
     required this.label,
     this.onPressed,
     this.variant = AppButtonVariant.solid,
+    this.size = AppButtonSize.md,
     this.icon,
     this.expand = false,
-    this.height = 44,
   });
 
   final String label;
   final VoidCallback? onPressed;
   final AppButtonVariant variant;
+  final AppButtonSize size;
   final IconData? icon;
   final bool expand;
-  final double height;
 
   @override
   State<AppButton> createState() => _AppButtonState();
@@ -33,21 +35,42 @@ class _AppButtonState extends State<AppButton> {
     final palette = context.palette;
     final disabled = widget.onPressed == null;
 
+    final height = switch (widget.size) {
+      AppButtonSize.sm => 36.0,
+      AppButtonSize.md => 44.0,
+      AppButtonSize.lg => 52.0,
+    };
+    final fontSize = switch (widget.size) {
+      AppButtonSize.sm => 13.5,
+      AppButtonSize.md => 15.0,
+      AppButtonSize.lg => 16.0,
+    };
+    final hPad = switch (widget.size) {
+      AppButtonSize.sm => 14.0,
+      AppButtonSize.md => 18.0,
+      AppButtonSize.lg => 22.0,
+    };
+
     final (bg, fg, border) = switch (widget.variant) {
       AppButtonVariant.solid => (palette.accent, palette.accentOn, palette.accent),
-      AppButtonVariant.outline => (palette.surface, palette.text, palette.line),
+      AppButtonVariant.outline => (palette.surface, palette.text, palette.lineStrong),
       AppButtonVariant.ghost => (Colors.transparent, palette.text, Colors.transparent),
-      AppButtonVariant.danger => (palette.danger, Colors.white, palette.danger),
+      AppButtonVariant.soft => (palette.accentSoft, palette.accentStrong, palette.accentSoft),
+      AppButtonVariant.danger => (Colors.transparent, palette.danger, palette.line),
     };
 
     final pressed = _down && !disabled;
-    final showBg = pressed
-        ? (widget.variant == AppButtonVariant.solid
-            ? palette.accentStrong
-            : (widget.variant == AppButtonVariant.danger
-                ? palette.danger
-                : palette.surface2))
-        : bg;
+    final pressedBg = switch (widget.variant) {
+      AppButtonVariant.solid => palette.accentStrong,
+      AppButtonVariant.outline => palette.surface2,
+      AppButtonVariant.ghost => palette.surface2,
+      AppButtonVariant.soft => palette.surface2,
+      AppButtonVariant.danger => palette.surface2,
+    };
+
+    final showBg = pressed ? pressedBg : bg;
+    final disabledBg = palette.surface3;
+    final disabledFg = palette.textSubtle;
 
     final child = AnimatedScale(
       scale: pressed ? 0.985 : 1,
@@ -56,14 +79,15 @@ class _AppButtonState extends State<AppButton> {
       child: AnimatedContainer(
         duration: AppTokens.durationFast,
         curve: AppTokens.ease,
-        height: widget.height,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        height: height,
+        padding: EdgeInsets.symmetric(horizontal: hPad),
         decoration: BoxDecoration(
-          color: disabled ? palette.surface2 : showBg,
-          borderRadius: BorderRadius.circular(AppTokens.radius),
-          border: widget.variant == AppButtonVariant.outline
-              ? Border.all(color: border)
-              : null,
+          color: disabled ? disabledBg : showBg,
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(
+            color: disabled ? disabledBg : (widget.variant == AppButtonVariant.solid ? showBg : border),
+            width: 1,
+          ),
         ),
         child: Row(
           mainAxisSize: widget.expand ? MainAxisSize.max : MainAxisSize.min,
@@ -71,15 +95,20 @@ class _AppButtonState extends State<AppButton> {
           children: [
             if (widget.icon != null) ...[
               Icon(widget.icon,
-                  size: 16, color: disabled ? palette.textSubtle : fg),
+                  size: fontSize + 1, color: disabled ? disabledFg : fg),
               const SizedBox(width: 8),
             ],
-            Text(
-              widget.label,
-              style: TextStyle(
-                color: disabled ? palette.textSubtle : fg,
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
+            Flexible(
+              child: Text(
+                widget.label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: disabled ? disabledFg : fg,
+                  fontSize: fontSize,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: -0.05,
+                ),
               ),
             ),
           ],
@@ -108,6 +137,7 @@ class AppIconButton extends StatefulWidget {
     this.color,
     this.size = 22,
     this.semanticLabel,
+    this.tapSize = 44,
   });
 
   final IconData icon;
@@ -115,6 +145,7 @@ class AppIconButton extends StatefulWidget {
   final Color? color;
   final double size;
   final String? semanticLabel;
+  final double tapSize;
 
   @override
   State<AppIconButton> createState() => _AppIconButtonState();
@@ -133,20 +164,19 @@ class _AppIconButtonState extends State<AppIconButton> {
       onTapCancel: () => setState(() => _down = false),
       onTapUp: (_) => setState(() => _down = false),
       onTap: widget.onPressed,
-      child: AnimatedScale(
-        scale: _down ? 0.92 : 1,
+      child: AnimatedContainer(
         duration: AppTokens.durationFast,
-        curve: AppTokens.ease,
+        width: widget.tapSize,
+        height: widget.tapSize,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: _down ? palette.surface2 : Colors.transparent,
+          borderRadius: BorderRadius.circular(10),
+        ),
         child: Semantics(
           button: true,
           label: widget.semanticLabel,
-          child: SizedBox(
-            width: 44,
-            height: 44,
-            child: Center(
-              child: Icon(widget.icon, size: widget.size, color: color),
-            ),
-          ),
+          child: Icon(widget.icon, size: widget.size, color: color),
         ),
       ),
     );

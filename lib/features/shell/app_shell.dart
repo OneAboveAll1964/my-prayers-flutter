@@ -21,11 +21,7 @@ class AppShell extends StatelessWidget {
         body: SafeArea(
           top: true,
           bottom: false,
-          child: Column(
-            children: [
-              Expanded(child: child),
-            ],
-          ),
+          child: child,
         ),
         bottomNavigationBar: _BottomTabBar(activePath: location),
       ),
@@ -38,10 +34,10 @@ class _BottomTabBar extends StatelessWidget {
   final String activePath;
 
   static const _tabs = [
-    _TabSpec(path: '/', label: 'home', icon: Icons.home_outlined, activeIcon: Icons.home),
-    _TabSpec(path: '/azkars', label: 'azkars', icon: Icons.menu_book_outlined, activeIcon: Icons.menu_book),
-    _TabSpec(path: '/qibla', label: 'qibla', icon: Icons.explore_outlined, activeIcon: Icons.explore),
-    _TabSpec(path: '/quran', label: 'quran', icon: Icons.auto_stories_outlined, activeIcon: Icons.auto_stories),
+    _TabSpec(path: '/', label: 'home', icon: Icons.home_outlined, activeIcon: Icons.home_rounded),
+    _TabSpec(path: '/azkars', label: 'azkars', icon: Icons.menu_book_outlined, activeIcon: Icons.menu_book_rounded),
+    _TabSpec(path: '/qibla', label: 'qibla', icon: Icons.explore_outlined, activeIcon: Icons.explore_rounded),
+    _TabSpec(path: '/quran', label: 'quran', icon: Icons.auto_stories_outlined, activeIcon: Icons.auto_stories_rounded),
   ];
 
   @override
@@ -52,7 +48,7 @@ class _BottomTabBar extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: palette.bg,
+        color: palette.surface,
         border: Border(top: BorderSide(color: palette.line)),
       ),
       padding: EdgeInsets.only(bottom: media.padding.bottom),
@@ -76,8 +72,8 @@ class _BottomTabBar extends StatelessWidget {
                 tab: const _TabSpec(
                   path: '__more__',
                   label: 'more',
-                  icon: Icons.more_horiz,
-                  activeIcon: Icons.more_horiz,
+                  icon: Icons.more_horiz_rounded,
+                  activeIcon: Icons.more_horiz_rounded,
                 ),
                 selected: false,
                 label: l10n.t('nav.more'),
@@ -142,26 +138,24 @@ class _TabButton extends StatelessWidget {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
-      child: AnimatedContainer(
-        duration: AppTokens.durationFast,
-        curve: AppTokens.ease,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(selected ? tab.activeIcon : tab.icon, size: 22, color: color),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-                color: color,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(selected ? tab.activeIcon : tab.icon,
+              size: 22, color: color, weight: selected ? 600 : 400),
+          const SizedBox(height: 3),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: color,
+              letterSpacing: 0.1,
             ),
-          ],
-        ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
       ),
     );
   }
@@ -184,8 +178,11 @@ class _MoreSheet extends StatelessWidget {
       physics: const NeverScrollableScrollPhysics(),
       mainAxisSpacing: 10,
       crossAxisSpacing: 10,
-      childAspectRatio: 2.4,
-      children: _items.map((it) => _MoreTile(item: it, label: l10n.t('nav.${it.label}'))).toList(),
+      childAspectRatio: 3.0,
+      children: _items
+          .map((it) =>
+              _MoreTile(item: it, label: l10n.t('nav.${it.label}')))
+          .toList(),
     );
   }
 }
@@ -219,12 +216,12 @@ class _MoreTileState extends State<_MoreTile> {
       onTapUp: (_) => setState(() => _down = false),
       onTap: () {
         Navigator.of(context).pop();
-        context.go(widget.item.path);
+        context.push(widget.item.path);
       },
       child: AnimatedContainer(
         duration: AppTokens.durationFast,
         decoration: BoxDecoration(
-          color: _down ? palette.surface2 : palette.surface,
+          color: _down ? palette.surface3 : palette.surface2,
           borderRadius: BorderRadius.circular(AppTokens.radius),
           border: Border.all(color: palette.line),
         ),
@@ -236,10 +233,10 @@ class _MoreTileState extends State<_MoreTile> {
               height: 36,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: palette.surface2,
+                color: palette.accentSoft,
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(widget.item.icon, size: 19, color: palette.text),
+              child: Icon(widget.item.icon, size: 18, color: palette.accentStrong),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -247,7 +244,7 @@ class _MoreTileState extends State<_MoreTile> {
                 widget.label,
                 style: TextStyle(
                   color: palette.text,
-                  fontSize: 14,
+                  fontSize: 14.5,
                   fontWeight: FontWeight.w600,
                 ),
               ),

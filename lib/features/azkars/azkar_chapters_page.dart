@@ -62,23 +62,31 @@ class _AzkarChaptersPageState extends ConsumerState<AzkarChaptersPage> {
             Expanded(
               child: _loading
                   ? const PageLoader()
-                  : ListView.separated(
-                      padding: const EdgeInsets.fromLTRB(18, 12, 18, 24),
-                      itemCount: _chapters.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 8),
-                      itemBuilder: (ctx, i) {
-                        final c = _chapters[i];
-                        final starred = fav.chapters.contains(c.id);
-                        return _ChapterTile(
-                          chapter: c,
-                          starred: starred,
-                          onTap: () => context.push(
-                              '/azkars/chapter/${c.id}?name=${Uri.encodeComponent(c.name)}'),
-                          onStar: () => ref
-                              .read(favoritesProvider.notifier)
-                              .toggleChapter(c.id),
-                        );
-                      },
+                  : ListView(
+                      padding: const EdgeInsets.fromLTRB(18, 4, 18, 28),
+                      children: [
+                        AppSurface(
+                          padding: EdgeInsets.zero,
+                          child: Column(
+                            children: [
+                              for (var i = 0; i < _chapters.length; i++) ...[
+                                _ChapterRow(
+                                  chapter: _chapters[i],
+                                  starred:
+                                      fav.chapters.contains(_chapters[i].id),
+                                  onTap: () => context.push(
+                                      '/azkars/chapter/${_chapters[i].id}?name=${Uri.encodeComponent(_chapters[i].name)}'),
+                                  onStar: () => ref
+                                      .read(favoritesProvider.notifier)
+                                      .toggleChapter(_chapters[i].id),
+                                ),
+                                if (i < _chapters.length - 1)
+                                  Container(height: 1, color: palette.line),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
             ),
           ],
@@ -88,8 +96,8 @@ class _AzkarChaptersPageState extends ConsumerState<AzkarChaptersPage> {
   }
 }
 
-class _ChapterTile extends StatefulWidget {
-  const _ChapterTile({
+class _ChapterRow extends StatefulWidget {
+  const _ChapterRow({
     required this.chapter,
     required this.starred,
     required this.onTap,
@@ -102,68 +110,78 @@ class _ChapterTile extends StatefulWidget {
   final VoidCallback onStar;
 
   @override
-  State<_ChapterTile> createState() => _ChapterTileState();
+  State<_ChapterRow> createState() => _ChapterRowState();
 }
 
-class _ChapterTileState extends State<_ChapterTile> {
-  bool _down = false;
+class _ChapterRowState extends State<_ChapterRow> {
+  bool _downBody = false;
+  bool _downStar = false;
 
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTapDown: (_) => setState(() => _down = true),
-      onTapCancel: () => setState(() => _down = false),
-      onTapUp: (_) => setState(() => _down = false),
-      onTap: widget.onTap,
-      child: AnimatedContainer(
-        duration: AppTokens.durationFast,
-        padding: const EdgeInsets.fromLTRB(14, 12, 6, 12),
-        decoration: BoxDecoration(
-          color: _down ? palette.surface2 : palette.surface,
-          border: Border.all(color: palette.line),
-          borderRadius: BorderRadius.circular(AppTokens.radius),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                widget.chapter.name,
-                style: TextStyle(
-                  color: palette.text,
-                  fontSize: 14.5,
-                  fontWeight: FontWeight.w500,
-                  height: 1.3,
-                ),
-              ),
+    final isRtl = Directionality.of(context) == TextDirection.rtl;
+    return Row(
+      children: [
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTapDown: (_) => setState(() => _downStar = true),
+          onTapCancel: () => setState(() => _downStar = false),
+          onTapUp: (_) => setState(() => _downStar = false),
+          onTap: widget.onStar,
+          child: AnimatedContainer(
+            duration: AppTokens.durationFast,
+            margin: const EdgeInsets.symmetric(horizontal: 8),
+            width: 40,
+            height: 40,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: _downStar ? palette.surface2 : Colors.transparent,
+              borderRadius: BorderRadius.circular(999),
             ),
-            GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: widget.onStar,
-              child: SizedBox(
-                width: 44,
-                height: 44,
-                child: Center(
-                  child: Icon(
-                    widget.starred
-                        ? Icons.star_rounded
-                        : Icons.star_outline_rounded,
-                    color: widget.starred ? palette.accent : palette.textMuted,
-                    size: 20,
+            child: Icon(
+              widget.starred ? Icons.star_rounded : Icons.star_outline_rounded,
+              color: widget.starred ? palette.accent : palette.textSubtle,
+              size: 22,
+            ),
+          ),
+        ),
+        Expanded(
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTapDown: (_) => setState(() => _downBody = true),
+            onTapCancel: () => setState(() => _downBody = false),
+            onTapUp: (_) => setState(() => _downBody = false),
+            onTap: widget.onTap,
+            child: AnimatedContainer(
+              duration: AppTokens.durationFast,
+              padding: const EdgeInsets.fromLTRB(8, 14, 16, 14),
+              color: _downBody ? palette.surface2 : Colors.transparent,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      widget.chapter.name,
+                      style: TextStyle(
+                        color: palette.text,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                   ),
-                ),
+                  Icon(
+                    isRtl
+                        ? Icons.chevron_left_rounded
+                        : Icons.chevron_right_rounded,
+                    size: 18,
+                    color: palette.textSubtle,
+                  ),
+                ],
               ),
             ),
-            Icon(
-              Icons.chevron_right_rounded,
-              size: 18,
-              color: palette.textMuted,
-            ),
-            const SizedBox(width: 8),
-          ],
+          ),
         ),
-      ),
+      ],
     );
   }
 }

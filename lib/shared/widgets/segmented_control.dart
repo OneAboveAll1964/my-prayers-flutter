@@ -1,6 +1,14 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/tokens.dart';
 
+enum SegmentedLayout { row, grid }
+
+class SegmentedOption<T> {
+  const SegmentedOption({required this.value, required this.label});
+  final T value;
+  final String label;
+}
+
 class SegmentedControl<T> extends StatelessWidget {
   const SegmentedControl({
     super.key,
@@ -18,66 +26,131 @@ class SegmentedControl<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
-    final wrapped = options.map((opt) {
-      final selected = opt.value == value;
-      final child = AnimatedContainer(
-        duration: AppTokens.durationFast,
-        curve: AppTokens.ease,
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: selected ? palette.surface : Colors.transparent,
-          borderRadius: BorderRadius.circular(10),
-          border: selected ? Border.all(color: palette.lineStrong) : null,
-        ),
-        child: Text(
-          opt.label,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 13.5,
-            color: selected ? palette.text : palette.textMuted,
-            fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-          ),
-        ),
-      );
-      return GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: () => onChanged(opt.value),
-        child: child,
-      );
-    }).toList();
 
-    final container = Container(
-      padding: const EdgeInsets.all(4),
+    Widget item(SegmentedOption<T> opt) {
+      final selected = opt.value == value;
+      return _SegmentItem(
+        label: opt.label,
+        selected: selected,
+        palette: palette,
+        onTap: () => onChanged(opt.value),
+      );
+    }
+
+    if (layout == SegmentedLayout.row) {
+      return Container(
+        height: 42,
+        padding: const EdgeInsets.all(3),
+        decoration: BoxDecoration(
+          color: palette.surface2,
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: palette.line),
+        ),
+        child: Row(
+          children: [
+            for (final opt in options)
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 1),
+                  child: item(opt),
+                ),
+              ),
+          ],
+        ),
+      );
+    }
+
+    final rows = <Widget>[];
+    for (var i = 0; i < options.length; i += 2) {
+      final left = options[i];
+      final right = i + 1 < options.length ? options[i + 1] : null;
+      rows.add(Row(
+        children: [
+          Expanded(child: SizedBox(height: 36, child: item(left))),
+          const SizedBox(width: 4),
+          Expanded(
+            child: SizedBox(
+              height: 36,
+              child: right == null ? const SizedBox.shrink() : item(right),
+            ),
+          ),
+        ],
+      ));
+      if (i + 2 < options.length) rows.add(const SizedBox(height: 4));
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
         color: palette.surface2,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTokens.radius),
         border: Border.all(color: palette.line),
       ),
-      child: layout == SegmentedLayout.row
-          ? Row(
-              children: [
-                for (final w in wrapped) Expanded(child: w),
-              ],
-            )
-          : GridView.count(
-              crossAxisCount: 2,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              mainAxisSpacing: 4,
-              crossAxisSpacing: 4,
-              childAspectRatio: 3.4,
-              children: wrapped,
-            ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: rows,
+      ),
     );
-    return container;
   }
 }
 
-enum SegmentedLayout { row, grid }
-
-class SegmentedOption<T> {
-  const SegmentedOption({required this.value, required this.label});
-  final T value;
+class _SegmentItem extends StatefulWidget {
+  const _SegmentItem({
+    required this.label,
+    required this.selected,
+    required this.palette,
+    required this.onTap,
+  });
   final String label;
+  final bool selected;
+  final AppPalette palette;
+  final VoidCallback onTap;
+
+  @override
+  State<_SegmentItem> createState() => _SegmentItemState();
+}
+
+class _SegmentItemState extends State<_SegmentItem> {
+  bool _down = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = widget.palette;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTapDown: (_) => setState(() => _down = true),
+      onTapCancel: () => setState(() => _down = false),
+      onTapUp: (_) => setState(() => _down = false),
+      onTap: widget.onTap,
+      child: AnimatedContainer(
+        duration: AppTokens.durationFast,
+        curve: AppTokens.ease,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: widget.selected
+              ? p.surface
+              : (_down ? p.surface3 : Colors.transparent),
+          borderRadius: BorderRadius.circular(999),
+          border: widget.selected
+              ? Border.all(color: p.lineStrong, width: 1)
+              : null,
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 6),
+          child: Text(
+            widget.label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 13.5,
+              fontWeight: FontWeight.w600,
+              color: widget.selected ? p.text : p.textMuted,
+              letterSpacing: -0.05,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }

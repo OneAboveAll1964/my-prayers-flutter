@@ -73,31 +73,24 @@ class _AzkarsPageState extends ConsumerState<AzkarsPage> {
               ? const PageLoader()
               : _query.trim().isNotEmpty
                   ? _SearchResults(results: _searchResults)
-                  : _CategoryGrid(categories: _categories),
+                  : _CategoryList(categories: _categories),
         ),
       ],
     );
   }
 }
 
-class _CategoryGrid extends StatelessWidget {
-  const _CategoryGrid({required this.categories});
+class _CategoryList extends StatelessWidget {
+  const _CategoryList({required this.categories});
   final List<AzkarCategory> categories;
 
   @override
   Widget build(BuildContext context) {
-    return GridView.builder(
-      padding: const EdgeInsets.fromLTRB(18, 12, 18, 24),
+    return ListView.separated(
+      padding: const EdgeInsets.fromLTRB(18, 4, 18, 28),
       itemCount: categories.length,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 10,
-        mainAxisSpacing: 10,
-        childAspectRatio: 1.5,
-      ),
-      itemBuilder: (ctx, i) {
-        return _CategoryTile(cat: categories[i]);
-      },
+      separatorBuilder: (ctx, i) => const SizedBox(height: 10),
+      itemBuilder: (ctx, i) => _CategoryTile(cat: categories[i]),
     );
   }
 }
@@ -114,6 +107,7 @@ class _CategoryTileState extends State<_CategoryTile> {
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
+    final isRtl = Directionality.of(context) == TextDirection.rtl;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTapDown: (_) => setState(() => _down = true),
@@ -122,38 +116,34 @@ class _CategoryTileState extends State<_CategoryTile> {
       onTap: () => context.push('/azkars/category/${widget.cat.id}'),
       child: AnimatedContainer(
         duration: AppTokens.durationFast,
-        padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
+        padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
         decoration: BoxDecoration(
           color: _down ? palette.surface2 : palette.surface,
           border: Border.all(color: palette.line),
           borderRadius: BorderRadius.circular(AppTokens.radius),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child: Row(
           children: [
-            Container(
-              width: 30,
-              height: 30,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: palette.accentSoft,
-                borderRadius: BorderRadius.circular(8),
+            Expanded(
+              child: Text(
+                widget.cat.name,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: palette.text,
+                  fontSize: 15.5,
+                  fontWeight: FontWeight.w600,
+                  height: 1.3,
+                ),
               ),
-              child: Icon(Icons.menu_book_rounded,
-                  size: 16, color: palette.accent),
             ),
-            const SizedBox(height: 12),
-            Text(
-              widget.cat.name,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: palette.text,
-                fontSize: 14.5,
-                fontWeight: FontWeight.w600,
-                height: 1.3,
-              ),
+            const SizedBox(width: 12),
+            Icon(
+              isRtl
+                  ? Icons.chevron_left_rounded
+                  : Icons.chevron_right_rounded,
+              size: 18,
+              color: palette.textSubtle,
             ),
           ],
         ),
@@ -179,50 +169,71 @@ class _SearchResults extends StatelessWidget {
         ),
       );
     }
-    return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(18, 12, 18, 24),
-      itemCount: results.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 8),
-      itemBuilder: (ctx, i) {
-        final c = results[i];
-        return _ChapterRow(chapter: c);
-      },
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(18, 4, 18, 28),
+      children: [
+        AppSurface(
+          padding: EdgeInsets.zero,
+          child: Column(
+            children: [
+              for (var i = 0; i < results.length; i++) ...[
+                _ChapterListRow(chapter: results[i]),
+                if (i < results.length - 1)
+                  Container(height: 1, color: palette.line),
+              ],
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
 
-class _ChapterRow extends StatelessWidget {
-  const _ChapterRow({required this.chapter});
+class _ChapterListRow extends StatefulWidget {
+  const _ChapterListRow({required this.chapter});
   final AzkarChapter chapter;
 
   @override
+  State<_ChapterListRow> createState() => _ChapterListRowState();
+}
+
+class _ChapterListRowState extends State<_ChapterListRow> {
+  bool _down = false;
+  @override
   Widget build(BuildContext context) {
     final palette = context.palette;
-    return TapRow(
+    final isRtl = Directionality.of(context) == TextDirection.rtl;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTapDown: (_) => setState(() => _down = true),
+      onTapCancel: () => setState(() => _down = false),
+      onTapUp: (_) => setState(() => _down = false),
       onTap: () => context.push(
-          '/azkars/chapter/${chapter.id}?name=${Uri.encodeComponent(chapter.name)}'),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-      child: Container(
-        decoration: BoxDecoration(
-          color: palette.surface,
-          borderRadius: BorderRadius.circular(AppTokens.radius),
-          border: Border.all(color: palette.line),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          '/azkars/chapter/${widget.chapter.id}?name=${Uri.encodeComponent(widget.chapter.name)}'),
+      child: AnimatedContainer(
+        duration: AppTokens.durationFast,
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+        color: _down ? palette.surface2 : Colors.transparent,
         child: Row(
           children: [
             Expanded(
               child: Text(
-                chapter.name,
+                widget.chapter.name,
                 style: TextStyle(
                   color: palette.text,
-                  fontSize: 14.5,
+                  fontSize: 15,
                   fontWeight: FontWeight.w500,
+                  height: 1.3,
                 ),
               ),
             ),
-            Icon(Icons.chevron_right_rounded,
-                size: 18, color: palette.textMuted),
+            Icon(
+              isRtl
+                  ? Icons.chevron_left_rounded
+                  : Icons.chevron_right_rounded,
+              size: 18,
+              color: palette.textSubtle,
+            ),
           ],
         ),
       ),

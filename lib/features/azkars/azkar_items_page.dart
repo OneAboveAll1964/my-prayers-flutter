@@ -63,9 +63,9 @@ class _AzkarItemsPageState extends ConsumerState<AzkarItemsPage> {
               child: _loading
                   ? const PageLoader()
                   : ListView.separated(
-                      padding: const EdgeInsets.fromLTRB(18, 12, 18, 24),
+                      padding: const EdgeInsets.fromLTRB(18, 4, 18, 28),
                       itemCount: _items.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                      separatorBuilder: (ctx, i) => const SizedBox(height: 12),
                       itemBuilder: (ctx, i) =>
                           _AzkarItemCard(item: _items[i], index: i + 1),
                     ),
@@ -92,7 +92,7 @@ class _AzkarItemCard extends ConsumerWidget {
     final notifier = ref.read(favoritesProvider.notifier);
 
     final dhikr = fav.dhikr[item.id] ?? 0;
-    final target = item.count ?? 1;
+    final target = item.count ?? 0;
     final reached = target > 0 && dhikr >= target;
 
     return Container(
@@ -112,26 +112,28 @@ class _AzkarItemCard extends ConsumerWidget {
                 height: 28,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: palette.accentSoft,
-                  borderRadius: BorderRadius.circular(99),
+                  color: palette.surface2,
+                  borderRadius: BorderRadius.circular(999),
                 ),
                 child: Text(
                   '$index',
                   style: TextStyle(
-                    color: palette.accent,
+                    color: palette.textMuted,
                     fontWeight: FontWeight.w700,
                     fontSize: 12,
+                    fontFeatures: const [FontFeature.tabularFigures()],
                   ),
                 ),
               ),
               const Spacer(),
-              if (item.reference.isNotEmpty)
-                Text(
-                  item.reference,
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: palette.textSubtle,
-                  ),
+              if (target > 0)
+                _CounterPill(
+                  count: dhikr,
+                  target: target,
+                  reached: reached,
+                  onTap: () => notifier.setDhikr(
+                      item.id, dhikr + 1 > target ? 0 : dhikr + 1),
+                  onReset: () => notifier.setDhikr(item.id, 0),
                 ),
             ],
           ),
@@ -141,14 +143,13 @@ class _AzkarItemCard extends ConsumerWidget {
               item.topNote!,
               style: TextStyle(
                 color: palette.textMuted,
-                fontSize: 13,
-                fontStyle: FontStyle.italic,
-                height: 1.4,
+                fontSize: 13.5,
+                height: 1.5,
               ),
             ),
           ],
           if (item.item != null && item.item!.isNotEmpty) ...[
-            const SizedBox(height: 14),
+            const SizedBox(height: 8),
             Directionality(
               textDirection: TextDirection.rtl,
               child: Text(
@@ -156,59 +157,64 @@ class _AzkarItemCard extends ConsumerWidget {
                 style: TextStyle(
                   color: palette.text,
                   fontFamily: fontFamily,
-                  fontSize: 22,
-                  height: 1.85,
+                  fontSize: 21,
+                  height: 2.2,
                 ),
               ),
             ),
           ],
           if (item.transliteration != null &&
               item.transliteration!.isNotEmpty) ...[
-            const SizedBox(height: 10),
+            const SizedBox(height: 6),
             Text(
               item.transliteration!,
               style: TextStyle(
-                color: palette.textMuted,
-                fontSize: 13,
-                fontStyle: FontStyle.italic,
-                height: 1.5,
-              ),
-            ),
-          ],
-          if (item.translation != null && item.translation!.isNotEmpty) ...[
-            const SizedBox(height: 10),
-            Text(
-              item.translation!,
-              style: TextStyle(
                 color: palette.text,
-                fontSize: 14.5,
+                fontSize: 13.5,
+                fontStyle: FontStyle.italic,
                 height: 1.55,
               ),
             ),
           ],
+          if (item.translation != null && item.translation!.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Text(
+              item.translation!,
+              style: TextStyle(
+                color: palette.text,
+                fontSize: 15,
+                height: 1.7,
+              ),
+            ),
+          ],
           if (item.bottomNote != null && item.bottomNote!.isNotEmpty) ...[
-            const SizedBox(height: 10),
+            const SizedBox(height: 6),
             Text(
               item.bottomNote!,
               style: TextStyle(
                 color: palette.textMuted,
-                fontSize: 12.5,
-                fontStyle: FontStyle.italic,
-                height: 1.45,
+                fontSize: 13.5,
+                height: 1.5,
               ),
             ),
           ],
-          if (item.count != null && item.count! > 0) ...[
-            const SizedBox(height: 14),
-            _DhikrCounter(
-              count: dhikr,
-              target: target,
-              reached: reached,
-              onTap: () =>
-                  notifier.setDhikr(item.id, dhikr + 1 > target ? 0 : dhikr + 1),
-              onReset: () => notifier.setDhikr(item.id, 0),
-              tapLabel: l10n.t('azkars.tap'),
-              resetLabel: l10n.t('azkars.reset'),
+          if (item.reference.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Text(
+              item.reference,
+              style: TextStyle(
+                color: palette.textSubtle,
+                fontSize: 12.5,
+                height: 1.4,
+              ),
+            ),
+          ],
+          if (target == 0) ...[
+            const SizedBox(height: 8),
+            _ReadToggle(
+              done: dhikr > 0,
+              onToggle: () => notifier.setDhikr(item.id, dhikr > 0 ? 0 : 1),
+              label: l10n.t('azkars.tap'),
             ),
           ],
         ],
@@ -217,87 +223,125 @@ class _AzkarItemCard extends ConsumerWidget {
   }
 }
 
-class _DhikrCounter extends StatelessWidget {
-  const _DhikrCounter({
+class _CounterPill extends StatefulWidget {
+  const _CounterPill({
     required this.count,
     required this.target,
     required this.reached,
     required this.onTap,
     required this.onReset,
-    required this.tapLabel,
-    required this.resetLabel,
   });
-
   final int count;
   final int target;
   final bool reached;
   final VoidCallback onTap;
   final VoidCallback onReset;
-  final String tapLabel;
-  final String resetLabel;
+
+  @override
+  State<_CounterPill> createState() => _CounterPillState();
+}
+
+class _CounterPillState extends State<_CounterPill> {
+  bool _down = false;
 
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
+    final bg = widget.reached ? palette.accent : palette.accentSoft;
+    final fg = widget.reached ? palette.accentOn : palette.accentStrong;
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Expanded(
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: onTap,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-              decoration: BoxDecoration(
-                color: reached ? palette.accent : palette.surface2,
-                borderRadius: BorderRadius.circular(AppTokens.radius),
-                border: Border.all(
-                  color: reached ? palette.accent : palette.line,
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTapDown: (_) => setState(() => _down = true),
+          onTapCancel: () => setState(() => _down = false),
+          onTapUp: (_) => setState(() => _down = false),
+          onTap: widget.onTap,
+          child: AnimatedContainer(
+            duration: AppTokens.durationFast,
+            constraints: const BoxConstraints(minWidth: 64),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: _down ? palette.surface2 : bg,
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Center(
+              child: RichText(
+                text: TextSpan(
+                  style: TextStyle(
+                    color: fg,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
+                  children: [
+                    TextSpan(text: '${widget.count}'),
+                    TextSpan(
+                      text: ' / ',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w500,
+                        color: fg.withValues(alpha: 0.6),
+                      ),
+                    ),
+                    TextSpan(text: '${widget.target}'),
+                  ],
                 ),
               ),
-              child: Row(
-                children: [
-                  Text(
-                    '$count / $target',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: reached ? palette.accentOn : palette.text,
-                      fontFeatures: const [FontFeature.tabularFigures()],
-                    ),
-                  ),
-                  const Spacer(),
-                  Text(
-                    tapLabel,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: reached
-                          ? palette.accentOn.withValues(alpha: 0.8)
-                          : palette.textMuted,
-                    ),
-                  ),
-                ],
-              ),
             ),
           ),
         ),
-        const SizedBox(width: 8),
-        GestureDetector(
-          onTap: onReset,
-          behavior: HitTestBehavior.opaque,
-          child: Container(
-            width: 48,
-            height: 48,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: palette.surface2,
-              borderRadius: BorderRadius.circular(AppTokens.radius),
-              border: Border.all(color: palette.line),
+        if (widget.count > 0) ...[
+          const SizedBox(width: 6),
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: widget.onReset,
+            child: Container(
+              width: 28,
+              height: 28,
+              alignment: Alignment.center,
+              decoration: const BoxDecoration(shape: BoxShape.circle),
+              child: Icon(Icons.refresh_rounded,
+                  size: 16, color: palette.textMuted),
             ),
-            child: Icon(Icons.restart_alt_rounded,
-                size: 18, color: palette.textMuted),
           ),
-        ),
+        ],
       ],
+    );
+  }
+}
+
+class _ReadToggle extends StatelessWidget {
+  const _ReadToggle({
+    required this.done,
+    required this.onToggle,
+    required this.label,
+  });
+  final bool done;
+  final VoidCallback onToggle;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onToggle,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: done ? palette.accent : palette.surface2,
+          borderRadius: BorderRadius.circular(999),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: done ? palette.accentOn : palette.textMuted,
+            fontSize: 12.5,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
     );
   }
 }

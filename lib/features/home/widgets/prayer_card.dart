@@ -23,30 +23,31 @@ class PrayerCard extends StatelessWidget {
     final times = prayer.all;
     final intl = _intlLocale(language);
 
-    final rows = <Widget>[];
+    final children = <Widget>[];
     for (var i = 0; i < times.length; i++) {
-      rows.add(_PrayerRow(
+      final active = i == currentIndex;
+      final prevActive = i > 0 && i - 1 == currentIndex;
+      children.add(_PrayerRow(
         label: l10n.t('prayers.${prayerKeys[i]}'),
         time: DateFormat.Hm(intl).format(times[i]),
-        active: i == currentIndex,
+        active: active,
       ));
-      if (i < times.length - 1) {
-        rows.add(Container(
-          height: 1,
-          color: palette.line,
-          margin: const EdgeInsets.symmetric(horizontal: 4),
+      if (i < times.length - 1 && !active && !prevActive) {
+        children.add(Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Container(height: 1, color: palette.line),
         ));
       }
     }
 
     return Container(
+      padding: const EdgeInsets.all(6),
       decoration: BoxDecoration(
         color: palette.surface,
         borderRadius: BorderRadius.circular(AppTokens.radius),
         border: Border.all(color: palette.line),
       ),
-      clipBehavior: Clip.hardEdge,
-      child: Column(children: rows),
+      child: Column(children: children),
     );
   }
 
@@ -71,35 +72,30 @@ class _PrayerRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = context.palette;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-      color: active ? palette.accentSoft : Colors.transparent,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+      decoration: BoxDecoration(
+        color: active ? palette.accentSoft : Colors.transparent,
+        borderRadius: BorderRadius.circular(10),
+      ),
       child: Row(
         children: [
-          Container(
-            width: 6,
-            height: 6,
-            decoration: BoxDecoration(
-              color: active ? palette.accent : palette.lineStrong,
-              borderRadius: BorderRadius.circular(99),
-            ),
-          ),
-          const SizedBox(width: 14),
           Expanded(
             child: Text(
               label,
               style: TextStyle(
-                color: palette.text,
-                fontSize: 15,
-                fontWeight: active ? FontWeight.w700 : FontWeight.w500,
+                color: active ? palette.accentStrong : palette.text,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ),
           Text(
             time,
             style: TextStyle(
-              color: active ? palette.accent : palette.text,
-              fontSize: 16,
-              fontWeight: active ? FontWeight.w700 : FontWeight.w600,
+              color: active ? palette.accentStrong : palette.text,
+              fontSize: 17,
+              fontWeight: FontWeight.w600,
+              letterSpacing: -0.17,
               fontFeatures: const [FontFeature.tabularFigures()],
             ),
           ),

@@ -53,16 +53,10 @@ class _NamesPageState extends ConsumerState<NamesPage> {
             Expanded(
               child: _loading
                   ? const PageLoader()
-                  : GridView.builder(
-                      padding: const EdgeInsets.fromLTRB(18, 12, 18, 24),
+                  : ListView.separated(
+                      padding: const EdgeInsets.fromLTRB(18, 4, 18, 28),
                       itemCount: _names.length,
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        crossAxisSpacing: 10,
-                        mainAxisSpacing: 10,
-                        childAspectRatio: 1.05,
-                      ),
+                      separatorBuilder: (ctx, i) => const SizedBox(height: 12),
                       itemBuilder: (ctx, i) =>
                           _NameTile(name: _names[i], fontFamily: fontFamily),
                     ),
@@ -88,31 +82,40 @@ class _NameTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppTokens.radius),
         border: Border.all(color: palette.line),
       ),
-      padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+      padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
+      constraints: const BoxConstraints(minHeight: 168),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Text(
-            '${name.id}',
-            style: TextStyle(
-              color: palette.textSubtle,
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
+          Container(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            decoration: BoxDecoration(
+              color: palette.accentSoft,
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Text(
+              '${name.id}',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: palette.accent,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
             ),
           ),
-          const Spacer(),
-          Center(
-            child: Directionality(
-              textDirection: TextDirection.rtl,
-              child: Text(
-                name.name,
-                style: TextStyle(
-                  color: palette.text,
-                  fontFamily: fontFamily,
-                  fontSize: 30,
-                  height: 1.3,
-                  fontWeight: FontWeight.w700,
-                ),
+          const SizedBox(height: 12),
+          Directionality(
+            textDirection: TextDirection.rtl,
+            child: Text(
+              name.name,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: palette.text,
+                fontFamily: fontFamily,
+                fontSize: 28,
+                height: 1.4,
+                fontWeight: FontWeight.w700,
               ),
             ),
           ),
@@ -120,23 +123,26 @@ class _NameTile extends StatelessWidget {
           if (name.transliteration.isNotEmpty)
             Text(
               name.transliteration,
+              textAlign: TextAlign.center,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                color: palette.accent,
-                fontSize: 12.5,
-                fontWeight: FontWeight.w600,
+                color: palette.textMuted,
+                fontSize: 13.5,
+                fontStyle: FontStyle.italic,
               ),
             ),
+          const SizedBox(height: 4),
           if (name.translation.isNotEmpty)
             Text(
               name.translation,
+              textAlign: TextAlign.center,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                color: palette.textMuted,
-                fontSize: 12,
-                height: 1.35,
+                color: palette.text,
+                fontSize: 13.5,
+                height: 1.5,
               ),
             ),
         ],

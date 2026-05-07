@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/tokens.dart';
 
-/// Cross-fades + scale-pops between an outline glyph (off) and a filled
-/// glyph (on). Use with paired Ionicons like `star_outline` + `star` for
-/// a real fill animation on toggle.
 class AnimatedToggleIcon extends StatelessWidget {
   const AnimatedToggleIcon({
     super.key,
@@ -44,8 +41,6 @@ class AnimatedToggleIcon extends StatelessWidget {
   }
 }
 
-/// Compatibility helper used by older call-sites that only know one icon.
-/// Falls back to using the same icon for both states with a color fade.
 class AnimatedColorIcon extends StatelessWidget {
   const AnimatedColorIcon({
     super.key,

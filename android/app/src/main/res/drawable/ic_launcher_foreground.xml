@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-  My Prayers - adaptive icon foreground.
 
-  Wraps the mosque PNG in an <inset> so the glyph occupies the inner ~72dp
-  safe zone of the 108dp adaptive-icon viewport (18dp margin on every side).
-  This guarantees the launcher mask cannot clip the artwork on Samsung One UI
-  (squircle), Pixel (circle), or any other vendor mask.
--->
 <inset xmlns:android="http://schemas.android.com/apk/res/android"
     android:insetLeft="22dp"
     android:insetTop="22dp"

@@ -1,10 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-  Monochrome variant for Android 13+ themed icons.
-  System applies its own tint and uses the bitmap's alpha as the silhouette,
-  so we can reuse the same source bitmap as the foreground. Same 18dp inset
-  to keep the silhouette inside the 72dp safe zone.
--->
+
 <inset xmlns:android="http://schemas.android.com/apk/res/android"
     android:insetLeft="22dp"
     android:insetTop="22dp"

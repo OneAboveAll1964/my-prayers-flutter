@@ -3,10 +3,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../../core/theme/tokens.dart';
 
-/// Mimics Android 12+'s `Theme.SplashScreen` icon-fade-out on iOS so the
-/// transition from the static launch storyboard into the Flutter UI doesn't
-/// feel like a hard cut. Skipped on Android (native splash already handles it)
-/// and on web/desktop where it's not needed.
 class SplashOverlay extends StatefulWidget {
   const SplashOverlay({super.key, required this.child});
   final Widget child;

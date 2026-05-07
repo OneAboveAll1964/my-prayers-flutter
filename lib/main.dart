@@ -51,10 +51,6 @@ Future<void> main() async {
     if (granted) await tryReschedule();
   });
 
-  // Re-check permission + reschedule whenever the app returns to foreground.
-  // Catches the case where the user grants notification permission via system
-  // Settings, or comes back after Samsung put the app to sleep — without this,
-  // an alarm scheduled days ago may have been canceled and never re-armed.
   WidgetsBinding.instance.addObserver(_LifecycleHook(tryReschedule));
 }
 

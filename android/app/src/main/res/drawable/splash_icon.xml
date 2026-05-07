@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Android 12+ splash icon.
-     288dp viewport with the mosque centered in the inner 192dp safe zone
-     (48dp margin on each side). -->
+
 <inset xmlns:android="http://schemas.android.com/apk/res/android"
     android:insetLeft="48dp"
     android:insetTop="48dp"

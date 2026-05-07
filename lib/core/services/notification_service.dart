@@ -24,11 +24,7 @@ class NotificationService {
   Future<void> init() async {
     if (_initialised) return;
     tz_data.initializeTimeZones();
-    // flutter_timezone gives us the correct IANA name (e.g. "Asia/Baghdad")
-    // straight from the OS — without this, iOS's "Iraq Standard Time" string
-    // doesn't match any IANA zone, our fallback picked an arbitrary +3 zone,
-    // and scheduled prayer notifications fired at the wrong wall-clock time
-    // (sometimes hours late if DST behavior diverged).
+
     try {
       final ianaName = await FlutterTimezone.getLocalTimezone();
       tz.setLocalLocation(tz.getLocation(ianaName));
@@ -117,9 +113,6 @@ class NotificationService {
     await cancelAll();
     if (!enabled || location == null) return;
 
-    // alarmClock uses AlarmManager.setAlarmClock under the hood — Android
-    // treats these like the Clock app's alarms: never deferred by Doze, never
-    // throttled by Samsung's "deep sleep". Falls back to exact, then inexact.
     final canExact = await _canScheduleExactAndroid();
     final scheduleMode = canExact
         ? AndroidScheduleMode.alarmClock

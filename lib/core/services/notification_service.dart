@@ -86,12 +86,6 @@ class NotificationService {
           await android.requestExactAlarmsPermission();
         }
       }
-      // Without this, Samsung One UI / aggressive OEMs put the app to "deep
-      // sleep" after a few hours of no use and AlarmManager triggers stop
-      // firing entirely. The system shows a one-time consent dialog.
-      if (!await Permission.ignoreBatteryOptimizations.isGranted) {
-        await Permission.ignoreBatteryOptimizations.request();
-      }
       return status.isGranted;
     }
     return true;

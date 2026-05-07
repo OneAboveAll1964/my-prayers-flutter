@@ -8,6 +8,7 @@ import 'core/router/router.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/tokens.dart';
 import 'shared/state/settings_provider.dart';
+import 'shared/widgets/splash_overlay.dart';
 
 class MyPrayersApp extends ConsumerWidget {
   const MyPrayersApp({super.key});
@@ -59,6 +60,7 @@ class MyPrayersApp extends ConsumerWidget {
         GlobalCupertinoLocalizations.delegate,
       ],
       routerConfig: appRouter,
+      builder: (ctx, child) => SplashOverlay(child: child ?? const SizedBox()),
     );
   }
 

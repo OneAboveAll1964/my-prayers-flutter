@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:timezone/data/latest_all.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
@@ -23,9 +24,14 @@ class NotificationService {
   Future<void> init() async {
     if (_initialised) return;
     tz_data.initializeTimeZones();
-    final localTzName = DateTime.now().timeZoneName;
+    // flutter_timezone gives us the correct IANA name (e.g. "Asia/Baghdad")
+    // straight from the OS — without this, iOS's "Iraq Standard Time" string
+    // doesn't match any IANA zone, our fallback picked an arbitrary +3 zone,
+    // and scheduled prayer notifications fired at the wrong wall-clock time
+    // (sometimes hours late if DST behavior diverged).
     try {
-      tz.setLocalLocation(tz.getLocation(localTzName));
+      final ianaName = await FlutterTimezone.getLocalTimezone();
+      tz.setLocalLocation(tz.getLocation(ianaName));
     } catch (_) {
       try {
         final offsetMs = DateTime.now().timeZoneOffset.inMilliseconds;
@@ -178,9 +184,9 @@ class NotificationService {
         iOS: DarwinNotificationDetails(
           sound: 'adhan.caf',
           presentSound: true,
-          presentAlert: true,
           presentBanner: true,
-          interruptionLevel: InterruptionLevel.timeSensitive,
+          presentList: true,
+          interruptionLevel: InterruptionLevel.active,
         ),
       ),
     );
@@ -213,9 +219,9 @@ class NotificationService {
           iOS: DarwinNotificationDetails(
             sound: 'adhan.caf',
             presentSound: true,
-            presentAlert: true,
             presentBanner: true,
-            interruptionLevel: InterruptionLevel.timeSensitive,
+            presentList: true,
+            interruptionLevel: InterruptionLevel.active,
           ),
         ),
         androidScheduleMode: mode,

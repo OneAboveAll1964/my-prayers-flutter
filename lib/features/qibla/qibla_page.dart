@@ -97,9 +97,11 @@ class _QiblaPageState extends ConsumerState<QiblaPage> {
       children: [
         PageHeader(title: l10n.t('qibla.title')),
         Expanded(
-          child: Padding(
+          child: SingleChildScrollView(
             padding: const EdgeInsets.fromLTRB(18, 8, 18, 24),
+            physics: const AlwaysScrollableScrollPhysics(),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: 14),
                 Center(
@@ -117,7 +119,7 @@ class _QiblaPageState extends ConsumerState<QiblaPage> {
                   bearing: bearing,
                   distance: distance,
                 ),
-                const Spacer(),
+                const SizedBox(height: 24),
                 if (_streamMissing)
                   Text(
                     l10n.t('qibla.noCompass'),

@@ -90,8 +90,8 @@ class _NameTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppTokens.radius),
         border: Border.all(color: palette.line),
       ),
-      padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
-      constraints: const BoxConstraints(minHeight: 168),
+      padding: const EdgeInsets.fromLTRB(18, 20, 18, 22),
+      constraints: const BoxConstraints(minHeight: 196),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -122,12 +122,12 @@ class _NameTile extends StatelessWidget {
                 color: palette.text,
                 fontFamily: fontFamily,
                 fontSize: 28.0 * arScale,
-                height: 1.4,
+                height: 1.6,
                 fontWeight: FontWeight.w700,
               ),
             ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 14),
           if (name.transliteration.isNotEmpty)
             Text(
               name.transliteration,

@@ -21,8 +21,10 @@ class _LastReadCardState extends State<LastReadCard> {
     final palette = context.palette;
     final l10n = AppL10n.of(context);
     final isRtl = Directionality.of(context) == TextDirection.rtl;
+    final isEn = l10n.locale.languageCode == 'en';
     final chev =
         isRtl ? Ionicons.chevron_back : Ionicons.chevron_forward;
+    final displayName = isEn ? widget.entry.englishName : widget.entry.name;
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -62,12 +64,14 @@ class _LastReadCardState extends State<LastReadCard> {
                   const SizedBox(height: 2),
                   Text(
                     widget.entry.lastAyah > 1
-                        ? '${widget.entry.englishName} · ${widget.entry.number}:${widget.entry.lastAyah}'
-                        : widget.entry.englishName,
+                        ? '$displayName · ${widget.entry.number}:${widget.entry.lastAyah}'
+                        : displayName,
+                    textDirection: isEn ? null : TextDirection.rtl,
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: isEn ? 16 : 18,
                       fontWeight: FontWeight.w700,
                       color: palette.accentStrong,
+                      fontFamily: isEn ? null : 'UthmanicHafs',
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -75,15 +79,17 @@ class _LastReadCardState extends State<LastReadCard> {
                 ],
               ),
             ),
-            const SizedBox(width: 8),
-            Text(
-              widget.entry.name,
-              style: TextStyle(
-                color: palette.accentStrong,
-                fontFamily: 'UthmanicHafs',
-                fontSize: 18,
+            if (isEn) ...[
+              const SizedBox(width: 8),
+              Text(
+                widget.entry.name,
+                style: TextStyle(
+                  color: palette.accentStrong,
+                  fontFamily: 'UthmanicHafs',
+                  fontSize: 18,
+                ),
               ),
-            ),
+            ],
             const SizedBox(width: 6),
             Icon(chev, size: 18, color: palette.accentStrong),
           ],

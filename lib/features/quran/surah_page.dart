@@ -195,14 +195,16 @@ class _SurahPageState extends ConsumerState<SurahPage> {
 
   String? get _displaySubtitle {
     final l10n = AppL10n.of(context);
-    final showTransliteration = l10n.locale.languageCode != 'en';
-    final count = _surah?.ayahs.length ?? widget.ayahCount;
-    if (count == null) return null;
-    if (showTransliteration && _surah != null) {
-      return '${_surah!.englishName} · $count ${l10n.t('quran.ayahs')}';
-    }
+    final isEn = l10n.locale.languageCode == 'en';
+    final raw = _surah?.ayahs.length ?? widget.ayahCount;
+    if (raw == null) return null;
+    final count = isEn ? raw.toString() : _arabicNum(raw);
     return '$count ${l10n.t('quran.ayahs')}';
   }
+
+  static const _arDigits = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+  String _arabicNum(int n) =>
+      n.toString().split('').map((c) => _arDigits[int.parse(c)]).join();
 
   @override
   Widget build(BuildContext context) {

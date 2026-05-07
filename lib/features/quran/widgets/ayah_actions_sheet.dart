@@ -17,9 +17,13 @@ Future<void> showAyahActionsSheet({
   required double arScale,
 }) {
   final l10n = AppL10n.of(context);
+  final isEn = l10n.locale.languageCode == 'en';
+  final title = isEn
+      ? '${surah.englishName} · ${ayah.numberInSurah}'
+      : '${surah.name} · ${ayah.numberInSurah}';
   return showAppSheet(
     context: context,
-    title: '${surah.englishName} · ${ayah.numberInSurah}',
+    title: title,
     builder: (sheetCtx) => _AyahActionsBody(
       surah: surah,
       ayah: ayah,

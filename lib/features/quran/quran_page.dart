@@ -124,6 +124,10 @@ class _QuranPageState extends ConsumerState<QuranPage> {
   }
 }
 
+const _arDigits = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+String _arabicDigits(int n) =>
+    n.toString().split('').map((c) => _arDigits[int.parse(c)]).join();
+
 class _SectionLabel extends StatelessWidget {
   const _SectionLabel({required this.label});
   final String label;
@@ -218,7 +222,7 @@ class _SurahRowState extends State<_SurahRow> {
             child: AnimatedContainer(
               duration: AppTokens.durationFast,
               color: _downBody ? palette.surface2 : Colors.transparent,
-              padding: const EdgeInsets.fromLTRB(16, 14, 12, 14),
+              padding: const EdgeInsetsDirectional.fromSTEB(16, 14, 4, 14),
               child: Row(
                 children: [
                   Container(
@@ -241,41 +245,58 @@ class _SurahRowState extends State<_SurahRow> {
                   ),
                   const SizedBox(width: 14),
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          widget.item.englishName,
-                          style: TextStyle(
-                            fontSize: 15,
-                            color: palette.text,
-                            fontWeight: FontWeight.w600,
+                    child: Builder(builder: (ctx) {
+                      final isEn = l10n.locale.languageCode == 'en';
+                      final isRtl =
+                          Directionality.of(ctx) == TextDirection.rtl;
+                      final count = isRtl
+                          ? _arabicDigits(widget.item.ayahCount)
+                          : widget.item.ayahCount.toString();
+                      final secondary = isEn
+                          ? '${widget.item.englishNameTranslation} · $count ${l10n.t('quran.ayahs')}'
+                          : '$count ${l10n.t('quran.ayahs')}';
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            isEn ? widget.item.englishName : widget.item.name,
+                            textDirection:
+                                isEn ? null : TextDirection.rtl,
+                            style: TextStyle(
+                              fontSize: isEn ? 15 : 18,
+                              color: palette.text,
+                              fontWeight: FontWeight.w600,
+                              fontFamily:
+                                  isEn ? null : widget.arabicFont,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          '${widget.item.englishNameTranslation} · ${widget.item.ayahCount} ${l10n.t('quran.ayahs')}',
-                          style: TextStyle(
-                            fontSize: 12.5,
-                            color: palette.textMuted,
+                          const SizedBox(height: 2),
+                          Text(
+                            secondary,
+                            style: TextStyle(
+                              fontSize: 12.5,
+                              color: palette.textMuted,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
+                        ],
+                      );
+                    }),
                   ),
-                  const SizedBox(width: 10),
-                  Text(
-                    widget.item.name,
-                    style: TextStyle(
-                      color: palette.text,
-                      fontFamily: widget.arabicFont,
-                      fontSize: 19,
+                  if (l10n.locale.languageCode == 'en') ...[
+                    const SizedBox(width: 10),
+                    Text(
+                      widget.item.name,
+                      style: TextStyle(
+                        color: palette.text,
+                        fontFamily: widget.arabicFont,
+                        fontSize: 19,
+                      ),
                     ),
-                  ),
+                  ],
                 ],
               ),
             ),
@@ -289,7 +310,7 @@ class _SurahRowState extends State<_SurahRow> {
           onTap: widget.onBookmarkTap,
           child: AnimatedContainer(
             duration: AppTokens.durationFast,
-            margin: const EdgeInsets.only(right: 8),
+            margin: const EdgeInsetsDirectional.only(end: 8),
             width: 44,
             height: 44,
             alignment: Alignment.center,

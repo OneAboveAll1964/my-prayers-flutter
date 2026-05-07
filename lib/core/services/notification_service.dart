@@ -117,9 +117,12 @@ class NotificationService {
     await cancelAll();
     if (!enabled || location == null) return;
 
+    // alarmClock uses AlarmManager.setAlarmClock under the hood — Android
+    // treats these like the Clock app's alarms: never deferred by Doze, never
+    // throttled by Samsung's "deep sleep". Falls back to exact, then inexact.
     final canExact = await _canScheduleExactAndroid();
     final scheduleMode = canExact
-        ? AndroidScheduleMode.exactAllowWhileIdle
+        ? AndroidScheduleMode.alarmClock
         : AndroidScheduleMode.inexactAllowWhileIdle;
 
     final now = DateTime.now();

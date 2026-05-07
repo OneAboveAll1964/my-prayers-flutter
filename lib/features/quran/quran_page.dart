@@ -54,13 +54,13 @@ class _QuranPageState extends ConsumerState<QuranPage> {
     final filtered = q.isEmpty
         ? _list
         : _list.where((s) {
-            return s.englishName.toLowerCase().contains(q) ||
-                s.name.contains(q) ||
-                s.number.toString().contains(q);
-          }).toList();
+      return s.englishName.toLowerCase().contains(q) ||
+          s.name.contains(q) ||
+          s.number.toString().contains(q);
+    }).toList();
 
     final bookmarked =
-        _list.where((s) => fav.surahs.contains(s.number)).toList();
+    _list.where((s) => fav.surahs.contains(s.number)).toList();
     final font = arabicFontFamilies[settings.arabicFont] ?? 'UthmanicHafs';
 
     return Column(
@@ -70,7 +70,7 @@ class _QuranPageState extends ConsumerState<QuranPage> {
           search: AppTextField(
             hintText: l10n.t('quran.search'),
             prefix:
-                Icon(Ionicons.search_outline, size: 18, color: palette.textMuted),
+            Icon(Ionicons.search_outline, size: 18, color: palette.textMuted),
             onChanged: (v) => setState(() => _query = v),
           ),
           action: AppIconButton(
@@ -89,35 +89,35 @@ class _QuranPageState extends ConsumerState<QuranPage> {
           child: _loading
               ? const PageLoader()
               : ListView(
-                  padding: const EdgeInsets.fromLTRB(18, 4, 18, 28),
-                  children: [
-                    if (q.isEmpty && fav.lastSurah != null)
-                      LastReadCard(entry: fav.lastSurah!),
-                    if (q.isEmpty && bookmarked.isNotEmpty) ...[
-                      const SizedBox(height: 14),
-                      _SectionLabel(label: l10n.t('favorites.bookmarked')),
-                      const SizedBox(height: 6),
-                      _SurahList(items: bookmarked, arabicFont: font),
-                    ],
-                    if (q.isEmpty && fav.ayahs.isNotEmpty) ...[
-                      const SizedBox(height: 14),
-                      _SectionLabel(label: l10n.t('favorites.bookmarkedAyahs')),
-                      const SizedBox(height: 6),
-                      _AyahBookmarksList(items: fav.ayahs),
-                    ],
-                    const SizedBox(height: 14),
-                    if (filtered.isEmpty)
-                      Padding(
-                        padding: const EdgeInsets.all(20),
-                        child: Text(
-                          l10n.t('common.noResults'),
-                          style: TextStyle(color: palette.textMuted),
-                        ),
-                      )
-                    else
-                      _SurahList(items: filtered, arabicFont: font),
-                  ],
-                ),
+            padding: const EdgeInsets.fromLTRB(18, 4, 18, 28),
+            children: [
+              if (q.isEmpty && fav.lastSurah != null)
+                LastReadCard(entry: fav.lastSurah!),
+              if (q.isEmpty && bookmarked.isNotEmpty) ...[
+                const SizedBox(height: 14),
+                _SectionLabel(label: l10n.t('favorites.bookmarked')),
+                const SizedBox(height: 6),
+                _SurahList(items: bookmarked, arabicFont: font),
+              ],
+              if (q.isEmpty && fav.ayahs.isNotEmpty) ...[
+                const SizedBox(height: 14),
+                _SectionLabel(label: l10n.t('favorites.bookmarkedAyahs')),
+                const SizedBox(height: 6),
+                _AyahBookmarksList(items: fav.ayahs),
+              ],
+              const SizedBox(height: 14),
+              if (filtered.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Text(
+                    l10n.t('common.noResults'),
+                    style: TextStyle(color: palette.textMuted),
+                  ),
+                )
+              else
+                _SurahList(items: filtered, arabicFont: font),
+            ],
+          ),
         ),
       ],
     );
@@ -211,14 +211,14 @@ class _SurahRowState extends State<_SurahRow> {
             onTapUp: (_) => setState(() => _downBody = false),
             onTap: () => context.push(
               '/quran/${widget.item.number}'
-              '?name=${Uri.encodeComponent(widget.item.englishName)}'
-              '&ar=${Uri.encodeComponent(widget.item.name)}'
-              '&n=${widget.item.ayahCount}',
+                  '?name=${Uri.encodeComponent(widget.item.englishName)}'
+                  '&ar=${Uri.encodeComponent(widget.item.name)}'
+                  '&n=${widget.item.ayahCount}',
             ),
             child: AnimatedContainer(
               duration: AppTokens.durationFast,
               color: _downBody ? palette.surface2 : Colors.transparent,
-              padding: const EdgeInsets.fromLTRB(16, 14, 4, 14),
+              padding: const EdgeInsets.fromLTRB(16, 14, 12, 14),
               child: Row(
                 children: [
                   Container(
@@ -270,7 +270,6 @@ class _SurahRowState extends State<_SurahRow> {
                   const SizedBox(width: 10),
                   Text(
                     widget.item.name,
-                    textDirection: TextDirection.rtl,
                     style: TextStyle(
                       color: palette.text,
                       fontFamily: widget.arabicFont,
@@ -366,8 +365,8 @@ class _AyahBookmarkRowState extends ConsumerState<_AyahBookmarkRow> {
             onTapUp: (_) => setState(() => _downBody = false),
             onTap: () => context.push(
               '/quran/${entry.surah}?ayah=${entry.ayah}'
-              '&name=${Uri.encodeComponent(entry.surahName)}'
-              '&ar=${Uri.encodeComponent(entry.arabicName)}',
+                  '&name=${Uri.encodeComponent(entry.surahName)}'
+                  '&ar=${Uri.encodeComponent(entry.arabicName)}',
             ),
             child: AnimatedContainer(
               duration: AppTokens.durationFast,

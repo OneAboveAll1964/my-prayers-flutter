@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/i18n/app_l10n.dart';
 import '../../core/services/notification_service.dart';
@@ -265,9 +266,14 @@ class SettingsPage extends ConsumerWidget {
                           GestureDetector(
                             behavior: HitTestBehavior.opaque,
                             onTap: () async {
-                              await NotificationService.instance
+                              final granted = await NotificationService
+                                  .instance
                                   .requestPermissions();
-                              await NotificationService.instance.showTest();
+                              if (granted) {
+                                await NotificationService.instance.showTest();
+                              } else if (context.mounted) {
+                                _promptOpenSettings(context, l10n);
+                              }
                             },
                             child: Container(
                               padding: const EdgeInsets.symmetric(
@@ -412,6 +418,39 @@ class SettingsPage extends ConsumerWidget {
       useFixed: s.useFixedTimes,
       enabled: s.notificationsEnabled,
       perPrayer: s.perPrayerNotifications,
+    );
+  }
+
+  void _promptOpenSettings(BuildContext context, AppL10n l10n) {
+    final palette = context.palette;
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: palette.surface,
+        title: Text(
+          l10n.t('settings.notificationsBlockedTitle'),
+          style: TextStyle(color: palette.text, fontSize: 16, fontWeight: FontWeight.w700),
+        ),
+        content: Text(
+          l10n.t('settings.notificationsBlockedBody'),
+          style: TextStyle(color: palette.textMuted, fontSize: 13.5, height: 1.5),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text(l10n.t('common.cancel'),
+                style: TextStyle(color: palette.textMuted)),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              openAppSettings();
+            },
+            child: Text(l10n.t('settings.openSystemSettings'),
+                style: TextStyle(color: palette.accent, fontWeight: FontWeight.w600)),
+          ),
+        ],
+      ),
     );
   }
 }

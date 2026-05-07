@@ -13,6 +13,7 @@ import '../../shared/widgets/app_sheet.dart';
 import '../../shared/widgets/app_spinner.dart';
 import '../../shared/widgets/page_scaffold.dart';
 import '../settings/widgets/arabic_font_picker.dart';
+import 'widgets/mushaf_view.dart';
 import 'package:ionicons/ionicons.dart';
 
 class SurahPage extends ConsumerStatefulWidget {
@@ -174,22 +175,32 @@ class _SurahPageState extends ConsumerState<SurahPage> {
   }
 
   String get _displayTitle {
-    if (_surah != null) return _surah!.englishName;
+    final l10n = AppL10n.of(context);
+    final lang = l10n.locale.languageCode;
+    final preferArabic = lang != 'en';
+    if (_surah != null) {
+      return preferArabic ? _surah!.name : _surah!.englishName;
+    }
+    if (preferArabic &&
+        widget.arabicName != null &&
+        widget.arabicName!.isNotEmpty) {
+      return widget.arabicName!;
+    }
     if (widget.englishName != null && widget.englishName!.isNotEmpty) {
       return widget.englishName!;
     }
-    return AppL10n.of(context).t('quran.title');
+    return l10n.t('quran.title');
   }
 
   String? get _displaySubtitle {
     final l10n = AppL10n.of(context);
-    if (_surah != null) {
-      return '${_surah!.ayahs.length} ${l10n.t('quran.ayahs')}';
+    final showTransliteration = l10n.locale.languageCode != 'en';
+    final count = _surah?.ayahs.length ?? widget.ayahCount;
+    if (count == null) return null;
+    if (showTransliteration && _surah != null) {
+      return '${_surah!.englishName} · $count ${l10n.t('quran.ayahs')}';
     }
-    if (widget.ayahCount != null) {
-      return '${widget.ayahCount} ${l10n.t('quran.ayahs')}';
-    }
-    return null;
+    return '$count ${l10n.t('quran.ayahs')}';
   }
 
   @override
@@ -215,6 +226,20 @@ class _SurahPageState extends ConsumerState<SurahPage> {
               action: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  AppIconButton(
+                    icon: settings.quranReadMode == 'mushaf'
+                        ? Ionicons.list_outline
+                        : Ionicons.book_outline,
+                    semanticLabel: l10n.t('quran.toggleMode'),
+                    onPressed: () {
+                      final next = settings.quranReadMode == 'mushaf'
+                          ? 'scroll'
+                          : 'mushaf';
+                      ref
+                          .read(settingsProvider.notifier)
+                          .setQuranReadMode(next);
+                    },
+                  ),
                   AppIconButton(
                     icon: Ionicons.text_outline,
                     semanticLabel: l10n.t('settings.arabicFont'),
@@ -260,7 +285,14 @@ class _SurahPageState extends ConsumerState<SurahPage> {
                             style: TextStyle(color: palette.textMuted),
                           ),
                         )
-                      : ListView.separated(
+                      : settings.quranReadMode == 'mushaf'
+                          ? MushafView(
+                              surah: _surah!,
+                              fontFamily: fontFamily,
+                              arScale: arScale,
+                              initialAyah: widget.initialAyah,
+                            )
+                          : ListView.separated(
                           controller: _controller,
                           physics: const ClampingScrollPhysics(),
                           padding:

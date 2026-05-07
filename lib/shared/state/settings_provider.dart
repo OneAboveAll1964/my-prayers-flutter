@@ -23,6 +23,7 @@ class AppSettings {
     this.perPrayerNotifications = const [true, false, true, true, true, true],
     this.timeFormat = '24h',
     this.arabicFontScale = 1.0,
+    this.quranReadMode = 'scroll',
   });
 
   final AppThemeMode themeMode;
@@ -40,6 +41,7 @@ class AppSettings {
   final List<bool> perPrayerNotifications;
   final String timeFormat;
   final double arabicFontScale;
+  final String quranReadMode;
 
   AppSettings copyWith({
     AppThemeMode? themeMode,
@@ -57,6 +59,7 @@ class AppSettings {
     List<bool>? perPrayerNotifications,
     String? timeFormat,
     double? arabicFontScale,
+    String? quranReadMode,
   }) {
     return AppSettings(
       themeMode: themeMode ?? this.themeMode,
@@ -74,6 +77,7 @@ class AppSettings {
       perPrayerNotifications: perPrayerNotifications ?? this.perPrayerNotifications,
       timeFormat: timeFormat ?? this.timeFormat,
       arabicFontScale: arabicFontScale ?? this.arabicFontScale,
+      quranReadMode: quranReadMode ?? this.quranReadMode,
     );
   }
 
@@ -95,6 +99,7 @@ class AppSettings {
         'perPrayerNotifications': perPrayerNotifications,
         'timeFormat': timeFormat,
         'arabicFontScale': arabicFontScale,
+        'quranReadMode': quranReadMode,
       };
 
   factory AppSettings.fromJson(Map<String, dynamic> j) => AppSettings(
@@ -131,6 +136,7 @@ class AppSettings {
             const [true, false, true, true, true, true],
         timeFormat: (j['timeFormat'] ?? '24h') as String,
         arabicFontScale: (j['arabicFontScale'] as num?)?.toDouble() ?? 1.0,
+        quranReadMode: (j['quranReadMode'] ?? 'scroll') as String,
       );
 
   PrayerAttribute toAttribute() => PrayerAttribute(
@@ -191,6 +197,8 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   void setTimeFormat(String v) => update((s) => s.copyWith(timeFormat: v));
   void setArabicFontScale(double v) =>
       update((s) => s.copyWith(arabicFontScale: v.clamp(0.7, 1.6)));
+  void setQuranReadMode(String v) =>
+      update((s) => s.copyWith(quranReadMode: v));
 }
 
 final settingsProvider =

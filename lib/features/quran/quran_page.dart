@@ -241,40 +241,42 @@ class _SurahRowState extends State<_SurahRow> {
                   ),
                   const SizedBox(width: 14),
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          widget.item.englishName,
-                          style: TextStyle(
-                            fontSize: 15,
-                            color: palette.text,
-                            fontWeight: FontWeight.w600,
+                    child: Builder(builder: (ctx) {
+                      final preferArabic = l10n.locale.languageCode != 'en';
+                      final primary = preferArabic
+                          ? widget.item.name
+                          : widget.item.englishName;
+                      final secondary = preferArabic
+                          ? '${widget.item.englishName} · ${widget.item.ayahCount} ${l10n.t('quran.ayahs')}'
+                          : '${widget.item.englishNameTranslation} · ${widget.item.ayahCount} ${l10n.t('quran.ayahs')}';
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            primary,
+                            style: TextStyle(
+                              fontSize: preferArabic ? 18 : 15,
+                              color: palette.text,
+                              fontWeight: FontWeight.w600,
+                              fontFamily:
+                                  preferArabic ? widget.arabicFont : null,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          '${widget.item.englishNameTranslation} · ${widget.item.ayahCount} ${l10n.t('quran.ayahs')}',
-                          style: TextStyle(
-                            fontSize: 12.5,
-                            color: palette.textMuted,
+                          const SizedBox(height: 2),
+                          Text(
+                            secondary,
+                            style: TextStyle(
+                              fontSize: 12.5,
+                              color: palette.textMuted,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Text(
-                    widget.item.name,
-                    style: TextStyle(
-                      color: palette.text,
-                      fontFamily: widget.arabicFont,
-                      fontSize: 19,
-                    ),
+                        ],
+                      );
+                    }),
                   ),
                 ],
               ),

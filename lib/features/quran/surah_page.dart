@@ -44,6 +44,7 @@ class _SurahPageState extends ConsumerState<SurahPage> {
   int _visibleAyah = 1;
   bool _initialScrollScheduled = false;
   Timer? _scrollDebounce;
+  bool _mushafFullscreen = false;
 
   @override
   void initState() {
@@ -213,67 +214,69 @@ class _SurahPageState extends ConsumerState<SurahPage> {
     final arScale = settings.arabicFontScale;
     final marked = fav.surahs.contains(widget.number);
 
+    final isMushaf = settings.quranReadMode == 'mushaf';
+    final hideHeader = isMushaf && _mushafFullscreen;
+
     return Scaffold(
       backgroundColor: palette.bg,
       body: SafeArea(
         bottom: false,
         child: Column(
           children: [
-            PageHeader(
-              title: _displayTitle,
-              subtitle: _displaySubtitle,
-              back: true,
-              action: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  AppIconButton(
-                    icon: settings.quranReadMode == 'mushaf'
-                        ? Ionicons.list_outline
-                        : Ionicons.book_outline,
-                    semanticLabel: l10n.t('quran.toggleMode'),
-                    onPressed: () {
-                      final next = settings.quranReadMode == 'mushaf'
-                          ? 'scroll'
-                          : 'mushaf';
-                      ref
-                          .read(settingsProvider.notifier)
-                          .setQuranReadMode(next);
-                    },
-                  ),
-                  AppIconButton(
-                    icon: Ionicons.text_outline,
-                    semanticLabel: l10n.t('settings.arabicFont'),
-                    onPressed: () {
-                      showAppSheet(
-                        context: context,
-                        title: l10n.t('settings.arabicFont'),
-                        builder: (ctx) => const ArabicFontPicker(),
-                      );
-                    },
-                  ),
-                  GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () => ref
-                        .read(favoritesProvider.notifier)
-                        .toggleBookmarkSurah(widget.number),
-                    child: SizedBox(
-                      width: 44,
-                      height: 44,
-                      child: Center(
-                        child: AnimatedToggleIcon(
-                          outlineIcon: Ionicons.bookmark_outline,
-                          filledIcon: Ionicons.bookmark,
-                          active: marked,
-                          activeColor: palette.accent,
-                          inactiveColor: palette.textMuted,
-                          size: 22,
+            if (!hideHeader)
+              PageHeader(
+                title: _displayTitle,
+                subtitle: _displaySubtitle,
+                back: true,
+                action: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    AppIconButton(
+                      icon: isMushaf
+                          ? Ionicons.list_outline
+                          : Ionicons.book_outline,
+                      semanticLabel: l10n.t('quran.toggleMode'),
+                      onPressed: () {
+                        final next = isMushaf ? 'scroll' : 'mushaf';
+                        ref
+                            .read(settingsProvider.notifier)
+                            .setQuranReadMode(next);
+                      },
+                    ),
+                    AppIconButton(
+                      icon: Ionicons.text_outline,
+                      semanticLabel: l10n.t('settings.arabicFont'),
+                      onPressed: () {
+                        showAppSheet(
+                          context: context,
+                          title: l10n.t('settings.arabicFont'),
+                          builder: (ctx) => const ArabicFontPicker(),
+                        );
+                      },
+                    ),
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () => ref
+                          .read(favoritesProvider.notifier)
+                          .toggleBookmarkSurah(widget.number),
+                      child: SizedBox(
+                        width: 44,
+                        height: 44,
+                        child: Center(
+                          child: AnimatedToggleIcon(
+                            outlineIcon: Ionicons.bookmark_outline,
+                            filledIcon: Ionicons.bookmark,
+                            active: marked,
+                            activeColor: palette.accent,
+                            inactiveColor: palette.textMuted,
+                            size: 22,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
             Expanded(
               child: _loading
                   ? const PageLoader()
@@ -285,12 +288,15 @@ class _SurahPageState extends ConsumerState<SurahPage> {
                             style: TextStyle(color: palette.textMuted),
                           ),
                         )
-                      : settings.quranReadMode == 'mushaf'
+                      : isMushaf
                           ? MushafView(
                               surah: _surah!,
                               fontFamily: fontFamily,
                               arScale: arScale,
                               initialAyah: widget.initialAyah,
+                              fullscreen: _mushafFullscreen,
+                              onToggleFullscreen: () => setState(() =>
+                                  _mushafFullscreen = !_mushafFullscreen),
                             )
                           : ListView.separated(
                           controller: _controller,
@@ -448,6 +454,7 @@ class _AyahRowState extends ConsumerState<_AyahRow> {
             const SizedBox(height: 12),
             Text(
               ayah.translation,
+              textAlign: TextAlign.start,
               style: TextStyle(
                 color: palette.text,
                 fontSize: 15,

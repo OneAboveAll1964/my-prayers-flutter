@@ -13,6 +13,8 @@ Future<void> showAyahActionsSheet({
   required Surah surah,
   required Ayah ayah,
   required WidgetRef ref,
+  required String fontFamily,
+  required double arScale,
 }) {
   final l10n = AppL10n.of(context);
   return showAppSheet(
@@ -23,6 +25,8 @@ Future<void> showAyahActionsSheet({
       ayah: ayah,
       ref: ref,
       l10n: l10n,
+      fontFamily: fontFamily,
+      arScale: arScale,
     ),
   );
 }
@@ -33,12 +37,16 @@ class _AyahActionsBody extends StatelessWidget {
     required this.ayah,
     required this.ref,
     required this.l10n,
+    required this.fontFamily,
+    required this.arScale,
   });
 
   final Surah surah;
   final Ayah ayah;
   final WidgetRef ref;
   final AppL10n l10n;
+  final String fontFamily;
+  final double arScale;
 
   @override
   Widget build(BuildContext context) {
@@ -67,9 +75,9 @@ class _AyahActionsBody extends StatelessWidget {
                   textAlign: TextAlign.right,
                   style: TextStyle(
                     color: palette.text,
-                    fontSize: 20,
+                    fontSize: 20 * arScale,
                     height: 2.0,
-                    fontFamily: 'UthmanicHafs',
+                    fontFamily: fontFamily,
                   ),
                 ),
               ),
@@ -77,6 +85,7 @@ class _AyahActionsBody extends StatelessWidget {
                 const SizedBox(height: 8),
                 Text(
                   ayah.translation,
+                  textAlign: TextAlign.start,
                   style: TextStyle(
                     color: palette.textMuted,
                     fontSize: 14,

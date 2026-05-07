@@ -60,7 +60,14 @@ class MyPrayersApp extends ConsumerWidget {
         GlobalCupertinoLocalizations.delegate,
       ],
       routerConfig: appRouter,
-      builder: (ctx, child) => SplashOverlay(child: child ?? const SizedBox()),
+      builder: (ctx, child) {
+        final activeLocale = Localizations.localeOf(ctx);
+        final isRtl = isRtlLang(langKey(activeLocale));
+        return Directionality(
+          textDirection: isRtl ? TextDirection.rtl : TextDirection.ltr,
+          child: SplashOverlay(child: child ?? const SizedBox()),
+        );
+      },
     );
   }
 

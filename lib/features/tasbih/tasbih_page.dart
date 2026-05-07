@@ -33,11 +33,18 @@ class _TasbihPageState extends ConsumerState<TasbihPage> {
           children: [
             PageHeader(title: l10n.t('tasbih.title'), back: true),
             Expanded(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(18, 8, 18, 24),
-                child: Column(
-                  children: [
-                    ConstrainedBox(
+              child: LayoutBuilder(builder: (ctx, constraints) {
+                return SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(
+                      parent: ClampingScrollPhysics()),
+                  padding: const EdgeInsets.fromLTRB(18, 8, 18, 24),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                        minHeight: constraints.maxHeight - 32),
+                    child: IntrinsicHeight(
+                      child: Column(
+                        children: [
+                          ConstrainedBox(
                       constraints: const BoxConstraints(maxWidth: 360),
                       child: SegmentedControl<int>(
                         value: tasbih.target,
@@ -177,9 +184,12 @@ class _TasbihPageState extends ConsumerState<TasbihPage> {
                         ],
                       ),
                     ),
-                  ],
-                ),
-              ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }),
             ),
           ],
         ),

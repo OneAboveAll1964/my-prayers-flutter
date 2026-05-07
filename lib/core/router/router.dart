@@ -9,10 +9,13 @@ import '../../features/names/names_page.dart';
 import '../../features/qibla/qibla_page.dart';
 import '../../features/quran/quran_page.dart';
 import '../../features/quran/surah_page.dart';
-import '../../features/settings/settings_page.dart';
+import '../../features/settings/settings_appearance_page.dart';
 import '../../features/settings/settings_language_page.dart';
 import '../../features/settings/settings_location_page.dart';
 import '../../features/settings/settings_method_page.dart';
+import '../../features/settings/settings_notifications_page.dart';
+import '../../features/settings/settings_page.dart';
+import '../../features/settings/settings_prayer_times_page.dart';
 import '../../features/tasbih/tasbih_page.dart';
 import '../../features/shell/app_shell.dart';
 
@@ -92,6 +95,18 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/settings/method',
       builder: (context, state) => const SettingsMethodPage(),
+    ),
+    GoRoute(
+      path: '/settings/appearance',
+      builder: (context, state) => const SettingsAppearancePage(),
+    ),
+    GoRoute(
+      path: '/settings/prayer-times',
+      builder: (context, state) => const SettingsPrayerTimesPage(),
+    ),
+    GoRoute(
+      path: '/settings/notifications',
+      builder: (context, state) => const SettingsNotificationsPage(),
     ),
   ],
 );

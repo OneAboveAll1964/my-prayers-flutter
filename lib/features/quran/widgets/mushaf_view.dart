@@ -1,6 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ionicons/ionicons.dart';
 import '../../../core/i18n/app_l10n.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../shared/models/quran.dart';
@@ -13,12 +14,16 @@ class MushafView extends ConsumerStatefulWidget {
     required this.surah,
     required this.fontFamily,
     required this.arScale,
+    required this.fullscreen,
+    required this.onToggleFullscreen,
     this.initialAyah,
   });
 
   final Surah surah;
   final String fontFamily;
   final double arScale;
+  final bool fullscreen;
+  final VoidCallback onToggleFullscreen;
   final int? initialAyah;
 
   @override
@@ -38,8 +43,7 @@ class _MushafViewState extends ConsumerState<MushafView> {
         ? 0
         : _pages.indexWhere(
             (p) => p.ayahs.any((a) => a.numberInSurah == widget.initialAyah));
-    _pageController =
-        PageController(initialPage: initial < 0 ? 0 : initial);
+    _pageController = PageController(initialPage: initial < 0 ? 0 : initial);
   }
 
   @override
@@ -62,34 +66,51 @@ class _MushafViewState extends ConsumerState<MushafView> {
 
   @override
   Widget build(BuildContext context) {
-    final palette = context.palette;
-    return PageView.builder(
-      controller: _pageController,
-      itemCount: _pages.length,
-      reverse: Directionality.of(context) == TextDirection.rtl,
-      itemBuilder: (ctx, idx) {
-        final page = _pages[idx];
-        return _MushafPageView(
-          page: page,
-          surahNumber: widget.surah.number,
-          fontFamily: widget.fontFamily,
-          arScale: widget.arScale,
-          selectedAyah: _selectedAyah,
-          onTapAyah: (ayah) => _handleTap(ayah, palette),
-          totalPages: _pages.length,
-          pageIndex: idx,
-        );
-      },
+    return Stack(
+      children: [
+        PageView.builder(
+          controller: _pageController,
+          itemCount: _pages.length,
+          reverse: Directionality.of(context) == TextDirection.rtl,
+          itemBuilder: (ctx, idx) {
+            final page = _pages[idx];
+            return _MushafPageView(
+              page: page,
+              surahNumber: widget.surah.number,
+              fontFamily: widget.fontFamily,
+              arScale: widget.arScale,
+              selectedAyah: _selectedAyah,
+              onTapAyah: _handleTap,
+              totalPages: _pages.length,
+              pageIndex: idx,
+              fullscreen: widget.fullscreen,
+              onToggleFullscreen: widget.onToggleFullscreen,
+            );
+          },
+        ),
+        if (widget.fullscreen)
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 8,
+            right: Directionality.of(context) == TextDirection.rtl ? null : 12,
+            left: Directionality.of(context) == TextDirection.rtl ? 12 : null,
+            child: _FloatingButton(
+              icon: Ionicons.contract_outline,
+              onTap: widget.onToggleFullscreen,
+            ),
+          ),
+      ],
     );
   }
 
-  void _handleTap(Ayah ayah, AppPalette palette) {
+  void _handleTap(Ayah ayah) {
     setState(() => _selectedAyah = ayah.numberInSurah);
     showAyahActionsSheet(
       context: context,
       surah: widget.surah,
       ayah: ayah,
       ref: ref,
+      fontFamily: widget.fontFamily,
+      arScale: widget.arScale,
     ).whenComplete(() {
       if (!mounted) return;
       setState(() => _selectedAyah = null);
@@ -103,6 +124,19 @@ class _MushafPage {
   final List<Ayah> ayahs;
 }
 
+const _arabicDigits = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+
+String _arabicNumber(int n) =>
+    n.toString().split('').map((c) => _arabicDigits[int.parse(c)]).join();
+
+String _localeNumber(int n, BuildContext context) {
+  final lang = AppL10n.of(context).locale.languageCode;
+  if (lang == 'en') return n.toString();
+  return _arabicNumber(n);
+}
+
+String _rosetteText(int n) => '۝${_arabicNumber(n)}';
+
 class _MushafPageView extends ConsumerWidget {
   const _MushafPageView({
     required this.page,
@@ -113,6 +147,8 @@ class _MushafPageView extends ConsumerWidget {
     required this.onTapAyah,
     required this.totalPages,
     required this.pageIndex,
+    required this.fullscreen,
+    required this.onToggleFullscreen,
   });
 
   final _MushafPage page;
@@ -123,29 +159,181 @@ class _MushafPageView extends ConsumerWidget {
   final void Function(Ayah ayah) onTapAyah;
   final int totalPages;
   final int pageIndex;
-
-  static const _arabicDigits = ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩'];
-  static String _arabicNumber(int n) =>
-      n.toString().split('').map((c) => _arabicDigits[int.parse(c)]).join();
+  final bool fullscreen;
+  final VoidCallback onToggleFullscreen;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final palette = context.palette;
     final fav = ref.watch(favoritesProvider);
-    final size = 24.0 * arScale;
-    final markerSize = 22.0 * arScale;
+    final l10n = AppL10n.of(context);
 
+    return SafeArea(
+      bottom: false,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (fullscreen) const SizedBox(height: 56),
+          if (!fullscreen)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 4, 20, 6),
+              child: Row(
+                children: [
+                  Text(
+                    '${l10n.t('quran.juz')} ${_localeNumber(page.ayahs.first.juz, context)}',
+                    style: TextStyle(
+                      color: palette.textSubtle,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const Spacer(),
+                  Text(
+                    '${l10n.t('quran.page')} ${_localeNumber(page.pageNumber, context)}',
+                    style: TextStyle(
+                      color: palette.textSubtle,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          Expanded(
+            child: LayoutBuilder(builder: (ctx, c) {
+              const padH = 18.0;
+              const padV = 8.0;
+              final width = c.maxWidth - padH * 2;
+              final height = (c.maxHeight - padV * 2) * 0.94;
+              final autoSize = _autoFitSize(width: width, height: height);
+              final size = autoSize * arScale;
+              final spans = _buildSpans(
+                palette: palette,
+                fav: fav,
+                fontSize: size,
+              );
+              final body = Padding(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: padH, vertical: padV),
+                child: Directionality(
+                  textDirection: TextDirection.rtl,
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: Text.rich(
+                      TextSpan(children: spans),
+                      textAlign: TextAlign.start,
+                    ),
+                  ),
+                ),
+              );
+              if (arScale > 1.0) {
+                return SingleChildScrollView(
+                  physics: const ClampingScrollPhysics(),
+                  child: body,
+                );
+              }
+              return body;
+            }),
+          ),
+          if (!fullscreen)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 6, 16, 12),
+              child: Row(
+                children: [
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: onToggleFullscreen,
+                    child: Container(
+                      width: 36,
+                      height: 36,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: palette.surface,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: palette.line),
+                      ),
+                      child: Icon(Ionicons.expand_outline,
+                          size: 16, color: palette.textMuted),
+                    ),
+                  ),
+                  Expanded(
+                    child: Center(
+                      child: Text(
+                        '${_localeNumber(pageIndex + 1, context)} / ${_localeNumber(totalPages, context)}',
+                        style: TextStyle(
+                          color: palette.textSubtle,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          fontFeatures: const [FontFeature.tabularFigures()],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 36),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  double _autoFitSize({required double width, required double height}) {
+    final measure = _measurementText();
+    var lo = 14.0;
+    var hi = 40.0;
+    for (var i = 0; i < 8; i++) {
+      final mid = (lo + hi) / 2;
+      final tp = TextPainter(
+        text: TextSpan(
+          text: measure,
+          style: TextStyle(
+            fontFamily: fontFamily,
+            fontSize: mid,
+            height: 2.0,
+          ),
+        ),
+        textDirection: TextDirection.rtl,
+        textAlign: TextAlign.start,
+      )..layout(maxWidth: width);
+      if (tp.height <= height) {
+        lo = mid;
+      } else {
+        hi = mid;
+      }
+    }
+    return lo.clamp(14.0, 40.0);
+  }
+
+  String _measurementText() {
+    final buf = StringBuffer();
+    for (var i = 0; i < page.ayahs.length; i++) {
+      buf.write(page.ayahs[i].arabic);
+      buf.write(' ');
+      buf.write(_rosetteText(page.ayahs[i].numberInSurah));
+      if (i < page.ayahs.length - 1) buf.write(' ');
+    }
+    return buf.toString();
+  }
+
+  List<InlineSpan> _buildSpans({
+    required AppPalette palette,
+    required FavoritesState fav,
+    required double fontSize,
+  }) {
     final spans = <InlineSpan>[];
     for (var i = 0; i < page.ayahs.length; i++) {
       final a = page.ayahs[i];
-      final isBookmarked = fav.ayahs.any(
-          (e) => e.surah == surahNumber && e.ayah == a.numberInSurah);
+      final isBookmarked = fav.ayahs
+          .any((e) => e.surah == surahNumber && e.ayah == a.numberInSurah);
       final selected = selectedAyah == a.numberInSurah;
       final tap = TapGestureRecognizer()..onTap = () => onTapAyah(a);
 
       final fillColor = selected
           ? palette.accentSoft
-          : (isBookmarked ? palette.accentSoft.withValues(alpha: 0.5) : null);
+          : (isBookmarked
+              ? palette.accentSoft.withValues(alpha: 0.5)
+              : null);
 
       spans.add(TextSpan(
         text: a.arabic,
@@ -153,8 +341,8 @@ class _MushafPageView extends ConsumerWidget {
         style: TextStyle(
           color: palette.text,
           fontFamily: fontFamily,
-          fontSize: size,
-          height: 2.1,
+          fontSize: fontSize,
+          height: 2.0,
           background: fillColor == null ? null : (Paint()..color = fillColor),
         ),
       ));
@@ -165,117 +353,65 @@ class _MushafPageView extends ConsumerWidget {
           behavior: HitTestBehavior.opaque,
           onTap: () => onTapAyah(a),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: _AyahMarker(
-              number: a.numberInSurah,
-              size: markerSize,
-              accentColor: palette.accent,
-              backgroundColor: palette.bg,
+            padding: EdgeInsets.symmetric(horizontal: fontSize * 0.08),
+            child: SizedBox(
+              width: fontSize * 1.4,
+              height: fontSize * 1.6,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Text(
+                    '۝',
+                    style: TextStyle(
+                      color: palette.accent,
+                      fontFamily: fontFamily,
+                      fontSize: fontSize * 1.5,
+                      height: 1.0,
+                    ),
+                  ),
+                  Text(
+                    _arabicNumber(a.numberInSurah),
+                    style: TextStyle(
+                      color: palette.accent,
+                      fontFamily: fontFamily,
+                      fontSize: fontSize * 0.42,
+                      fontWeight: FontWeight.w700,
+                      height: 1.0,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
       ));
-
-      if (i < page.ayahs.length - 1) {
-        spans.add(const TextSpan(text: ' '));
-      }
     }
-
-    return SafeArea(
-      bottom: false,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
-            child: Row(
-              children: [
-                Text(
-                  '${AppL10n.of(context).t('quran.juz')} ${_arabicNumber(page.ayahs.first.juz)}',
-                  style: TextStyle(
-                    color: palette.textSubtle,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const Spacer(),
-                Text(
-                  '${AppL10n.of(context).t('quran.page')} ${_arabicNumber(page.pageNumber)}',
-                  style: TextStyle(
-                    color: palette.textSubtle,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(22, 8, 22, 28),
-              child: Directionality(
-                textDirection: TextDirection.rtl,
-                child: Text.rich(
-                  TextSpan(children: spans),
-                  textAlign: TextAlign.justify,
-                  textDirection: TextDirection.rtl,
-                ),
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(bottom: 14, top: 4),
-            child: Center(
-              child: Text(
-                '${pageIndex + 1} / $totalPages',
-                style: TextStyle(
-                  color: palette.textSubtle,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  fontFeatures: const [FontFeature.tabularFigures()],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+    return spans;
   }
 }
 
-class _AyahMarker extends StatelessWidget {
-  const _AyahMarker({
-    required this.number,
-    required this.size,
-    required this.accentColor,
-    required this.backgroundColor,
-  });
-
-  final int number;
-  final double size;
-  final Color accentColor;
-  final Color backgroundColor;
+class _FloatingButton extends StatelessWidget {
+  const _FloatingButton({required this.icon, required this.onTap});
+  final IconData icon;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: backgroundColor,
-        border: Border.all(color: accentColor, width: 1.4),
-      ),
-      child: Text(
-        _MushafPageView._arabicNumber(number),
-        style: TextStyle(
-          color: accentColor,
-          fontSize: size * 0.46,
-          fontWeight: FontWeight.w700,
-          height: 1.0,
-          fontFeatures: const [FontFeature.tabularFigures()],
+    final palette = context.palette;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Container(
+        width: 42,
+        height: 42,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: palette.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: palette.line),
         ),
+        child: Icon(icon, size: 18, color: palette.textMuted),
       ),
     );
   }

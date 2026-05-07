@@ -55,7 +55,9 @@ HijriDate _julianDayToHijri(int jd) {
 
 String hijriMonthName(int month, String langCode) {
   final i = (month - 1).clamp(0, 11);
-  if (langCode == 'ar') return _kMonthsAr[i];
+  if (langCode == 'ar' || langCode == 'ckb' || langCode == 'ckb_Badini') {
+    return _kMonthsAr[i];
+  }
   return _kMonthsEn[i];
 }
 

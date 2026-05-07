@@ -37,7 +37,7 @@ class NotificationService {
       } catch (_) {}
     }
 
-    const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidInit = AndroidInitializationSettings('@drawable/ic_notify');
     final iosInit = DarwinInitializationSettings(
       requestAlertPermission: false,
       requestBadgePermission: false,
@@ -85,6 +85,12 @@ class NotificationService {
         if (!canExact) {
           await android.requestExactAlarmsPermission();
         }
+      }
+      // Without this, Samsung One UI / aggressive OEMs put the app to "deep
+      // sleep" after a few hours of no use and AlarmManager triggers stop
+      // firing entirely. The system shows a one-time consent dialog.
+      if (!await Permission.ignoreBatteryOptimizations.isGranted) {
+        await Permission.ignoreBatteryOptimizations.request();
       }
       return status.isGranted;
     }

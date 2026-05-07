@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Notification small-icon. The system uses only the alpha channel and
+     applies its own tint (white in the status bar, accent in the shade
+     header). Generous 5dp inset on a 24dp viewport so the mosque sits
+     comfortably inside the system mask. -->
+<inset xmlns:android="http://schemas.android.com/apk/res/android"
+    android:insetLeft="5dp"
+    android:insetTop="5dp"
+    android:insetRight="5dp"
+    android:insetBottom="5dp">
+    <bitmap
+        android:src="@drawable/ic_launcher_foreground_src"
+        android:gravity="fill" />
+</inset>

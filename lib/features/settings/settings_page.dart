@@ -269,11 +269,24 @@ class SettingsPage extends ConsumerWidget {
                               final granted = await NotificationService
                                   .instance
                                   .requestPermissions();
-                              if (granted) {
-                                await NotificationService.instance.showTest();
-                              } else if (context.mounted) {
-                                _promptOpenSettings(context, l10n);
+                              if (!granted) {
+                                if (context.mounted) {
+                                  _promptOpenSettings(context, l10n);
+                                }
+                                return;
                               }
+                              final s = ref.read(settingsProvider);
+                              if (s.location != null &&
+                                  s.notificationsEnabled) {
+                                await NotificationService.instance.reschedule(
+                                  location: s.location,
+                                  attribute: s.toAttribute(),
+                                  useFixed: s.useFixedTimes,
+                                  enabled: s.notificationsEnabled,
+                                  perPrayer: s.perPrayerNotifications,
+                                );
+                              }
+                              await NotificationService.instance.showTest();
                             },
                             child: Container(
                               padding: const EdgeInsets.symmetric(

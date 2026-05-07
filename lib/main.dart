@@ -34,17 +34,37 @@ Future<void> main() async {
     ),
   );
 
+  Future<void> tryReschedule() async {
+    final s = settings.debugState;
+    if (s.location == null || !s.notificationsEnabled) return;
+    await NotificationService.instance.reschedule(
+      location: s.location,
+      attribute: s.toAttribute(),
+      useFixed: s.useFixedTimes,
+      enabled: s.notificationsEnabled,
+      perPrayer: s.perPrayerNotifications,
+    );
+  }
+
   WidgetsBinding.instance.addPostFrameCallback((_) async {
     final granted = await NotificationService.instance.requestPermissions();
-    final s = settings.debugState;
-    if (granted && s.location != null && s.notificationsEnabled) {
-      await NotificationService.instance.reschedule(
-        location: s.location,
-        attribute: s.toAttribute(),
-        useFixed: s.useFixedTimes,
-        enabled: s.notificationsEnabled,
-        perPrayer: s.perPrayerNotifications,
-      );
-    }
+    if (granted) await tryReschedule();
   });
+
+  // Re-check permission + reschedule whenever the app returns to foreground.
+  // Catches the case where the user grants notification permission via system
+  // Settings, or comes back after Samsung put the app to sleep — without this,
+  // an alarm scheduled days ago may have been canceled and never re-armed.
+  WidgetsBinding.instance.addObserver(_LifecycleHook(tryReschedule));
+}
+
+class _LifecycleHook with WidgetsBindingObserver {
+  _LifecycleHook(this._onResume);
+  final Future<void> Function() _onResume;
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _onResume();
+    }
+  }
 }

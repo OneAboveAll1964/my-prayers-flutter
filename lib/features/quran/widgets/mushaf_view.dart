@@ -179,7 +179,7 @@ class _MushafPageViewState extends State<_MushafPageView> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 4, 20, 6),
+            padding: const EdgeInsets.fromLTRB(20, 14, 20, 14),
             child: Row(
               children: [
                 Text(
@@ -273,7 +273,10 @@ class _MushafPageViewState extends State<_MushafPageView> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.only(bottom: 12, top: 6),
+            padding: EdgeInsets.only(
+              top: 14,
+              bottom: 14 + MediaQuery.of(context).padding.bottom,
+            ),
             child: Center(
               child: Text(
                 '${_localeNumber(widget.pageIndex + 1, context)} / ${_localeNumber(widget.totalPages, context)}',

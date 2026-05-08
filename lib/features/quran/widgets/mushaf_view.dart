@@ -1,9 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:preload_page_view/preload_page_view.dart';
 import '../../../core/i18n/app_l10n.dart';
@@ -22,11 +20,13 @@ class MushafView extends ConsumerStatefulWidget {
     required this.surah,
     this.initialAyah,
     this.onPageAyahChanged,
+    this.onSwitchSurah,
   });
 
   final Surah surah;
   final int? initialAyah;
   final void Function(Ayah firstAyahOfPage)? onPageAyahChanged;
+  final void Function(int newSurahNumber)? onSwitchSurah;
 
   @override
   ConsumerState<MushafView> createState() => _MushafViewState();
@@ -39,7 +39,6 @@ class _MushafViewState extends ConsumerState<MushafView> {
   String? _selectedKey;
   late Map<String, Ayah> _ayahByKey;
   Timer? _preloadTimer;
-  bool _edgeNavTriggered = false;
 
   @override
   void initState() {
@@ -147,40 +146,13 @@ class _MushafViewState extends ConsumerState<MushafView> {
     return best;
   }
 
-  void _checkEdgeMetrics(ScrollMetrics m) {
-    if (_edgeNavTriggered) return;
-    final pastEnd = m.pixels - m.maxScrollExtent;
-    final pastStart = m.minScrollExtent - m.pixels;
-    final goNext = pastEnd >= pastStart;
-    final overshoot = goNext ? pastEnd : pastStart;
-    if (overshoot < 50) return;
-    _edgeNavTriggered = true;
-    HapticFeedback.mediumImpact();
-    final target = goNext ? widget.surah.number + 1 : widget.surah.number - 1;
-    if (target < 1 || target > 114) return;
-    GoRouter.of(context).pushReplacement('/quran/$target');
-  }
-
   @override
   Widget build(BuildContext context) {
     final pageCount = _lastPage - _firstPage + 1;
-    return NotificationListener<ScrollNotification>(
-      onNotification: (n) {
-        if (n is ScrollUpdateNotification ||
-            n is OverscrollNotification) {
-          _checkEdgeMetrics(n.metrics);
-        } else if (n is ScrollEndNotification) {
-          _edgeNavTriggered = false;
-        }
-        return false;
-      },
-      child: PreloadPageView.builder(
+    return PreloadPageView.builder(
       controller: _pageController,
       itemCount: pageCount,
       reverse: Directionality.of(context) == TextDirection.rtl,
-      physics: const BouncingScrollPhysics(
-        decelerationRate: ScrollDecelerationRate.fast,
-      ),
       preloadPagesCount: 1,
       onPageChanged: (idx) {
         final pageNumber = _firstPage + idx;
@@ -196,15 +168,16 @@ class _MushafViewState extends ConsumerState<MushafView> {
         return RepaintBoundary(
           child: _MushafPageView(
             pageNumber: pageNumber,
+            surahNumber: widget.surah.number,
             ayahByKey: _ayahByKey,
             selectedKey: _selectedKey,
             onTapWord: _handleTapWord,
             pageIndex: idx,
             totalPages: pageCount,
+            onSwitchSurah: widget.onSwitchSurah,
           ),
         );
       },
-      ),
     );
   }
 }
@@ -223,19 +196,23 @@ String _localeNumber(int n, BuildContext context) {
 class _MushafPageView extends StatefulWidget {
   const _MushafPageView({
     required this.pageNumber,
+    required this.surahNumber,
     required this.ayahByKey,
     required this.selectedKey,
     required this.onTapWord,
     required this.pageIndex,
     required this.totalPages,
+    required this.onSwitchSurah,
   });
 
   final int pageNumber;
+  final int surahNumber;
   final Map<String, Ayah> ayahByKey;
   final String? selectedKey;
   final void Function(String verseKey, Ayah? ayah) onTapWord;
   final int pageIndex;
   final int totalPages;
+  final void Function(int newSurahNumber)? onSwitchSurah;
 
   @override
   State<_MushafPageView> createState() => _MushafPageViewState();
@@ -367,20 +344,53 @@ class _MushafPageViewState extends State<_MushafPageView> {
             ),
           ),
           Padding(
-            padding: EdgeInsets.only(
-              top: 14,
-              bottom: 14 + MediaQuery.of(context).padding.bottom,
+            padding: EdgeInsets.fromLTRB(
+              16,
+              14,
+              16,
+              14 + MediaQuery.of(context).padding.bottom,
             ),
-            child: Center(
-              child: Text(
-                '${_localeNumber(widget.pageIndex + 1, context)} / ${_localeNumber(widget.totalPages, context)}',
-                style: TextStyle(
-                  color: palette.textSubtle,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  fontFeatures: const [FontFeature.tabularFigures()],
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 40,
+                  child: widget.pageIndex == 0 && widget.surahNumber > 1
+                      ? _SurahNavButton(
+                          icon: Ionicons.chevron_back,
+                          onTap: widget.onSwitchSurah == null
+                              ? null
+                              : () => widget
+                                  .onSwitchSurah!(widget.surahNumber - 1),
+                        )
+                      : null,
                 ),
-              ),
+                Expanded(
+                  child: Center(
+                    child: Text(
+                      '${_localeNumber(widget.pageIndex + 1, context)} / ${_localeNumber(widget.totalPages, context)}',
+                      style: TextStyle(
+                        color: palette.textSubtle,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  width: 40,
+                  child: widget.pageIndex == widget.totalPages - 1 &&
+                          widget.surahNumber < 114
+                      ? _SurahNavButton(
+                          icon: Ionicons.chevron_forward,
+                          onTap: widget.onSwitchSurah == null
+                              ? null
+                              : () => widget
+                                  .onSwitchSurah!(widget.surahNumber + 1),
+                        )
+                      : null,
+                ),
+              ],
             ),
           ),
         ],
@@ -512,6 +522,36 @@ class _LineWidget extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       onTap: () => onTapWord(w.verseKey, ayah),
       child: child,
+    );
+  }
+}
+
+class _SurahNavButton extends StatelessWidget {
+  const _SurahNavButton({
+    required this.icon,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Container(
+        width: 40,
+        height: 40,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: palette.surface,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: palette.line),
+        ),
+        child: Icon(icon, size: 18, color: palette.text),
+      ),
     );
   }
 }

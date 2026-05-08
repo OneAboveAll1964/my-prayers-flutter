@@ -176,6 +176,24 @@ class _SurahPageState extends ConsumerState<SurahPage> {
     _saveLastRead(_currentAyah);
   }
 
+  Future<void> _switchToSurah(int newNumber) async {
+    if (newNumber < 1 || newNumber > 114) return;
+    final l10n = AppL10n.of(context);
+    final next = await QuranRepository.instance
+        .getSurah(newNumber, langKey(l10n.locale));
+    if (!mounted || next == null) return;
+    setState(() {
+      _surah = next;
+      _currentAyah = 1;
+      _visibleAyah = 1;
+      _ayahKeys
+        ..clear()
+        ..addEntries(next.ayahs.map(
+            (a) => MapEntry(a.numberInSurah, GlobalKey())));
+    });
+    _saveLastRead(1);
+  }
+
   Future<void> _toggleMode(bool isMushaf) async {
     if (isMushaf) {
       final target = _currentAyah;
@@ -352,15 +370,16 @@ class _SurahPageState extends ConsumerState<SurahPage> {
                           },
                           child: isMushaf
                               ? KeyedSubtree(
-                                  key: const ValueKey('mushaf'),
+                                  key: ValueKey('mushaf-${_surah!.number}'),
                                   child: MushafView(
                                     surah: _surah!,
                                     initialAyah: _currentAyah,
                                     onPageAyahChanged: _onMushafPageAyah,
+                                    onSwitchSurah: _switchToSurah,
                                   ),
                                 )
                               : ListView.separated(
-                                  key: const ValueKey('scroll'),
+                                  key: ValueKey('scroll-${_surah!.number}'),
                                   controller: _controller,
                                   physics: const ClampingScrollPhysics(),
                                   padding: const EdgeInsets.fromLTRB(

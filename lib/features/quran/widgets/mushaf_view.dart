@@ -387,13 +387,16 @@ class _LineWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Directionality(
       textDirection: TextDirection.rtl,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          for (final w in line.words)
-            _wordWidget(w),
-        ],
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        alignment: Alignment.center,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            for (final w in line.words) _wordWidget(w),
+          ],
+        ),
       ),
     );
   }
@@ -411,7 +414,6 @@ class _LineWidget extends StatelessWidget {
                 borderRadius: BorderRadius.circular(4),
               )
             : null,
-        padding: const EdgeInsets.symmetric(horizontal: 1),
         child: Text(
           w.code,
           textDirection: TextDirection.rtl,

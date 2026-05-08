@@ -32,6 +32,7 @@ class SurahPage extends ConsumerStatefulWidget {
     this.englishName,
     this.arabicName,
     this.ayahCount,
+    this.lockSurah = false,
   });
 
   final int number;
@@ -39,6 +40,7 @@ class SurahPage extends ConsumerStatefulWidget {
   final String? englishName;
   final String? arabicName;
   final int? ayahCount;
+  final bool lockSurah;
 
   @override
   ConsumerState<SurahPage> createState() => _SurahPageState();
@@ -537,7 +539,8 @@ class _SurahPageState extends ConsumerState<SurahPage> {
                                     surah: _surah!,
                                     initialAyah: _currentAyah,
                                     onPageAyahChanged: _onMushafPageAyah,
-                                    onSwitchSurah: _switchToSurah,
+                                    onSwitchSurah:
+                                        widget.lockSurah ? null : _switchToSurah,
                                   ),
                                 )
                               : ListView.separated(

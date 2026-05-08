@@ -410,14 +410,14 @@ class _MushafPageViewState extends State<_MushafPageView> {
                 children: [
                   SizedBox(
                     width: 40,
-                    child: widget.pageIndex == 0 && widget.surahNumber > 1
+                    child: widget.pageIndex == 0 &&
+                            widget.surahNumber > 1 &&
+                            widget.onSwitchSurah != null
                         ? _SurahNavButton(
-                      icon: Ionicons.chevron_forward,
-                      onTap: widget.onSwitchSurah == null
-                          ? null
-                          : () => widget
-                          .onSwitchSurah!(widget.surahNumber - 1),
-                    )
+                            icon: Ionicons.chevron_forward,
+                            onTap: () => widget
+                                .onSwitchSurah!(widget.surahNumber - 1),
+                          )
                         : null,
                   ),
                   Expanded(
@@ -436,14 +436,13 @@ class _MushafPageViewState extends State<_MushafPageView> {
                   SizedBox(
                     width: 40,
                     child: widget.pageIndex == widget.totalPages - 1 &&
-                        widget.surahNumber < 114
+                            widget.surahNumber < 114 &&
+                            widget.onSwitchSurah != null
                         ? _SurahNavButton(
-                      icon: Ionicons.chevron_back,
-                      onTap: widget.onSwitchSurah == null
-                          ? null
-                          : () => widget
-                          .onSwitchSurah!(widget.surahNumber + 1),
-                    )
+                            icon: Ionicons.chevron_back,
+                            onTap: () => widget
+                                .onSwitchSurah!(widget.surahNumber + 1),
+                          )
                         : null,
                   ),
                 ],

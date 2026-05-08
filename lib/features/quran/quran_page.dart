@@ -129,6 +129,15 @@ const _arDigits = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
 String _arabicDigits(int n) =>
     n.toString().split('').map((c) => _arDigits[int.parse(c)]).join();
 
+final _arDiacritics = RegExp(r'[ً-ٰٟ]');
+final _surahPrefix = RegExp(r'^سورة\s+');
+String _arabicSurahLabel(String fullName) {
+  var t = fullName.replaceAll(_arDiacritics, '');
+  t = t.replaceAll('ٱ', 'ا');
+  t = t.replaceFirst(_surahPrefix, '');
+  return t;
+}
+
 class _SectionLabel extends StatelessWidget {
   const _SectionLabel({required this.label});
   final String label;
@@ -255,7 +264,7 @@ class _SurahRowState extends State<_SurahRow> {
                           : widget.item.ayahCount.toString();
                       final secondary = isEn
                           ? '${widget.item.englishNameTranslation} · $count ${l10n.t('quran.ayahs')}'
-                          : '${widget.item.englishName} · $count ${l10n.t('quran.ayahs')}';
+                          : '${_arabicSurahLabel(widget.item.name)} · $count ${l10n.t('quran.ayahs')}';
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [

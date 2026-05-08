@@ -88,6 +88,7 @@ final appRouter = GoRouter(
         englishName: state.uri.queryParameters['name'],
         arabicName: state.uri.queryParameters['ar'],
         ayahCount: int.tryParse(state.uri.queryParameters['n'] ?? ''),
+        lockSurah: state.uri.queryParameters['lock'] == '1',
       ),
     ),
     GoRoute(path: '/calendar', builder: (context, state) => const CalendarPage()),

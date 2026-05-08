@@ -251,8 +251,7 @@ class _DayCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    formatHijriDayMonth(
-                        date, intl == 'ar' ? 'ar' : 'en'),
+                    formatHijriDayMonth(date, intl),
                     style: TextStyle(
                       color: today
                           ? palette.accentStrong.withValues(alpha: 0.7)

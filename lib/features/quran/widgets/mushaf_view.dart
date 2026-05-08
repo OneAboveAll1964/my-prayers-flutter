@@ -350,47 +350,50 @@ class _MushafPageViewState extends State<_MushafPageView> {
               16,
               14 + MediaQuery.of(context).padding.bottom,
             ),
-            child: Row(
-              children: [
-                SizedBox(
-                  width: 40,
-                  child: widget.pageIndex == 0 && widget.surahNumber > 1
-                      ? _SurahNavButton(
-                          icon: Ionicons.chevron_back,
-                          onTap: widget.onSwitchSurah == null
-                              ? null
-                              : () => widget
-                                  .onSwitchSurah!(widget.surahNumber - 1),
-                        )
-                      : null,
-                ),
-                Expanded(
-                  child: Center(
-                    child: Text(
-                      '${_localeNumber(widget.pageIndex + 1, context)} / ${_localeNumber(widget.totalPages, context)}',
-                      style: TextStyle(
-                        color: palette.textSubtle,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        fontFeatures: const [FontFeature.tabularFigures()],
+            child: Directionality(
+              textDirection: TextDirection.rtl,
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: 40,
+                    child: widget.pageIndex == 0 && widget.surahNumber > 1
+                        ? _SurahNavButton(
+                            icon: Ionicons.chevron_forward,
+                            onTap: widget.onSwitchSurah == null
+                                ? null
+                                : () => widget
+                                    .onSwitchSurah!(widget.surahNumber - 1),
+                          )
+                        : null,
+                  ),
+                  Expanded(
+                    child: Center(
+                      child: Text(
+                        '${_localeNumber(widget.pageIndex + 1, context)} / ${_localeNumber(widget.totalPages, context)}',
+                        style: TextStyle(
+                          color: palette.textSubtle,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          fontFeatures: const [FontFeature.tabularFigures()],
+                        ),
                       ),
                     ),
                   ),
-                ),
-                SizedBox(
-                  width: 40,
-                  child: widget.pageIndex == widget.totalPages - 1 &&
-                          widget.surahNumber < 114
-                      ? _SurahNavButton(
-                          icon: Ionicons.chevron_forward,
-                          onTap: widget.onSwitchSurah == null
-                              ? null
-                              : () => widget
-                                  .onSwitchSurah!(widget.surahNumber + 1),
-                        )
-                      : null,
-                ),
-              ],
+                  SizedBox(
+                    width: 40,
+                    child: widget.pageIndex == widget.totalPages - 1 &&
+                            widget.surahNumber < 114
+                        ? _SurahNavButton(
+                            icon: Ionicons.chevron_back,
+                            onTap: widget.onSwitchSurah == null
+                                ? null
+                                : () => widget
+                                    .onSwitchSurah!(widget.surahNumber + 1),
+                          )
+                        : null,
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -550,7 +553,8 @@ class _SurahNavButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(10),
           border: Border.all(color: palette.line),
         ),
-        child: Icon(icon, size: 18, color: palette.text),
+        child: Icon(icon,
+            size: 18, color: palette.text, textDirection: TextDirection.ltr),
       ),
     );
   }

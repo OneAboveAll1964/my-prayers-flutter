@@ -130,9 +130,7 @@ class _HomePageState extends ConsumerState<HomePage> {
             children: [
               DateBar(
                 gregorian: _date,
-                hijri: formatHijri(
-                    _date,
-                    settings.language?.startsWith('ar') == true ? 'ar' : 'en'),
+                hijri: formatHijri(_date, langKey(l10n.locale)),
               ),
               if (settings.location == null)
                 Container(

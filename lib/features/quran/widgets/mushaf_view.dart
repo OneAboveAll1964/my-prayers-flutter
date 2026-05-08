@@ -152,7 +152,7 @@ class _MushafViewState extends ConsumerState<MushafView> {
     return PreloadPageView.builder(
       controller: _pageController,
       itemCount: pageCount,
-      reverse: Directionality.of(context) == TextDirection.rtl,
+      reverse: false,
       preloadPagesCount: 1,
       onPageChanged: (idx) {
         final pageNumber = _firstPage + idx;

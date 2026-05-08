@@ -182,8 +182,12 @@ class _MushafPageView extends StatefulWidget {
   State<_MushafPageView> createState() => _MushafPageViewState();
 }
 
-class _MushafPageViewState extends State<_MushafPageView> {
+class _MushafPageViewState extends State<_MushafPageView>
+    with AutomaticKeepAliveClientMixin<_MushafPageView> {
   Future<_PageBundle>? _bundleFuture;
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -205,6 +209,7 @@ class _MushafPageViewState extends State<_MushafPageView> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final palette = context.palette;
     final l10n = AppL10n.of(context);
 
@@ -437,22 +442,22 @@ class _LineWidget extends StatelessWidget {
   Widget _wordWidget(MushafLineWord w) {
     final ayah = ayahByKey[w.verseKey];
     final isSelected = selectedKey == w.verseKey;
+    Widget child = Text(
+      w.code,
+      style: TextStyle(
+        fontFamily: fontFamily,
+        fontSize: fontSize,
+        color: w.isAyahEnd ? palette.accent : palette.text,
+        height: 1.4,
+      ),
+    );
+    if (isSelected) {
+      child = ColoredBox(color: palette.accentSoft, child: child);
+    }
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () => onTapWord(w.verseKey, ayah),
-      child: Container(
-        color: isSelected ? palette.accentSoft : null,
-        child: Text(
-          w.code,
-          textDirection: TextDirection.rtl,
-          style: TextStyle(
-            fontFamily: fontFamily,
-            fontSize: fontSize,
-            color: w.isAyahEnd ? palette.accent : palette.text,
-            height: 1.4,
-          ),
-        ),
-      ),
+      child: child,
     );
   }
 }

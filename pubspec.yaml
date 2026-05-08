@@ -65,3 +65,6 @@ flutter:
         - asset: assets/fonts/NotoNaskhArabic-Regular.ttf
         - asset: assets/fonts/NotoNaskhArabic-Bold.ttf
           weight: 700
+    - family: AllahNamesColor
+      fonts:
+        - asset: assets/fonts/AllahNamesColor.ttf

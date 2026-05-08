@@ -1,11 +1,16 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:ionicons/ionicons.dart';
 import '../../../core/i18n/app_l10n.dart';
+import '../../../core/services/ayah_audio_controller.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../shared/models/quran.dart';
 import '../../../shared/state/favorites_provider.dart';
+import '../../../shared/state/settings_provider.dart';
 import '../../../shared/widgets/app_sheet.dart';
 
 Future<void> showAyahActionsSheet({
@@ -35,7 +40,7 @@ Future<void> showAyahActionsSheet({
   );
 }
 
-class _AyahActionsBody extends StatelessWidget {
+class _AyahActionsBody extends ConsumerStatefulWidget {
   const _AyahActionsBody({
     required this.surah,
     required this.ayah,
@@ -53,11 +58,61 @@ class _AyahActionsBody extends StatelessWidget {
   final double arScale;
 
   @override
+  ConsumerState<_AyahActionsBody> createState() => _AyahActionsBodyState();
+}
+
+class _AyahActionsBodyState extends ConsumerState<_AyahActionsBody> {
+  StreamSubscription<AyahAudioState>? _audioSub;
+  AyahAudioState _audio = AyahAudioController.instance.state;
+
+  @override
+  void initState() {
+    super.initState();
+    _audioSub = AyahAudioController.instance.stream.listen((s) {
+      if (!mounted) return;
+      setState(() => _audio = s);
+    });
+  }
+
+  @override
+  void dispose() {
+    _audioSub?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _playOrPick() async {
+    final settings = ref.read(settingsProvider);
+    final reciterId = settings.selectedReciterId;
+    if (reciterId == null) {
+      Navigator.of(context).pop();
+      context.push('/settings/resources/reciters');
+      return;
+    }
+    await AyahAudioController.instance.playAyah(
+      reciterId: reciterId,
+      surah: widget.surah.number,
+      ayah: widget.ayah.numberInSurah,
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     final palette = context.palette;
+    final surah = widget.surah;
+    final ayah = widget.ayah;
+    final fontFamily = widget.fontFamily;
+    final arScale = widget.arScale;
+    final l10n = widget.l10n;
+    final ref = widget.ref;
     final fav = ref.watch(favoritesProvider);
     final bookmarked = fav.ayahs
         .any((e) => e.surah == surah.number && e.ayah == ayah.numberInSurah);
+    final selectedReciterId =
+        ref.watch(settingsProvider.select((s) => s.selectedReciterId));
+    final isAudioForThis =
+        _audio.isFor(surah.number, ayah.numberInSurah);
+    final isPlaying = isAudioForThis && _audio.playing;
+    final isLoading = isAudioForThis && _audio.loading;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -101,6 +156,21 @@ class _AyahActionsBody extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
+        _ActionRow(
+          icon: isLoading
+              ? Ionicons.hourglass_outline
+              : (isPlaying
+                  ? Ionicons.stop_circle_outline
+                  : Ionicons.play_circle_outline),
+          activeColor:
+              (isPlaying || isLoading) ? palette.accent : palette.textMuted,
+          label: selectedReciterId == null
+              ? l10n.t('quran.installReciterToPlay')
+              : (isLoading
+                  ? l10n.t('quran.preparingAudio')
+                  : l10n.t('quran.playRecitation')),
+          onTap: isLoading ? () {} : _playOrPick,
+        ),
         _ActionRow(
           icon: bookmarked ? Ionicons.bookmark : Ionicons.bookmark_outline,
           activeColor: bookmarked ? palette.accent : palette.textMuted,

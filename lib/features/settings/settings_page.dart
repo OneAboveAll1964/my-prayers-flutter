@@ -80,6 +80,19 @@ class SettingsPage extends ConsumerWidget {
                       ],
                     ),
                   ),
+                  AppSurface(
+                    padding: EdgeInsets.zero,
+                    child: Column(
+                      children: [
+                        SettingsTile(
+                          icon: Ionicons.cloud_download_outline,
+                          label: l10n.t('settings.resources'),
+                          value: '',
+                          onTap: () => context.push('/settings/resources'),
+                        ),
+                      ],
+                    ),
+                  ),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(2, 8, 2, 8),
                     child: Column(

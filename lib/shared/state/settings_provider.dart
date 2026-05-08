@@ -24,6 +24,7 @@ class AppSettings {
     this.timeFormat = '12h',
     this.arabicFontScale = 1.0,
     this.quranReadMode = 'scroll',
+    this.selectedReciterId,
   });
 
   final AppThemeMode themeMode;
@@ -42,6 +43,7 @@ class AppSettings {
   final String timeFormat;
   final double arabicFontScale;
   final String quranReadMode;
+  final int? selectedReciterId;
 
   AppSettings copyWith({
     AppThemeMode? themeMode,
@@ -60,6 +62,7 @@ class AppSettings {
     String? timeFormat,
     double? arabicFontScale,
     String? quranReadMode,
+    Object? selectedReciterId = _sentinel,
   }) {
     return AppSettings(
       themeMode: themeMode ?? this.themeMode,
@@ -78,6 +81,9 @@ class AppSettings {
       timeFormat: timeFormat ?? this.timeFormat,
       arabicFontScale: arabicFontScale ?? this.arabicFontScale,
       quranReadMode: quranReadMode ?? this.quranReadMode,
+      selectedReciterId: selectedReciterId == _sentinel
+          ? this.selectedReciterId
+          : selectedReciterId as int?,
     );
   }
 
@@ -100,6 +106,7 @@ class AppSettings {
         'timeFormat': timeFormat,
         'arabicFontScale': arabicFontScale,
         'quranReadMode': quranReadMode,
+        'selectedReciterId': selectedReciterId,
       };
 
   factory AppSettings.fromJson(Map<String, dynamic> j) => AppSettings(
@@ -137,6 +144,7 @@ class AppSettings {
         timeFormat: (j['timeFormat'] ?? '12h') as String,
         arabicFontScale: (j['arabicFontScale'] as num?)?.toDouble() ?? 1.0,
         quranReadMode: (j['quranReadMode'] ?? 'scroll') as String,
+        selectedReciterId: (j['selectedReciterId'] as num?)?.toInt(),
       );
 
   PrayerAttribute toAttribute() => PrayerAttribute(
@@ -199,6 +207,8 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       update((s) => s.copyWith(arabicFontScale: v.clamp(0.7, 1.6)));
   void setQuranReadMode(String v) =>
       update((s) => s.copyWith(quranReadMode: v));
+  void setSelectedReciter(int? id) =>
+      update((s) => s.copyWith(selectedReciterId: id));
 }
 
 final settingsProvider =

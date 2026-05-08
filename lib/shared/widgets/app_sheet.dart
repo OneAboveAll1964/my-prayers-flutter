@@ -5,14 +5,15 @@ Future<T?> showAppSheet<T>({
   required BuildContext context,
   required String title,
   required Widget Function(BuildContext) builder,
+  bool dismissible = true,
 }) {
   final palette = context.palette;
   final isDark = Theme.of(context).brightness == Brightness.dark;
   return showModalBottomSheet<T>(
     context: context,
     isScrollControlled: true,
-    isDismissible: true,
-    enableDrag: true,
+    isDismissible: dismissible,
+    enableDrag: dismissible,
     barrierColor: Colors.black.withValues(alpha: isDark ? 0.6 : 0.4),
     backgroundColor: Colors.transparent,
     elevation: 0,

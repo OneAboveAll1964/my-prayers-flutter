@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/i18n/app_l10n.dart';
+import '../../core/services/ayah_audio_controller.dart';
 import '../../core/theme/tokens.dart';
 import '../../shared/data/quran_repository.dart';
 import '../../shared/models/quran.dart';
@@ -427,6 +429,38 @@ class _AyahRow extends ConsumerStatefulWidget {
 
 class _AyahRowState extends ConsumerState<_AyahRow> {
   bool _downBm = false;
+  bool _downPlay = false;
+  StreamSubscription<AyahAudioState>? _audioSub;
+  AyahAudioState _audio = AyahAudioController.instance.state;
+
+  @override
+  void initState() {
+    super.initState();
+    _audioSub = AyahAudioController.instance.stream.listen((s) {
+      if (!mounted) return;
+      setState(() => _audio = s);
+    });
+  }
+
+  @override
+  void dispose() {
+    _audioSub?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _onPlayTap() async {
+    final settings = ref.read(settingsProvider);
+    final reciterId = settings.selectedReciterId;
+    if (reciterId == null) {
+      context.push('/settings/resources/reciters');
+      return;
+    }
+    await AyahAudioController.instance.playAyah(
+      reciterId: reciterId,
+      surah: widget.surah.number,
+      ayah: widget.ayah.numberInSurah,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -436,6 +470,10 @@ class _AyahRowState extends ConsumerState<_AyahRow> {
         a.surah == widget.surah.number && a.ayah == widget.ayah.numberInSurah);
     final ayah = widget.ayah;
     final surah = widget.surah;
+    final isAudioForThis =
+        _audio.isFor(surah.number, ayah.numberInSurah);
+    final isPlaying = isAudioForThis && _audio.playing;
+    final isAudioLoading = isAudioForThis && _audio.loading;
 
     return Container(
       decoration: BoxDecoration(
@@ -476,6 +514,41 @@ class _AyahRowState extends ConsumerState<_AyahRow> {
                       TextStyle(color: palette.textSubtle, fontSize: 11.5),
                 ),
                 const SizedBox(width: 6),
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTapDown: (_) => setState(() => _downPlay = true),
+                  onTapCancel: () => setState(() => _downPlay = false),
+                  onTapUp: (_) => setState(() => _downPlay = false),
+                  onTap: _onPlayTap,
+                  child: AnimatedContainer(
+                    duration: AppTokens.durationFast,
+                    width: 32,
+                    height: 32,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: _downPlay ? palette.surface2 : Colors.transparent,
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: isAudioLoading
+                        ? SizedBox(
+                            width: 14,
+                            height: 14,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: palette.accent,
+                            ),
+                          )
+                        : Icon(
+                            isPlaying
+                                ? Ionicons.stop
+                                : Ionicons.play,
+                            size: 16,
+                            color: isPlaying
+                                ? palette.accent
+                                : palette.textSubtle,
+                          ),
+                  ),
+                ),
                 GestureDetector(
                   behavior: HitTestBehavior.opaque,
                   onTapDown: (_) => setState(() => _downBm = true),

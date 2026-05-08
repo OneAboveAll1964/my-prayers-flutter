@@ -21,24 +21,30 @@ Future<void> showAyahActionsSheet({
   required WidgetRef ref,
   required String fontFamily,
   required double arScale,
-}) {
+}) async {
   final l10n = AppL10n.of(context);
   final isEn = l10n.locale.languageCode == 'en';
   final title = isEn
       ? '${surah.englishName} · ${ayah.numberInSurah}'
       : '${surah.name} · ${ayah.numberInSurah}';
-  return showAppSheet(
-    context: context,
-    title: title,
-    builder: (sheetCtx) => _AyahActionsBody(
-      surah: surah,
-      ayah: ayah,
-      ref: ref,
-      l10n: l10n,
-      fontFamily: fontFamily,
-      arScale: arScale,
-    ),
-  );
+  while (true) {
+    final result = await showAppSheet<String>(
+      context: context,
+      title: title,
+      builder: (sheetCtx) => _AyahActionsBody(
+        surah: surah,
+        ayah: ayah,
+        ref: ref,
+        l10n: l10n,
+        fontFamily: fontFamily,
+        arScale: arScale,
+      ),
+    );
+    if (result != 'tafsir') return;
+    if (!context.mounted) return;
+    await showTafsirSheet(context: context, surah: surah, ayah: ayah);
+    if (!context.mounted) return;
+  }
 }
 
 class _AyahActionsBody extends ConsumerStatefulWidget {
@@ -138,6 +144,10 @@ class _AyahActionsBodyState extends ConsumerState<_AyahActionsBody> {
                     fontSize: 20 * arScale,
                     height: 2.0,
                     fontFamily: fontFamily,
+                    fontWeight: ref.watch(settingsProvider
+                            .select((s) => s.quranBold))
+                        ? FontWeight.w700
+                        : FontWeight.normal,
                   ),
                 ),
               ),
@@ -151,6 +161,10 @@ class _AyahActionsBodyState extends ConsumerState<_AyahActionsBody> {
                     fontSize: 14 * ref.watch(settingsProvider
                         .select((s) => s.translationFontScale)),
                     height: 1.55,
+                    fontWeight: ref.watch(settingsProvider
+                            .select((s) => s.quranBold))
+                        ? FontWeight.w700
+                        : FontWeight.normal,
                   ),
                 ),
               ],
@@ -177,13 +191,7 @@ class _AyahActionsBodyState extends ConsumerState<_AyahActionsBody> {
           icon: Ionicons.book_outline,
           activeColor: palette.textMuted,
           label: l10n.t('quran.showTafsir'),
-          onTap: () async {
-            Navigator.of(context).pop();
-            await Future<void>.delayed(const Duration(milliseconds: 50));
-            if (!context.mounted) return;
-            await showTafsirSheet(
-                context: context, surah: surah, ayah: ayah);
-          },
+          onTap: () => Navigator.of(context).pop('tafsir'),
         ),
         _ActionRow(
           icon: bookmarked ? Ionicons.bookmark : Ionicons.bookmark_outline,

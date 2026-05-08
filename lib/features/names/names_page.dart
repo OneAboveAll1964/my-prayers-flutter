@@ -71,17 +71,6 @@ class _NamesPageState extends ConsumerState<NamesPage> {
   }
 }
 
-String _allahNameGlyph(int id) {
-  if (id < 1 || id > 99) return '';
-  if (id <= 26) return String.fromCharCode(64 + id);
-  if (id <= 52) return String.fromCharCode(96 + (id - 26));
-  if (id <= 62) return String.fromCharCode(48 + (id - 53));
-  const symbols = "!\"#\$%&'()*+,-./:;<=>?@[\\]^_`{|}~";
-  final i = id - 63;
-  if (i >= 0 && i < symbols.length) return symbols[i];
-  return '';
-}
-
 class _NameTile extends StatelessWidget {
   const _NameTile({
     required this.name,
@@ -124,16 +113,6 @@ class _NameTile extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          Text(
-            _allahNameGlyph(name.id),
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontFamily: 'AllahNamesColor',
-              fontSize: 64.0 * arScale,
-              height: 1.0,
-            ),
-          ),
-          const SizedBox(height: 8),
           Directionality(
             textDirection: TextDirection.rtl,
             child: Text(
@@ -142,8 +121,8 @@ class _NameTile extends StatelessWidget {
               style: TextStyle(
                 color: palette.text,
                 fontFamily: fontFamily,
-                fontSize: 22.0 * arScale,
-                height: 1.4,
+                fontSize: 28.0 * arScale,
+                height: 1.6,
                 fontWeight: FontWeight.w700,
               ),
             ),

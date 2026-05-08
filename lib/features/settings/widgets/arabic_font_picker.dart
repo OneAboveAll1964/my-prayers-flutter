@@ -176,6 +176,37 @@ class ArabicFontPicker extends ConsumerWidget {
                 .setTranslationFontScale(v),
           ),
         ),
+        const SizedBox(height: 4),
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => ref
+              .read(settingsProvider.notifier)
+              .setQuranBold(!settings.quranBold),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    l10n.t('settings.boldText'),
+                    style: TextStyle(
+                      color: palette.text,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                Switch.adaptive(
+                  value: settings.quranBold,
+                  onChanged: (v) => ref
+                      .read(settingsProvider.notifier)
+                      .setQuranBold(v),
+                  activeTrackColor: palette.accent,
+                ),
+              ],
+            ),
+          ),
+        ),
       ],
     );
   }

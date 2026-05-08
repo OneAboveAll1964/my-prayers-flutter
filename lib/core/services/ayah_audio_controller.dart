@@ -56,9 +56,39 @@ class AyahAudioController {
   AyahAudioState _state = const AyahAudioState();
   StreamSubscription<void>? _completeSub;
 
+  bool _queueActive = false;
+  int? _queueSurah;
+  int? _queueReciter;
+  int? _queueEndAyah;
+
+  bool get isQueueActive => _queueActive;
+  int? get queueSurah => _queueSurah;
+
+  void _clearQueue() {
+    _queueActive = false;
+    _queueSurah = null;
+    _queueReciter = null;
+    _queueEndAyah = null;
+  }
+
   static final AyahAudioController _ensured = (() {
     final c = instance;
     c._completeSub ??= c._player.onPlayerComplete.listen((_) {
+      if (c._queueActive &&
+          c._state.surah == c._queueSurah &&
+          c._state.ayah != null &&
+          c._queueEndAyah != null) {
+        final next = c._state.ayah! + 1;
+        if (next <= c._queueEndAyah!) {
+          c.playAyah(
+            reciterId: c._queueReciter!,
+            surah: c._queueSurah!,
+            ayah: next,
+          );
+          return;
+        }
+      }
+      c._clearQueue();
       c._emit(c._state.copyWith(playing: false));
     });
     return c;
@@ -81,10 +111,25 @@ class AyahAudioController {
 
   Future<void> stop() async {
     _ensured;
+    _clearQueue();
     try {
       await _player.stop();
     } catch (_) {}
     _emit(_state.copyWith(playing: false));
+  }
+
+  Future<void> playSurah({
+    required int reciterId,
+    required int surah,
+    required int startAyah,
+    required int endAyah,
+  }) async {
+    _ensured;
+    _queueActive = true;
+    _queueSurah = surah;
+    _queueReciter = reciterId;
+    _queueEndAyah = endAyah;
+    await playAyah(reciterId: reciterId, surah: surah, ayah: startAyah);
   }
 
   Future<void> playAyah({

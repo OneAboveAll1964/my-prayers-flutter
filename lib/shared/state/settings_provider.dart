@@ -24,6 +24,7 @@ class AppSettings {
     this.timeFormat = '12h',
     this.arabicFontScale = 1.0,
     this.translationFontScale = 1.0,
+    this.quranBold = false,
     this.quranReadMode = 'scroll',
     this.selectedReciterId,
     this.selectedTafsirId,
@@ -45,6 +46,7 @@ class AppSettings {
   final String timeFormat;
   final double arabicFontScale;
   final double translationFontScale;
+  final bool quranBold;
   final String quranReadMode;
   final int? selectedReciterId;
   final int? selectedTafsirId;
@@ -66,6 +68,7 @@ class AppSettings {
     String? timeFormat,
     double? arabicFontScale,
     double? translationFontScale,
+    bool? quranBold,
     String? quranReadMode,
     Object? selectedReciterId = _sentinel,
     Object? selectedTafsirId = _sentinel,
@@ -88,6 +91,7 @@ class AppSettings {
       arabicFontScale: arabicFontScale ?? this.arabicFontScale,
       translationFontScale:
           translationFontScale ?? this.translationFontScale,
+      quranBold: quranBold ?? this.quranBold,
       quranReadMode: quranReadMode ?? this.quranReadMode,
       selectedReciterId: selectedReciterId == _sentinel
           ? this.selectedReciterId
@@ -117,6 +121,7 @@ class AppSettings {
         'timeFormat': timeFormat,
         'arabicFontScale': arabicFontScale,
         'translationFontScale': translationFontScale,
+        'quranBold': quranBold,
         'quranReadMode': quranReadMode,
         'selectedReciterId': selectedReciterId,
         'selectedTafsirId': selectedTafsirId,
@@ -158,6 +163,7 @@ class AppSettings {
         arabicFontScale: (j['arabicFontScale'] as num?)?.toDouble() ?? 1.0,
         translationFontScale:
             (j['translationFontScale'] as num?)?.toDouble() ?? 1.0,
+        quranBold: (j['quranBold'] ?? false) as bool,
         quranReadMode: (j['quranReadMode'] ?? 'scroll') as String,
         selectedReciterId: (j['selectedReciterId'] as num?)?.toInt(),
         selectedTafsirId: (j['selectedTafsirId'] as num?)?.toInt(),
@@ -211,6 +217,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   void setHigherLatitudeMethod(HigherLatitudeMethod m) =>
       update((s) => s.copyWith(higherLatitudeMethod: m));
   void setOffsets(List<int> offsets) => update((s) => s.copyWith(offsets: offsets));
+  void setQuranBold(bool v) => update((s) => s.copyWith(quranBold: v));
   void setUseFixedTimes(bool v) => update((s) => s.copyWith(useFixedTimes: v));
   void setFajrAngle(double v) => update((s) => s.copyWith(fajrAngle: v));
   void setIshaAngle(double v) => update((s) => s.copyWith(ishaAngle: v));

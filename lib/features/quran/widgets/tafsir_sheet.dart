@@ -108,6 +108,7 @@ class _TafsirBodyState extends ConsumerState<_TafsirBody> {
         ref.watch(settingsProvider.select((s) => s.selectedTafsirId));
     final trScale =
         ref.watch(settingsProvider.select((s) => s.translationFontScale));
+    final bold = ref.watch(settingsProvider.select((s) => s.quranBold));
 
     if (activeId == null) {
       return Column(
@@ -208,6 +209,7 @@ class _TafsirBodyState extends ConsumerState<_TafsirBody> {
                 color: palette.text,
                 fontSize: 14.5 * trScale,
                 height: 1.75,
+                fontWeight: bold ? FontWeight.w700 : FontWeight.normal,
               ),
             ),
           ),

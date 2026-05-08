@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/i18n/app_l10n.dart';
 import '../../core/services/ayah_audio_controller.dart';
+import '../../core/services/recitation_service.dart';
 import '../../core/theme/tokens.dart';
 import '../../shared/data/quran_repository.dart';
 import '../../shared/models/quran.dart';
@@ -51,13 +52,34 @@ class _SurahPageState extends ConsumerState<SurahPage> {
   bool _initialScrollScheduled = false;
   Timer? _scrollDebounce;
   bool _switchingToMushaf = false;
+  bool _startingSurahPlay = false;
   DateTime? _suppressScrollSaveUntil;
+  StreamSubscription<AyahAudioState>? _audioSub;
+  AyahAudioState _audio = AyahAudioController.instance.state;
 
   @override
   void initState() {
     super.initState();
     _controller = ScrollController()..addListener(_onScroll);
     _currentAyah = widget.initialAyah ?? 1;
+    _audioSub = AyahAudioController.instance.stream.listen(_onAudioState);
+  }
+
+  void _onAudioState(AyahAudioState s) {
+    if (!mounted) return;
+    final wasFor = _audio.surah;
+    final wasAyah = _audio.ayah;
+    setState(() => _audio = s);
+    if (!AyahAudioController.instance.isQueueActive) return;
+    if (s.surah != widget.number) return;
+    if (s.ayah == null) return;
+    if (wasFor == s.surah && wasAyah == s.ayah) return;
+    final settings = ref.read(settingsProvider);
+    if (settings.quranReadMode != 'mushaf') {
+      _suppressScrollSaveUntil =
+          DateTime.now().add(const Duration(seconds: 2));
+      _scrollToAyah(s.ayah!);
+    }
   }
 
   @override
@@ -102,34 +124,30 @@ class _SurahPageState extends ConsumerState<SurahPage> {
   Future<void> _scrollToAyah(int ayahNum) async {
     if (!mounted || _surah == null) return;
     if (!_controller.hasClients) {
-      await Future.delayed(const Duration(milliseconds: 50));
+      await Future.delayed(const Duration(milliseconds: 120));
       if (!mounted || !_controller.hasClients) return;
     }
 
-    const estHeight = 280.0;
-    var targetOffset = (ayahNum - 1) * estHeight;
+    final totalAyahs = _surah!.ayahs.length;
 
-    for (var pass = 0; pass < 6; pass++) {
+    for (var pass = 0; pass < 18; pass++) {
       if (!mounted || !_controller.hasClients) return;
       final maxScroll = _controller.position.maxScrollExtent;
-      _controller.jumpTo(targetOffset.clamp(0.0, maxScroll));
-
-      await Future.delayed(const Duration(milliseconds: 60));
-      if (!mounted) return;
 
       final ctx = _ayahKeys[ayahNum]?.currentContext;
       if (ctx != null) {
         final box = ctx.findRenderObject() as RenderBox?;
-        if (box != null && box.attached && _controller.hasClients) {
+        if (box != null && box.attached) {
           final globalY = box.localToGlobal(Offset.zero).dy;
-          final scrollableBox =
-              Scrollable.maybeOf(ctx)?.context.findRenderObject() as RenderBox?;
+          final scrollableBox = Scrollable.maybeOf(ctx)
+              ?.context
+              .findRenderObject() as RenderBox?;
           final viewportTop =
               scrollableBox?.localToGlobal(Offset.zero).dy ?? 0;
           final relY = globalY - viewportTop;
           final delta = relY - 4;
-          final newOffset =
-              (_controller.offset + delta).clamp(0.0, _controller.position.maxScrollExtent);
+          final newOffset = (_controller.offset + delta)
+              .clamp(0.0, _controller.position.maxScrollExtent);
           await _controller.animateTo(
             newOffset,
             duration: const Duration(milliseconds: 240),
@@ -139,7 +157,41 @@ class _SurahPageState extends ConsumerState<SurahPage> {
         }
       }
 
-      targetOffset += estHeight * 4;
+      double targetOffset;
+      final rendered = <int, double>{};
+      _ayahKeys.forEach((n, k) {
+        final c = k.currentContext;
+        if (c == null) return;
+        final b = c.findRenderObject() as RenderBox?;
+        if (b == null || !b.attached) return;
+        rendered[n] = _controller.offset + b.localToGlobal(Offset.zero).dy;
+      });
+
+      if (rendered.length >= 2) {
+        final keys = rendered.keys.toList()..sort();
+        final firstK = keys.first;
+        final lastK = keys.last;
+        final firstY = rendered[firstK]!;
+        final lastY = rendered[lastK]!;
+        final perAyah =
+            (lastK > firstK) ? (lastY - firstY) / (lastK - firstK) : 320.0;
+        final closest = keys.reduce(
+            (a, b) => (a - ayahNum).abs() < (b - ayahNum).abs() ? a : b);
+        targetOffset = rendered[closest]! + (ayahNum - closest) * perAyah;
+      } else if (rendered.length == 1) {
+        final only = rendered.entries.first;
+        targetOffset = only.value + (ayahNum - only.key) * 320.0;
+      } else {
+        targetOffset = totalAyahs > 1
+            ? ((ayahNum - 1) / (totalAyahs - 1)) * maxScroll
+            : 0;
+      }
+
+      targetOffset = targetOffset.clamp(0.0, maxScroll);
+      _controller.jumpTo(targetOffset);
+
+      await Future.delayed(const Duration(milliseconds: 90));
+      if (!mounted) return;
     }
   }
 
@@ -201,9 +253,11 @@ class _SurahPageState extends ConsumerState<SurahPage> {
     if (isMushaf) {
       final target = _currentAyah;
       _suppressScrollSaveUntil =
-          DateTime.now().add(const Duration(seconds: 3));
+          DateTime.now().add(const Duration(seconds: 4));
       ref.read(settingsProvider.notifier).setQuranReadMode('scroll');
       WidgetsBinding.instance.addPostFrameCallback((_) async {
+        if (!mounted) return;
+        await Future.delayed(const Duration(milliseconds: 180));
         if (!mounted) return;
         if (target > 1) {
           await _scrollToAyah(target);
@@ -241,9 +295,82 @@ class _SurahPageState extends ConsumerState<SurahPage> {
 
   @override
   void dispose() {
+    _audioSub?.cancel();
+    AyahAudioController.instance.stop();
     _scrollDebounce?.cancel();
     _controller.dispose();
     super.dispose();
+  }
+
+  Future<void> _onPlaySurahTap() async {
+    if (_surah == null) return;
+    final ctrl = AyahAudioController.instance;
+    if (ctrl.isQueueActive && ctrl.queueSurah == widget.number) {
+      await ctrl.stop();
+      return;
+    }
+    final settings = ref.read(settingsProvider);
+    final l10n = AppL10n.of(context);
+    final reciterId = settings.selectedReciterId;
+    if (reciterId == null) {
+      if (!mounted) return;
+      context.push('/settings/resources/reciters');
+      return;
+    }
+    final installed = await RecitationService.instance.isInstalled(reciterId);
+    if (!installed) {
+      if (!mounted) return;
+      final go = await showAppSheet<bool>(
+        context: context,
+        title: l10n.t('quran.installToPlayTitle'),
+        builder: (ctx) {
+          final palette = ctx.palette;
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                l10n.t('quran.installToPlayBody'),
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: palette.textMuted,
+                  fontSize: 14,
+                  height: 1.5,
+                ),
+              ),
+              const SizedBox(height: 16),
+              AppButton(
+                label: l10n.t('reciters.openResources'),
+                variant: AppButtonVariant.solid,
+                expand: true,
+                onPressed: () => Navigator.of(ctx).pop(true),
+              ),
+              const SizedBox(height: 8),
+              AppButton(
+                label: l10n.t('common.cancel'),
+                variant: AppButtonVariant.outline,
+                expand: true,
+                onPressed: () => Navigator.of(ctx).pop(false),
+              ),
+            ],
+          );
+        },
+      );
+      if (go == true && mounted) {
+        context.push('/settings/resources/reciters');
+      }
+      return;
+    }
+    setState(() => _startingSurahPlay = true);
+    try {
+      await ctrl.playSurah(
+        reciterId: reciterId,
+        surah: widget.number,
+        startAyah: _currentAyah,
+        endAyah: _surah!.ayahs.length,
+      );
+    } finally {
+      if (mounted) setState(() => _startingSurahPlay = false);
+    }
   }
 
   String get _displayTitle {
@@ -289,6 +416,9 @@ class _SurahPageState extends ConsumerState<SurahPage> {
     final marked = fav.surahs.contains(widget.number);
 
     final isMushaf = settings.quranReadMode == 'mushaf';
+    final queueActiveHere =
+        AyahAudioController.instance.isQueueActive &&
+            AyahAudioController.instance.queueSurah == widget.number;
     return Scaffold(
       backgroundColor: palette.bg,
       body: SafeArea(
@@ -310,6 +440,16 @@ class _SurahPageState extends ConsumerState<SurahPage> {
                       onPressed: _switchingToMushaf
                           ? null
                           : () => _toggleMode(isMushaf),
+                    ),
+                    AppIconButton(
+                      icon: queueActiveHere
+                          ? Ionicons.stop_circle
+                          : Ionicons.play_circle,
+                      semanticLabel: l10n.t('quran.playSurah'),
+                      color: queueActiveHere ? palette.accent : null,
+                      onPressed: _startingSurahPlay
+                          ? null
+                          : _onPlaySurahTap,
                     ),
                     if (!isMushaf)
                       AppIconButton(
@@ -400,6 +540,7 @@ class _SurahPageState extends ConsumerState<SurahPage> {
                                       fontFamily: fontFamily,
                                       arScale: arScale,
                                       trScale: trScale,
+                                      bold: settings.quranBold,
                                     );
                                   },
                                 ),
@@ -420,6 +561,7 @@ class _AyahRow extends ConsumerStatefulWidget {
     required this.fontFamily,
     required this.arScale,
     required this.trScale,
+    required this.bold,
   });
 
   final Ayah ayah;
@@ -427,6 +569,7 @@ class _AyahRow extends ConsumerStatefulWidget {
   final String fontFamily;
   final double arScale;
   final double trScale;
+  final bool bold;
 
   @override
   ConsumerState<_AyahRow> createState() => _AyahRowState();
@@ -481,11 +624,13 @@ class _AyahRowState extends ConsumerState<_AyahRow> {
     final isPlaying = isAudioForThis && _audio.playing;
     final isAudioLoading = isAudioForThis && _audio.loading;
 
+    final isActive = isPlaying || isAudioLoading;
     return Container(
       decoration: BoxDecoration(
-        color: palette.surface,
+        color: isActive ? palette.accentSoft : palette.surface,
         borderRadius: BorderRadius.circular(AppTokens.radius),
-        border: Border.all(color: palette.line),
+        border: Border.all(
+            color: isActive ? palette.accent : palette.line),
       ),
       padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
       child: Column(
@@ -635,6 +780,8 @@ class _AyahRowState extends ConsumerState<_AyahRow> {
                   fontFamily: widget.fontFamily,
                   fontSize: 26.0 * widget.arScale,
                   height: 2.4,
+                  fontWeight:
+                      widget.bold ? FontWeight.w700 : FontWeight.normal,
                 ),
               ),
             ),
@@ -648,6 +795,8 @@ class _AyahRowState extends ConsumerState<_AyahRow> {
                 color: palette.text,
                 fontSize: 15 * widget.trScale,
                 height: 1.7,
+                fontWeight:
+                    widget.bold ? FontWeight.w700 : FontWeight.normal,
               ),
             ),
           ],

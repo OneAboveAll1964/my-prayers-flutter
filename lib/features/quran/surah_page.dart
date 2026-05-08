@@ -44,6 +44,7 @@ class _SurahPageState extends ConsumerState<SurahPage> {
   late final ScrollController _controller;
   final Map<int, GlobalKey> _ayahKeys = {};
   int _visibleAyah = 1;
+  int _currentAyah = 1;
   bool _initialScrollScheduled = false;
   Timer? _scrollDebounce;
   bool _switchingToMushaf = false;
@@ -52,6 +53,7 @@ class _SurahPageState extends ConsumerState<SurahPage> {
   void initState() {
     super.initState();
     _controller = ScrollController()..addListener(_onScroll);
+    _currentAyah = widget.initialAyah ?? 1;
   }
 
   @override
@@ -155,13 +157,24 @@ class _SurahPageState extends ConsumerState<SurahPage> {
     });
     if (best != null && best != _visibleAyah) {
       _visibleAyah = best!;
+      _currentAyah = best!;
       _saveLastRead(_visibleAyah);
     }
   }
 
+  void _onMushafPageAyah(Ayah firstAyahOfPage) {
+    _currentAyah = firstAyahOfPage.numberInSurah;
+    _saveLastRead(_currentAyah);
+  }
+
   Future<void> _toggleMode(bool isMushaf) async {
     if (isMushaf) {
+      // Mushaf -> scroll: scroll to first ayah of current page after rebuild.
       ref.read(settingsProvider.notifier).setQuranReadMode('scroll');
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        if (_currentAyah > 1) _scrollToAyah(_currentAyah);
+      });
       return;
     }
     final installed = await MushafAssetService.instance.isInstalled();
@@ -327,7 +340,8 @@ class _SurahPageState extends ConsumerState<SurahPage> {
                                   key: const ValueKey('mushaf'),
                                   child: MushafView(
                                     surah: _surah!,
-                                    initialAyah: widget.initialAyah,
+                                    initialAyah: _currentAyah,
+                                    onPageAyahChanged: _onMushafPageAyah,
                                   ),
                                 )
                               : ListView.separated(

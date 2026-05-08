@@ -16,10 +16,12 @@ class MushafView extends ConsumerStatefulWidget {
     super.key,
     required this.surah,
     this.initialAyah,
+    this.onPageAyahChanged,
   });
 
   final Surah surah;
   final int? initialAyah;
+  final void Function(Ayah firstAyahOfPage)? onPageAyahChanged;
 
   @override
   ConsumerState<MushafView> createState() => _MushafViewState();
@@ -134,7 +136,15 @@ class _MushafViewState extends ConsumerState<MushafView> {
       controller: _pageController,
       itemCount: pageCount,
       reverse: Directionality.of(context) == TextDirection.rtl,
-      onPageChanged: (idx) => _preloadAround(idx, pageCount),
+      onPageChanged: (idx) {
+        _preloadAround(idx, pageCount);
+        final pageNumber = _firstPage + idx;
+        final firstAyah = widget.surah.ayahs.firstWhere(
+          (a) => a.page == pageNumber,
+          orElse: () => widget.surah.ayahs.first,
+        );
+        widget.onPageAyahChanged?.call(firstAyah);
+      },
       itemBuilder: (ctx, idx) {
         final pageNumber = _firstPage + idx;
         return _MushafPageView(
@@ -201,9 +211,27 @@ class _MushafPageViewState extends State<_MushafPageView>
       service.getPageData(pageNumber),
       service.loadFontForPage(pageNumber),
     ]);
+    final data = results[0] as MushafPageData;
+    final fontFamily = results[1] as String;
+    var maxWidth = 0.0;
+    for (final line in data.lines) {
+      final tp = TextPainter(
+        text: TextSpan(
+          text: line.codes,
+          style: TextStyle(
+            fontFamily: fontFamily,
+            fontSize: 100,
+            height: 1.0,
+          ),
+        ),
+        textDirection: TextDirection.rtl,
+      )..layout();
+      if (tp.width > maxWidth) maxWidth = tp.width;
+    }
     return _PageBundle(
-      data: results[0] as MushafPageData,
-      fontFamily: results[1] as String,
+      data: data,
+      fontFamily: fontFamily,
+      maxNaturalWidthAtRef: maxWidth,
     );
   }
 
@@ -343,9 +371,14 @@ int _juzForPage(int page, Map<String, Ayah> map) {
 }
 
 class _PageBundle {
-  _PageBundle({required this.data, required this.fontFamily});
+  _PageBundle({
+    required this.data,
+    required this.fontFamily,
+    required this.maxNaturalWidthAtRef,
+  });
   final MushafPageData data;
   final String fontFamily;
+  final double maxNaturalWidthAtRef;
 }
 
 class _MushafPageContent extends StatelessWidget {
@@ -367,9 +400,17 @@ class _MushafPageContent extends StatelessWidget {
     return LayoutBuilder(builder: (ctx, c) {
       const padH = 24.0;
       const padV = 12.0;
+      final availableWidth = c.maxWidth - padH * 2;
       final usableHeight = c.maxHeight - padV * 2;
       final lineHeight = usableHeight / _linesPerPage;
-      final fontSize = lineHeight * 0.55;
+
+      // Cap fontSize so the widest line on this page fits the width.
+      final maxAtRef = bundle.maxNaturalWidthAtRef;
+      final widthCap =
+          maxAtRef == 0 ? lineHeight * 0.55 : 100.0 * (availableWidth / maxAtRef);
+      final fontSize = (lineHeight * 0.55) < widthCap
+          ? lineHeight * 0.55
+          : widthCap * 0.97;
 
       return Padding(
         padding: const EdgeInsets.symmetric(
@@ -425,16 +466,12 @@ class _LineWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Directionality(
       textDirection: TextDirection.rtl,
-      child: FittedBox(
-        fit: BoxFit.scaleDown,
-        alignment: Alignment.center,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            for (final w in line.words) _wordWidget(w),
-          ],
-        ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          for (final w in line.words) _wordWidget(w),
+        ],
       ),
     );
   }

@@ -55,7 +55,7 @@ class _SheetBody extends StatelessWidget {
     final media = MediaQuery.of(context);
     return ConstrainedBox(
       constraints: BoxConstraints(
-        maxHeight: media.size.height - media.padding.top - 24,
+        maxHeight: media.size.height * 0.75,
       ),
       child: Container(
         decoration: BoxDecoration(

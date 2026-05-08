@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:ionicons/ionicons.dart';
 import '../../../core/i18n/app_l10n.dart';
 import '../../../core/services/mushaf_asset_service.dart';
 import '../../../core/theme/tokens.dart';
+import '../../../shared/data/quran_repository.dart';
 import '../../../shared/models/quran.dart';
 import '../../../shared/state/settings_provider.dart';
 import 'ayah_actions_sheet.dart';
@@ -73,31 +73,58 @@ class _MushafViewState extends ConsumerState<MushafView> {
     super.dispose();
   }
 
-  void _handleTapWord(String verseKey, Ayah? ayah) {
-    if (ayah != null) {
-      setState(() => _selectedKey = verseKey);
-      final settings = ref.read(settingsProvider);
-      final fontFamily =
-          arabicFontFamilies[settings.arabicFont] ?? 'UthmanicHafs';
-      showAyahActionsSheet(
-        context: context,
-        surah: widget.surah,
-        ayah: ayah,
-        ref: ref,
-        fontFamily: fontFamily,
-        arScale: settings.arabicFontScale,
-      ).whenComplete(() {
-        if (!mounted) return;
-        setState(() => _selectedKey = null);
-      });
-      return;
-    }
+  Future<void> _handleTapWord(String verseKey, Ayah? ayah) async {
     final parts = verseKey.split(':');
     if (parts.length != 2) return;
-    final surahNumber = int.tryParse(parts[0]);
-    final ayahNumber = int.tryParse(parts[1]);
-    if (surahNumber == null || ayahNumber == null) return;
-    GoRouter.of(context).push('/quran/$surahNumber?ayah=$ayahNumber');
+    final tappedSurah = int.tryParse(parts[0]);
+    final tappedAyah = int.tryParse(parts[1]) ?? 1;
+    if (tappedSurah == null) return;
+
+    Surah surah = widget.surah;
+    Ayah? resolved = ayah;
+
+    if (tappedSurah != widget.surah.number) {
+      // Foreign surah on a shared page — load it.
+      final lang = AppL10n.of(context).locale;
+      final loaded = await QuranRepository.instance
+          .getSurah(tappedSurah, langKey(lang));
+      if (!mounted || loaded == null) return;
+      surah = loaded;
+      resolved = _closestAyah(loaded.ayahs, tappedAyah);
+    } else if (resolved == null) {
+      resolved = _closestAyah(widget.surah.ayahs, tappedAyah);
+    }
+    if (resolved == null) return;
+
+    final keyToSelect = '${surah.number}:${resolved.numberInSurah}';
+    setState(() => _selectedKey = keyToSelect);
+    final settings = ref.read(settingsProvider);
+    final fontFamily =
+        arabicFontFamilies[settings.arabicFont] ?? 'UthmanicHafs';
+    if (!mounted) return;
+    await showAyahActionsSheet(
+      context: context,
+      surah: surah,
+      ayah: resolved,
+      ref: ref,
+      fontFamily: fontFamily,
+      arScale: settings.arabicFontScale,
+    );
+    if (!mounted) return;
+    setState(() => _selectedKey = null);
+  }
+
+  Ayah? _closestAyah(List<Ayah> ayahs, int target) {
+    Ayah? best;
+    var bestDiff = 1 << 30;
+    for (final a in ayahs) {
+      final diff = (a.numberInSurah - target).abs();
+      if (diff < bestDiff) {
+        bestDiff = diff;
+        best = a;
+      }
+    }
+    return best;
   }
 
   @override
@@ -333,11 +360,17 @@ class _MushafPageContent extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = context.palette;
     return LayoutBuilder(builder: (ctx, c) {
-      final lineHeight = c.maxHeight / _linesPerPage;
+      const padH = 24.0;
+      const padV = 12.0;
+      final usableHeight = c.maxHeight - padV * 2;
+      final lineHeight = usableHeight / _linesPerPage;
       final fontSize = lineHeight * 0.55;
 
       return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12),
+        padding: const EdgeInsets.symmetric(
+          horizontal: padH,
+          vertical: padV,
+        ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -408,12 +441,7 @@ class _LineWidget extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       onTap: () => onTapWord(w.verseKey, ayah),
       child: Container(
-        decoration: isSelected
-            ? BoxDecoration(
-                color: palette.accentSoft,
-                borderRadius: BorderRadius.circular(4),
-              )
-            : null,
+        color: isSelected ? palette.accentSoft : null,
         child: Text(
           w.code,
           textDirection: TextDirection.rtl,

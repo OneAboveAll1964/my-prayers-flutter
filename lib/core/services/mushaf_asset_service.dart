@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
@@ -125,6 +126,7 @@ class MushafAssetService {
   final Map<int, Future<String>> _loadedFontFutures = {};
   final Map<int, String> _loadedFontFamilies = {};
   final Map<int, MushafPageData> _pageCache = {};
+  final ValueNotifier<bool> ready = ValueNotifier<bool>(false);
 
   Future<Directory> _ensureRoot() async {
     if (_root != null) return _root!;
@@ -160,14 +162,17 @@ class MushafAssetService {
     final sentinel = File(p.join(root.path, '.complete'));
     if (!await sentinel.exists()) {
       _installed = false;
+      ready.value = false;
       return false;
     }
     final samplePage = File(p.join(root.path, 'pages', '1.json'));
     if (!await samplePage.exists()) {
       _installed = false;
+      ready.value = false;
       return false;
     }
     _installed = true;
+    ready.value = true;
     return true;
   }
 
@@ -295,6 +300,7 @@ class MushafAssetService {
       final sentinel = File(p.join(root.path, '.complete'));
       await sentinel.writeAsString('ok');
       _installed = true;
+      ready.value = true;
       emit();
     } catch (e) {
       if (!controller.isClosed) {
@@ -505,6 +511,7 @@ class MushafAssetService {
       await root.delete(recursive: true);
     }
     _installed = false;
+    ready.value = false;
     _loadedFontFutures.clear();
     _loadedFontFamilies.clear();
     _pageCache.clear();

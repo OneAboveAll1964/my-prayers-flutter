@@ -327,6 +327,7 @@ class _MushafPageViewState extends State<_MushafPageView> {
                     ayahByKey: widget.ayahByKey,
                     selectedKey: widget.selectedKey,
                     onTapWord: widget.onTapWord,
+                    surahFilter: widget.surahNumber,
                   )
                 : FutureBuilder<_PageBundle>(
               future: _bundleFuture,
@@ -393,6 +394,7 @@ class _MushafPageViewState extends State<_MushafPageView> {
                   ayahByKey: widget.ayahByKey,
                   selectedKey: widget.selectedKey,
                   onTapWord: widget.onTapWord,
+                  surahFilter: widget.surahNumber,
                 );
               },
             ),
@@ -474,16 +476,25 @@ class _MushafPageContent extends StatelessWidget {
     required this.ayahByKey,
     required this.selectedKey,
     required this.onTapWord,
+    this.surahFilter,
   });
 
   final _PageBundle bundle;
   final Map<String, Ayah> ayahByKey;
   final String? selectedKey;
   final void Function(String verseKey, Ayah? ayah) onTapWord;
+  final int? surahFilter;
 
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
+    final lines = surahFilter == null
+        ? bundle.data.lines
+        : bundle.data.lines.where((line) {
+            if (line.words.isEmpty) return false;
+            final prefix = '$surahFilter:';
+            return line.words.any((w) => w.verseKey.startsWith(prefix));
+          }).toList();
     return LayoutBuilder(builder: (ctx, c) {
       const padH = 24.0;
       const padV = 12.0;
@@ -500,7 +511,7 @@ class _MushafPageContent extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            for (final line in bundle.data.lines)
+            for (final line in lines)
               SizedBox(
                 height: lineHeight,
                 child: ClipRect(

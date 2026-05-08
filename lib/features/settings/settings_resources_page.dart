@@ -4,10 +4,14 @@ import 'package:go_router/go_router.dart';
 import 'package:ionicons/ionicons.dart';
 
 import '../../core/i18n/app_l10n.dart';
+import '../../core/services/mushaf_asset_service.dart';
 import '../../core/theme/tokens.dart';
+import '../../features/quran/widgets/mushaf_install_sheet.dart';
 import '../../shared/data/reciter_catalog.dart';
 import '../../shared/data/tafsir_catalog.dart';
 import '../../shared/state/settings_provider.dart';
+import '../../shared/widgets/app_button.dart';
+import '../../shared/widgets/app_sheet.dart';
 import '../../shared/widgets/page_scaffold.dart';
 import 'widgets/settings_widgets.dart';
 
@@ -41,6 +45,53 @@ class _SettingsResourcesPageState
         setState(() => _tafsirs = list);
       }).catchError((_) {});
     }
+    MushafAssetService.instance.isInstalled();
+  }
+
+  Future<void> _toggleMushafFontPack() async {
+    final svc = MushafAssetService.instance;
+    final l10n = AppL10n.of(context);
+    if (svc.ready.value) {
+      final confirmed = await showAppSheet<bool>(
+        context: context,
+        title: l10n.t('mushaf.removeTitle'),
+        builder: (ctx) {
+          final palette = ctx.palette;
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                l10n.t('mushaf.removeBody'),
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: palette.textMuted,
+                  fontSize: 14,
+                  height: 1.5,
+                ),
+              ),
+              const SizedBox(height: 16),
+              AppButton(
+                label: l10n.t('reciters.uninstall'),
+                variant: AppButtonVariant.danger,
+                expand: true,
+                onPressed: () => Navigator.of(ctx).pop(true),
+              ),
+              const SizedBox(height: 8),
+              AppButton(
+                label: l10n.t('common.cancel'),
+                variant: AppButtonVariant.outline,
+                expand: true,
+                onPressed: () => Navigator.of(ctx).pop(false),
+              ),
+            ],
+          );
+        },
+      );
+      if (confirmed == true) await svc.uninstall();
+      return;
+    }
+    if (!mounted) return;
+    await showMushafInstallSheet(context);
   }
 
   String? _activeReciterName(int? id) {
@@ -118,6 +169,21 @@ class _SettingsResourcesPageState
                           value: surahInfoLabel,
                           onTap: () =>
                               context.push('/settings/resources/surah-info'),
+                        ),
+                        const SettingsDivider(),
+                        ValueListenableBuilder<bool>(
+                          valueListenable:
+                              MushafAssetService.instance.ready,
+                          builder: (ctx, ready, _) {
+                            return SettingsTile(
+                              icon: Ionicons.albums_outline,
+                              label: l10n.t('resources.mushafFontPack'),
+                              value: ready
+                                  ? l10n.t('reciters.installed')
+                                  : '',
+                              onTap: _toggleMushafFontPack,
+                            );
+                          },
                         ),
                       ],
                     ),

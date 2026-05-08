@@ -69,6 +69,25 @@ class SurahInfoProgress {
 
 const _maxConcurrent = 6;
 
+const _languageApiCodes = <String, String>{
+  'english': 'en',
+  'arabic': 'ar',
+  'urdu': 'ur',
+  'bengali': 'bn',
+  'indonesian': 'id',
+  'russian': 'ru',
+  'turkish': 'tr',
+  'persian': 'fa',
+  'french': 'fr',
+  'german': 'de',
+  'spanish': 'es',
+  'portuguese': 'pt',
+  'chinese': 'zh',
+  'malay': 'ms',
+};
+
+String _apiCode(String langName) => _languageApiCodes[langName] ?? 'en';
+
 class SurahInfoService {
   SurahInfoService._();
   static final SurahInfoService instance = SurahInfoService._();
@@ -114,7 +133,7 @@ class SurahInfoService {
 
   Future<SurahInfo> _fetchAndStore(int surah, String lang) async {
     final url =
-        'https://api.quran.com/api/v4/chapters/$surah/info?language=$lang';
+        'https://api.quran.com/api/v4/chapters/$surah/info?language=${_apiCode(lang)}';
     final res = await http
         .get(Uri.parse(url),
             headers: const {'User-Agent': 'MyPrayers/1.0'})
@@ -195,7 +214,7 @@ class SurahInfoService {
           final fut = () async {
             if (_cancels.contains(lang)) return;
             final url =
-                'https://api.quran.com/api/v4/chapters/$s/info?language=$lang';
+                'https://api.quran.com/api/v4/chapters/$s/info?language=${_apiCode(lang)}';
             final res = await client
                 .get(Uri.parse(url),
                     headers: const {'User-Agent': 'MyPrayers/1.0'})

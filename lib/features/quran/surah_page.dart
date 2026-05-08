@@ -75,7 +75,8 @@ class _SurahPageState extends ConsumerState<SurahPage> {
     final wasAyah = _audio.ayah;
     setState(() => _audio = s);
     if (!AyahAudioController.instance.isQueueActive) return;
-    if (s.surah != widget.number) return;
+    final activeNumber = _surah?.number ?? widget.number;
+    if (s.surah != activeNumber) return;
     if (s.ayah == null) return;
     if (wasFor == s.surah && wasAyah == s.ayah) return;
     final settings = ref.read(settingsProvider);
@@ -325,7 +326,7 @@ class _SurahPageState extends ConsumerState<SurahPage> {
             onTap: () {
               ref
                   .read(favoritesProvider.notifier)
-                  .toggleBookmarkSurah(widget.number);
+                  .toggleBookmarkSurah(_surah?.number ?? widget.number);
               Navigator.of(sheetCtx).pop();
             },
           ),
@@ -336,7 +337,7 @@ class _SurahPageState extends ConsumerState<SurahPage> {
               Navigator.of(sheetCtx).pop();
               showSurahInfoSheet(
                 context: context,
-                surahNumber: widget.number,
+                surahNumber: _surah?.number ?? widget.number,
                 displayName: _displayTitle,
               );
             },
@@ -362,7 +363,8 @@ class _SurahPageState extends ConsumerState<SurahPage> {
   Future<void> _onPlaySurahTap() async {
     if (_surah == null) return;
     final ctrl = AyahAudioController.instance;
-    if (ctrl.isQueueActive && ctrl.queueSurah == widget.number) {
+    final surahNumber = _surah!.number;
+    if (ctrl.isQueueActive && ctrl.queueSurah == surahNumber) {
       await ctrl.stop();
       return;
     }
@@ -376,7 +378,7 @@ class _SurahPageState extends ConsumerState<SurahPage> {
     }
     final ayahCount = _surah!.ayahs.length;
     final ready = await RecitationService.instance
-        .isSurahReady(reciterId, widget.number, ayahCount);
+        .isSurahReady(reciterId, surahNumber, ayahCount);
     if (!ready) {
       if (!mounted) return;
       final ok = await showAppSheet<bool>(
@@ -385,7 +387,7 @@ class _SurahPageState extends ConsumerState<SurahPage> {
         dismissible: false,
         builder: (ctx) => _SurahDownloadBody(
           reciterId: reciterId,
-          surahNumber: widget.number,
+          surahNumber: surahNumber,
         ),
       );
       if (ok != true) return;
@@ -395,7 +397,7 @@ class _SurahPageState extends ConsumerState<SurahPage> {
     try {
       await ctrl.playSurah(
         reciterId: reciterId,
-        surah: widget.number,
+        surah: surahNumber,
         startAyah: _currentAyah,
         endAyah: ayahCount,
       );
@@ -444,17 +446,18 @@ class _SurahPageState extends ConsumerState<SurahPage> {
     final fontFamily = arabicFontFamilies[settings.arabicFont] ?? 'UthmanicHafs';
     final arScale = settings.arabicFontScale;
     final trScale = settings.translationFontScale;
-    final marked = fav.surahs.contains(widget.number);
+    final marked = fav.surahs.contains(_surah?.number ?? widget.number);
 
     final isMushaf = settings.quranReadMode == 'mushaf';
+    final activeSurahNumber = _surah?.number ?? widget.number;
     final queueActiveHere =
         AyahAudioController.instance.isQueueActive &&
-            AyahAudioController.instance.queueSurah == widget.number;
+            AyahAudioController.instance.queueSurah == activeSurahNumber;
     final isEn = l10n.locale.languageCode == 'en';
     final titleWidget = isEn
         ? null
         : Text(
-            SurahNameFont.glyphFor(widget.number),
+            SurahNameFont.glyphFor(activeSurahNumber),
             textDirection: TextDirection.rtl,
             style: TextStyle(
               color: palette.text,

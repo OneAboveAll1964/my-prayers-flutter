@@ -170,28 +170,46 @@ class _TabButton extends StatelessWidget {
 }
 
 class _MoreSheet extends StatelessWidget {
-  static const _items = [
+  static const _gridItems = [
     _MoreItem(path: '/qibla', label: 'qibla', icon: Ionicons.compass_outline),
     _MoreItem(path: '/calendar', label: 'calendar', icon: Ionicons.calendar_outline),
     _MoreItem(path: '/names', label: 'names', icon: Ionicons.list_outline),
     _MoreItem(path: '/tasbih', label: 'tasbih', icon: Ionicons.disc_outline),
-    _MoreItem(path: '/settings', label: 'settings', icon: Ionicons.settings_outline),
   ];
+
+  static const _settingsItem = _MoreItem(
+    path: '/settings',
+    label: 'settings',
+    icon: Ionicons.settings_outline,
+  );
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppL10n.of(context);
-    return GridView.count(
-      crossAxisCount: 2,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: 10,
-      crossAxisSpacing: 10,
-      childAspectRatio: 3.0,
-      children: _items
-          .map((it) =>
-              _MoreTile(item: it, label: l10n.t('nav.${it.label}')))
-          .toList(),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        GridView.count(
+          crossAxisCount: 2,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          mainAxisSpacing: 10,
+          crossAxisSpacing: 10,
+          childAspectRatio: 3.0,
+          children: _gridItems
+              .map((it) =>
+                  _MoreTile(item: it, label: l10n.t('nav.${it.label}')))
+              .toList(),
+        ),
+        const SizedBox(height: 10),
+        SizedBox(
+          height: 60,
+          child: _MoreTile(
+            item: _settingsItem,
+            label: l10n.t('nav.${_settingsItem.label}'),
+          ),
+        ),
+      ],
     );
   }
 }

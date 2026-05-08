@@ -6,6 +6,7 @@ import 'package:ionicons/ionicons.dart';
 import '../../core/i18n/app_l10n.dart';
 import '../../core/theme/tokens.dart';
 import '../../shared/data/reciter_catalog.dart';
+import '../../shared/data/tafsir_catalog.dart';
 import '../../shared/state/settings_provider.dart';
 import '../../shared/widgets/page_scaffold.dart';
 import 'widgets/settings_widgets.dart';
@@ -21,20 +22,28 @@ class SettingsResourcesPage extends ConsumerStatefulWidget {
 class _SettingsResourcesPageState
     extends ConsumerState<SettingsResourcesPage> {
   List<Reciter>? _reciters;
+  List<Tafsir>? _tafsirs;
 
   @override
   void initState() {
     super.initState();
     _reciters = ReciterCatalog.cachedAll();
+    _tafsirs = TafsirCatalog.cachedAll();
     if (_reciters == null) {
       ReciterCatalog.all().then((list) {
         if (!mounted) return;
         setState(() => _reciters = list);
       }).catchError((_) {});
     }
+    if (_tafsirs == null) {
+      TafsirCatalog.all().then((list) {
+        if (!mounted) return;
+        setState(() => _tafsirs = list);
+      }).catchError((_) {});
+    }
   }
 
-  String? _activeName(int? id) {
+  String? _activeReciterName(int? id) {
     if (id == null) return null;
     final list = _reciters;
     if (list == null) return null;
@@ -47,13 +56,26 @@ class _SettingsResourcesPageState
     return null;
   }
 
+  String? _activeTafsirName(int? id) {
+    if (id == null) return null;
+    final list = _tafsirs;
+    if (list == null) return null;
+    for (final t in list) {
+      if (t.id == id) return t.name;
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppL10n.of(context);
     final palette = context.palette;
-    final activeId =
+    final activeReciterId =
         ref.watch(settingsProvider.select((s) => s.selectedReciterId));
-    final activeLabel = _activeName(activeId) ?? '';
+    final activeTafsirId =
+        ref.watch(settingsProvider.select((s) => s.selectedTafsirId));
+    final reciterLabel = _activeReciterName(activeReciterId) ?? '';
+    final tafsirLabel = _activeTafsirName(activeTafsirId) ?? '';
 
     return Scaffold(
       backgroundColor: palette.bg,
@@ -72,9 +94,17 @@ class _SettingsResourcesPageState
                         SettingsTile(
                           icon: Ionicons.musical_notes_outline,
                           label: l10n.t('resources.reciters'),
-                          value: activeLabel,
+                          value: reciterLabel,
                           onTap: () =>
                               context.push('/settings/resources/reciters'),
+                        ),
+                        const SettingsDivider(),
+                        SettingsTile(
+                          icon: Ionicons.book_outline,
+                          label: l10n.t('resources.tafsirs'),
+                          value: tafsirLabel,
+                          onTap: () =>
+                              context.push('/settings/resources/tafsirs'),
                         ),
                       ],
                     ),

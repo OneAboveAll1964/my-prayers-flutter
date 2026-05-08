@@ -18,6 +18,7 @@ import '../../features/settings/settings_page.dart';
 import '../../features/settings/settings_prayer_times_page.dart';
 import '../../features/settings/settings_resources_page.dart';
 import '../../features/settings/resources/reciters_page.dart';
+import '../../features/settings/resources/tafsirs_page.dart';
 import '../../features/tasbih/tasbih_page.dart';
 import '../../features/shell/app_shell.dart';
 
@@ -117,6 +118,10 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/settings/resources/reciters',
       builder: (context, state) => const RecitersPage(),
+    ),
+    GoRoute(
+      path: '/settings/resources/tafsirs',
+      builder: (context, state) => const TafsirsPage(),
     ),
   ],
 );

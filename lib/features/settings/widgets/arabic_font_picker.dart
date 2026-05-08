@@ -17,6 +17,7 @@ class ArabicFontPicker extends ConsumerWidget {
     final l10n = AppL10n.of(context);
     final fonts = arabicFontFamilies.entries.toList();
     final scale = settings.arabicFontScale;
+    final trScale = settings.translationFontScale;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -127,6 +128,52 @@ class ArabicFontPicker extends ConsumerWidget {
             divisions: 18,
             onChanged: (v) =>
                 ref.read(settingsProvider.notifier).setArabicFontScale(v),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          child: Row(
+            children: [
+              Text(
+                l10n.t('settings.translationFontSize'),
+                style: TextStyle(
+                  color: palette.textMuted,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const Spacer(),
+              Text(
+                '${(trScale * 100).round()}%',
+                style: TextStyle(
+                  color: palette.textMuted,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                ),
+              ),
+            ],
+          ),
+        ),
+        SliderTheme(
+          data: SliderThemeData(
+            trackHeight: 3,
+            activeTrackColor: palette.accent,
+            inactiveTrackColor: palette.line,
+            thumbColor: palette.accent,
+            overlayColor: palette.accentSoft,
+            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 9),
+            overlayShape: const RoundSliderOverlayShape(overlayRadius: 18),
+          ),
+          child: Slider(
+            value: trScale.clamp(0.7, 1.6),
+            min: 0.7,
+            max: 1.6,
+            divisions: 18,
+            onChanged: (v) => ref
+                .read(settingsProvider.notifier)
+                .setTranslationFontScale(v),
           ),
         ),
       ],

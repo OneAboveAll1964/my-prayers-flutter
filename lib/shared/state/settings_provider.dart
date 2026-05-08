@@ -23,8 +23,10 @@ class AppSettings {
     this.perPrayerNotifications = const [true, false, true, true, true, true],
     this.timeFormat = '12h',
     this.arabicFontScale = 1.0,
+    this.translationFontScale = 1.0,
     this.quranReadMode = 'scroll',
     this.selectedReciterId,
+    this.selectedTafsirId,
   });
 
   final AppThemeMode themeMode;
@@ -42,8 +44,10 @@ class AppSettings {
   final List<bool> perPrayerNotifications;
   final String timeFormat;
   final double arabicFontScale;
+  final double translationFontScale;
   final String quranReadMode;
   final int? selectedReciterId;
+  final int? selectedTafsirId;
 
   AppSettings copyWith({
     AppThemeMode? themeMode,
@@ -61,8 +65,10 @@ class AppSettings {
     List<bool>? perPrayerNotifications,
     String? timeFormat,
     double? arabicFontScale,
+    double? translationFontScale,
     String? quranReadMode,
     Object? selectedReciterId = _sentinel,
+    Object? selectedTafsirId = _sentinel,
   }) {
     return AppSettings(
       themeMode: themeMode ?? this.themeMode,
@@ -80,10 +86,15 @@ class AppSettings {
       perPrayerNotifications: perPrayerNotifications ?? this.perPrayerNotifications,
       timeFormat: timeFormat ?? this.timeFormat,
       arabicFontScale: arabicFontScale ?? this.arabicFontScale,
+      translationFontScale:
+          translationFontScale ?? this.translationFontScale,
       quranReadMode: quranReadMode ?? this.quranReadMode,
       selectedReciterId: selectedReciterId == _sentinel
           ? this.selectedReciterId
           : selectedReciterId as int?,
+      selectedTafsirId: selectedTafsirId == _sentinel
+          ? this.selectedTafsirId
+          : selectedTafsirId as int?,
     );
   }
 
@@ -105,8 +116,10 @@ class AppSettings {
         'perPrayerNotifications': perPrayerNotifications,
         'timeFormat': timeFormat,
         'arabicFontScale': arabicFontScale,
+        'translationFontScale': translationFontScale,
         'quranReadMode': quranReadMode,
         'selectedReciterId': selectedReciterId,
+        'selectedTafsirId': selectedTafsirId,
       };
 
   factory AppSettings.fromJson(Map<String, dynamic> j) => AppSettings(
@@ -143,8 +156,11 @@ class AppSettings {
             const [true, false, true, true, true, true],
         timeFormat: (j['timeFormat'] ?? '12h') as String,
         arabicFontScale: (j['arabicFontScale'] as num?)?.toDouble() ?? 1.0,
+        translationFontScale:
+            (j['translationFontScale'] as num?)?.toDouble() ?? 1.0,
         quranReadMode: (j['quranReadMode'] ?? 'scroll') as String,
         selectedReciterId: (j['selectedReciterId'] as num?)?.toInt(),
+        selectedTafsirId: (j['selectedTafsirId'] as num?)?.toInt(),
       );
 
   PrayerAttribute toAttribute() => PrayerAttribute(
@@ -205,10 +221,14 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   void setTimeFormat(String v) => update((s) => s.copyWith(timeFormat: v));
   void setArabicFontScale(double v) =>
       update((s) => s.copyWith(arabicFontScale: v.clamp(0.7, 1.6)));
+  void setTranslationFontScale(double v) =>
+      update((s) => s.copyWith(translationFontScale: v.clamp(0.7, 1.6)));
   void setQuranReadMode(String v) =>
       update((s) => s.copyWith(quranReadMode: v));
   void setSelectedReciter(int? id) =>
       update((s) => s.copyWith(selectedReciterId: id));
+  void setSelectedTafsir(int? id) =>
+      update((s) => s.copyWith(selectedTafsirId: id));
 }
 
 final settingsProvider =

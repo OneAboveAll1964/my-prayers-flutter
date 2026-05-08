@@ -12,6 +12,7 @@ import '../../../shared/models/quran.dart';
 import '../../../shared/state/favorites_provider.dart';
 import '../../../shared/state/settings_provider.dart';
 import '../../../shared/widgets/app_sheet.dart';
+import 'tafsir_sheet.dart';
 
 Future<void> showAyahActionsSheet({
   required BuildContext context,
@@ -147,7 +148,8 @@ class _AyahActionsBodyState extends ConsumerState<_AyahActionsBody> {
                   textAlign: TextAlign.start,
                   style: TextStyle(
                     color: palette.textMuted,
-                    fontSize: 14,
+                    fontSize: 14 * ref.watch(settingsProvider
+                        .select((s) => s.translationFontScale)),
                     height: 1.55,
                   ),
                 ),
@@ -170,6 +172,18 @@ class _AyahActionsBodyState extends ConsumerState<_AyahActionsBody> {
                   ? l10n.t('quran.preparingAudio')
                   : l10n.t('quran.playRecitation')),
           onTap: isLoading ? () {} : _playOrPick,
+        ),
+        _ActionRow(
+          icon: Ionicons.book_outline,
+          activeColor: palette.textMuted,
+          label: l10n.t('quran.showTafsir'),
+          onTap: () async {
+            Navigator.of(context).pop();
+            await Future<void>.delayed(const Duration(milliseconds: 50));
+            if (!context.mounted) return;
+            await showTafsirSheet(
+                context: context, surah: surah, ayah: ayah);
+          },
         ),
         _ActionRow(
           icon: bookmarked ? Ionicons.bookmark : Ionicons.bookmark_outline,

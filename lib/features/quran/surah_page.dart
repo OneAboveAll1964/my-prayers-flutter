@@ -18,6 +18,7 @@ import '../../core/services/mushaf_asset_service.dart';
 import '../settings/widgets/arabic_font_picker.dart';
 import 'widgets/mushaf_install_sheet.dart';
 import 'widgets/mushaf_view.dart';
+import 'widgets/tafsir_sheet.dart';
 import 'package:ionicons/ionicons.dart';
 
 class SurahPage extends ConsumerStatefulWidget {
@@ -284,6 +285,7 @@ class _SurahPageState extends ConsumerState<SurahPage> {
     final fav = ref.watch(favoritesProvider);
     final fontFamily = arabicFontFamilies[settings.arabicFont] ?? 'UthmanicHafs';
     final arScale = settings.arabicFontScale;
+    final trScale = settings.translationFontScale;
     final marked = fav.surahs.contains(widget.number);
 
     final isMushaf = settings.quranReadMode == 'mushaf';
@@ -397,6 +399,7 @@ class _SurahPageState extends ConsumerState<SurahPage> {
                                       surah: _surah!,
                                       fontFamily: fontFamily,
                                       arScale: arScale,
+                                      trScale: trScale,
                                     );
                                   },
                                 ),
@@ -416,12 +419,14 @@ class _AyahRow extends ConsumerStatefulWidget {
     required this.surah,
     required this.fontFamily,
     required this.arScale,
+    required this.trScale,
   });
 
   final Ayah ayah;
   final Surah surah;
   final String fontFamily;
   final double arScale;
+  final double trScale;
 
   @override
   ConsumerState<_AyahRow> createState() => _AyahRowState();
@@ -430,6 +435,7 @@ class _AyahRow extends ConsumerStatefulWidget {
 class _AyahRowState extends ConsumerState<_AyahRow> {
   bool _downBm = false;
   bool _downPlay = false;
+  bool _downTafsir = false;
   StreamSubscription<AyahAudioState>? _audioSub;
   AyahAudioState _audio = AyahAudioController.instance.state;
 
@@ -514,6 +520,34 @@ class _AyahRowState extends ConsumerState<_AyahRow> {
                       TextStyle(color: palette.textSubtle, fontSize: 11.5),
                 ),
                 const SizedBox(width: 6),
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTapDown: (_) => setState(() => _downTafsir = true),
+                  onTapCancel: () => setState(() => _downTafsir = false),
+                  onTapUp: (_) => setState(() => _downTafsir = false),
+                  onTap: () => showTafsirSheet(
+                    context: context,
+                    surah: widget.surah,
+                    ayah: widget.ayah,
+                  ),
+                  child: AnimatedContainer(
+                    duration: AppTokens.durationFast,
+                    width: 32,
+                    height: 32,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: _downTafsir
+                          ? palette.surface2
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Icon(
+                      Ionicons.book_outline,
+                      size: 16,
+                      color: palette.textSubtle,
+                    ),
+                  ),
+                ),
                 GestureDetector(
                   behavior: HitTestBehavior.opaque,
                   onTapDown: (_) => setState(() => _downPlay = true),
@@ -612,7 +646,7 @@ class _AyahRowState extends ConsumerState<_AyahRow> {
               textAlign: TextAlign.start,
               style: TextStyle(
                 color: palette.text,
-                fontSize: 15,
+                fontSize: 15 * widget.trScale,
                 height: 1.7,
               ),
             ),

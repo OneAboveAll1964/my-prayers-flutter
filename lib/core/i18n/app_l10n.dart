@@ -29,6 +29,16 @@ String langKey(Locale locale) {
   return locale.languageCode;
 }
 
+String localizedLanguageName(AppL10n l10n, String name) {
+  if (name.isEmpty) return name;
+  final key = 'lang.${name.toLowerCase().replaceAll(' ', '_')}';
+  final translated = l10n.t(key);
+  if (translated == key) {
+    return name[0].toUpperCase() + name.substring(1);
+  }
+  return translated;
+}
+
 String resolveDbLanguage(String code) {
   if (_bundles.containsKey(code)) return code;
   final base = code.split('-').first.split('_').first;

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ionicons/ionicons.dart';
@@ -33,6 +35,7 @@ class _MushafViewState extends ConsumerState<MushafView> {
   late PageController _pageController;
   String? _selectedKey;
   late Map<String, Ayah> _ayahByKey;
+  Timer? _preloadTimer;
 
   @override
   void initState() {
@@ -52,14 +55,25 @@ class _MushafViewState extends ConsumerState<MushafView> {
         '${widget.surah.number}:${a.numberInSurah}': a,
     };
     final pageCount = _lastPage - _firstPage + 1;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _preloadAround(initialIdx, pageCount);
+    _scheduleSettledPreload(initialIdx, pageCount,
+        delay: const Duration(milliseconds: 600));
+  }
+
+  void _scheduleSettledPreload(
+    int idx,
+    int pageCount, {
+    Duration delay = const Duration(milliseconds: 500),
+  }) {
+    _preloadTimer?.cancel();
+    _preloadTimer = Timer(delay, () {
+      if (!mounted) return;
+      _preloadNeighbours(idx, pageCount);
     });
   }
 
-  void _preloadAround(int idx, int pageCount) {
+  void _preloadNeighbours(int idx, int pageCount) {
     final service = MushafAssetService.instance;
-    for (final delta in const [0, 1, -1]) {
+    for (final delta in const [1, -1]) {
       final i = idx + delta;
       if (i < 0 || i >= pageCount) continue;
       final pageNumber = _firstPage + i;
@@ -71,6 +85,7 @@ class _MushafViewState extends ConsumerState<MushafView> {
 
   @override
   void dispose() {
+    _preloadTimer?.cancel();
     _pageController.dispose();
     super.dispose();
   }
@@ -137,13 +152,19 @@ class _MushafViewState extends ConsumerState<MushafView> {
       itemCount: pageCount,
       reverse: Directionality.of(context) == TextDirection.rtl,
       onPageChanged: (idx) {
-        _preloadAround(idx, pageCount);
+        // Notify the parent immediately (cheap, just updates last-read).
         final pageNumber = _firstPage + idx;
         final firstAyah = widget.surah.ayahs.firstWhere(
           (a) => a.page == pageNumber,
           orElse: () => widget.surah.ayahs.first,
         );
         widget.onPageAyahChanged?.call(firstAyah);
+        // Defer the heavy preload (font registration) until the swipe
+        // animation has fully settled, so it doesn't compete with the
+        // current frame's paint. Each new swipe cancels and reschedules,
+        // so rapid flipping won't trigger any preload at all until the
+        // user pauses.
+        _scheduleSettledPreload(idx, pageCount);
       },
       itemBuilder: (ctx, idx) {
         final pageNumber = _firstPage + idx;
@@ -214,10 +235,15 @@ class _MushafPageViewState extends State<_MushafPageView>
     final data = results[0] as MushafPageData;
     final fontFamily = results[1] as String;
     var maxWidth = 0.0;
+    final buf = StringBuffer();
     for (final line in data.lines) {
+      buf.clear();
+      for (final w in line.words) {
+        buf.write(w.code);
+      }
       final tp = TextPainter(
         text: TextSpan(
-          text: line.codes,
+          text: buf.toString(),
           style: TextStyle(
             fontFamily: fontFamily,
             fontSize: 100,

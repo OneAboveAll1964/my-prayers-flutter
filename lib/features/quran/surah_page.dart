@@ -48,6 +48,7 @@ class _SurahPageState extends ConsumerState<SurahPage> {
   bool _initialScrollScheduled = false;
   Timer? _scrollDebounce;
   bool _switchingToMushaf = false;
+  DateTime? _suppressScrollSaveUntil;
 
   @override
   void initState() {
@@ -156,6 +157,13 @@ class _SurahPageState extends ConsumerState<SurahPage> {
       }
     });
     if (best != null && best != _visibleAyah) {
+      // During the brief window after switching modes, ignore scroll events
+      // so the ListView's transient offset-0 doesn't clobber _currentAyah
+      // before _scrollToAyah can land it on the right place.
+      if (_suppressScrollSaveUntil != null &&
+          DateTime.now().isBefore(_suppressScrollSaveUntil!)) {
+        return;
+      }
       _visibleAyah = best!;
       _currentAyah = best!;
       _saveLastRead(_visibleAyah);
@@ -169,14 +177,25 @@ class _SurahPageState extends ConsumerState<SurahPage> {
 
   Future<void> _toggleMode(bool isMushaf) async {
     if (isMushaf) {
-      // Mushaf -> scroll: scroll to first ayah of current page after rebuild.
+      // Mushaf -> scroll: scroll to last ayah after rebuild. Capture target
+      // before the rebuild so the scroll listener can't clobber it.
+      final target = _currentAyah;
+      _suppressScrollSaveUntil =
+          DateTime.now().add(const Duration(seconds: 3));
       ref.read(settingsProvider.notifier).setQuranReadMode('scroll');
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
         if (!mounted) return;
-        if (_currentAyah > 1) _scrollToAyah(_currentAyah);
+        if (target > 1) {
+          await _scrollToAyah(target);
+        }
+        // Allow scroll-driven saves a moment after we land.
+        _suppressScrollSaveUntil =
+            DateTime.now().add(const Duration(milliseconds: 250));
       });
       return;
     }
+    // Scroll -> mushaf: MushafView gets initialAyah: _currentAyah which
+    // PageController honours via initialPage; nothing extra needed.
     final installed = await MushafAssetService.instance.isInstalled();
     if (installed) {
       ref.read(settingsProvider.notifier).setQuranReadMode('mushaf');

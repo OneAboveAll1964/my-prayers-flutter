@@ -259,20 +259,29 @@ class _SurahRowState extends State<_SurahRow> {
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            isEn ? widget.item.englishName : widget.item.name,
-                            textDirection:
-                                isEn ? null : TextDirection.rtl,
-                            style: TextStyle(
-                              fontSize: isEn ? 15 : 18,
-                              color: palette.text,
-                              fontWeight: FontWeight.w600,
-                              fontFamily:
-                                  isEn ? null : widget.arabicFont,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                          isEn
+                              ? Text(
+                                  widget.item.englishName,
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    color: palette.text,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                )
+                              : Text(
+                                  SurahNameFont.glyphFor(widget.item.number),
+                                  textDirection: TextDirection.rtl,
+                                  style: TextStyle(
+                                    fontSize: 28,
+                                    height: 1.0,
+                                    color: palette.text,
+                                    fontFamily: SurahNameFont.fontFamily,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                           const SizedBox(height: 2),
                           Text(
                             secondary,
@@ -289,31 +298,14 @@ class _SurahRowState extends State<_SurahRow> {
                   ),
                   if (l10n.locale.languageCode == 'en') ...[
                     const SizedBox(width: 10),
-                    ValueListenableBuilder<bool>(
-                      valueListenable: SurahNameFontService.instance.ready,
-                      builder: (ctx, fontReady, _) {
-                        if (fontReady) {
-                          return Text(
-                            SurahNameFontService.instance
-                                .surahGlyph(widget.item.number),
-                            style: TextStyle(
-                              color: palette.text,
-                              fontFamily:
-                                  SurahNameFontService.instance.fontFamily,
-                              fontSize: 26,
-                              height: 1.0,
-                            ),
-                          );
-                        }
-                        return Text(
-                          widget.item.name,
-                          style: TextStyle(
-                            color: palette.text,
-                            fontFamily: widget.arabicFont,
-                            fontSize: 19,
-                          ),
-                        );
-                      },
+                    Text(
+                      SurahNameFont.glyphFor(widget.item.number),
+                      style: TextStyle(
+                        color: palette.text,
+                        fontFamily: SurahNameFont.fontFamily,
+                        fontSize: 28,
+                        height: 1.0,
+                      ),
                     ),
                   ],
                 ],
@@ -463,18 +455,18 @@ class _AyahBookmarkRowState extends ConsumerState<_AyahBookmarkRow> {
                       ],
                     ),
                   ),
-                  if (entry.arabicName.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(left: 8),
-                      child: Text(
-                        entry.arabicName,
-                        style: TextStyle(
-                          color: palette.text,
-                          fontFamily: 'UthmanicHafs',
-                          fontSize: 16,
-                        ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 8),
+                    child: Text(
+                      SurahNameFont.glyphFor(entry.surah),
+                      style: TextStyle(
+                        color: palette.text,
+                        fontFamily: SurahNameFont.fontFamily,
+                        fontSize: 24,
+                        height: 1.0,
                       ),
                     ),
+                  ),
                 ],
               ),
             ),

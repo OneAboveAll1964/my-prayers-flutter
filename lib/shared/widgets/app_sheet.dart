@@ -4,6 +4,7 @@ import '../../core/theme/tokens.dart';
 Future<T?> showAppSheet<T>({
   required BuildContext context,
   required String title,
+  Widget? titleWidget,
   required Widget Function(BuildContext) builder,
   bool dismissible = true,
 }) {
@@ -24,6 +25,7 @@ Future<T?> showAppSheet<T>({
     builder: (ctx) {
       return _SheetBody(
         title: title,
+        titleWidget: titleWidget,
         bgColor: palette.surface,
         lineColor: palette.line,
         lineStrongColor: palette.lineStrong,
@@ -37,6 +39,7 @@ Future<T?> showAppSheet<T>({
 class _SheetBody extends StatelessWidget {
   const _SheetBody({
     required this.title,
+    this.titleWidget,
     required this.bgColor,
     required this.lineColor,
     required this.lineStrongColor,
@@ -45,6 +48,7 @@ class _SheetBody extends StatelessWidget {
   });
 
   final String title;
+  final Widget? titleWidget;
   final Color bgColor;
   final Color lineColor;
   final Color lineStrongColor;
@@ -81,15 +85,16 @@ class _SheetBody extends StatelessWidget {
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 10),
-              child: Text(
-                title,
-                style: TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w700,
-                  color: textColor,
-                  letterSpacing: -0.17,
-                ),
-              ),
+              child: titleWidget ??
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      color: textColor,
+                      letterSpacing: -0.17,
+                    ),
+                  ),
             ),
             Flexible(
               child: SingleChildScrollView(

@@ -4,14 +4,10 @@ import 'package:go_router/go_router.dart';
 import 'package:ionicons/ionicons.dart';
 
 import '../../core/i18n/app_l10n.dart';
-import '../../core/services/surah_name_font_service.dart';
 import '../../core/theme/tokens.dart';
 import '../../shared/data/reciter_catalog.dart';
 import '../../shared/data/tafsir_catalog.dart';
 import '../../shared/state/settings_provider.dart';
-import '../../shared/widgets/app_button.dart';
-import '../../shared/widgets/app_sheet.dart';
-import '../../shared/widgets/app_spinner.dart';
 import '../../shared/widgets/page_scaffold.dart';
 import 'widgets/settings_widgets.dart';
 
@@ -70,22 +66,6 @@ class _SettingsResourcesPageState
     return null;
   }
 
-  Future<void> _toggleSurahFont() async {
-    final svc = SurahNameFontService.instance;
-    final l10n = AppL10n.of(context);
-    if (svc.ready.value) {
-      await svc.uninstall();
-      return;
-    }
-    if (!mounted) return;
-    await showAppSheet<void>(
-      context: context,
-      title: l10n.t('resources.surahNameFont'),
-      dismissible: false,
-      builder: (ctx) => const _SurahFontInstallBody(),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppL10n.of(context);
@@ -94,8 +74,13 @@ class _SettingsResourcesPageState
         ref.watch(settingsProvider.select((s) => s.selectedReciterId));
     final activeTafsirId =
         ref.watch(settingsProvider.select((s) => s.selectedTafsirId));
+    final activeSurahInfoLang = ref
+        .watch(settingsProvider.select((s) => s.selectedSurahInfoLanguage));
     final reciterLabel = _activeReciterName(activeReciterId) ?? '';
     final tafsirLabel = _activeTafsirName(activeTafsirId) ?? '';
+    final surahInfoLabel = activeSurahInfoLang == null
+        ? ''
+        : localizedLanguageName(l10n, activeSurahInfoLang);
 
     return Scaffold(
       backgroundColor: palette.bg,
@@ -130,24 +115,9 @@ class _SettingsResourcesPageState
                         SettingsTile(
                           icon: Ionicons.information_circle_outline,
                           label: l10n.t('resources.surahInfo'),
-                          value: '',
+                          value: surahInfoLabel,
                           onTap: () =>
                               context.push('/settings/resources/surah-info'),
-                        ),
-                        const SettingsDivider(),
-                        ValueListenableBuilder<bool>(
-                          valueListenable:
-                              SurahNameFontService.instance.ready,
-                          builder: (ctx, ready, _) {
-                            return SettingsTile(
-                              icon: Ionicons.text_outline,
-                              label: l10n.t('resources.surahNameFont'),
-                              value: ready
-                                  ? l10n.t('reciters.installed')
-                                  : '',
-                              onTap: _toggleSurahFont,
-                            );
-                          },
                         ),
                       ],
                     ),
@@ -169,79 +139,6 @@ class _SettingsResourcesPageState
           ],
         ),
       ),
-    );
-  }
-}
-
-class _SurahFontInstallBody extends StatefulWidget {
-  const _SurahFontInstallBody();
-  @override
-  State<_SurahFontInstallBody> createState() => _SurahFontInstallBodyState();
-}
-
-class _SurahFontInstallBodyState extends State<_SurahFontInstallBody> {
-  bool _loading = true;
-  String? _error;
-
-  @override
-  void initState() {
-    super.initState();
-    _start();
-  }
-
-  Future<void> _start() async {
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
-    try {
-      await SurahNameFontService.instance.install();
-      if (mounted) Navigator.of(context).pop();
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _loading = false;
-        _error = e.toString();
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppL10n.of(context);
-    final palette = context.palette;
-    if (_loading) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: 24),
-        child: Center(child: AppSpinner()),
-      );
-    }
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Icon(Ionicons.alert_circle_outline,
-            size: 28, color: palette.textMuted),
-        const SizedBox(height: 8),
-        Text(
-          _error ?? l10n.t('common.error'),
-          textAlign: TextAlign.center,
-          style: TextStyle(color: palette.textMuted, fontSize: 13),
-        ),
-        const SizedBox(height: 16),
-        AppButton(
-          label: l10n.t('common.retry'),
-          variant: AppButtonVariant.solid,
-          expand: true,
-          onPressed: _start,
-        ),
-        const SizedBox(height: 8),
-        AppButton(
-          label: l10n.t('common.cancel'),
-          variant: AppButtonVariant.outline,
-          expand: true,
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-      ],
     );
   }
 }

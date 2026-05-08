@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:ionicons/ionicons.dart';
 
 import '../../../core/i18n/app_l10n.dart';
+import '../../../core/services/surah_name_font_service.dart';
 import '../../../core/services/tafsir_service.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../shared/data/tafsir_catalog.dart';
@@ -21,10 +22,19 @@ Future<void> showTafsirSheet({
   final l10n = AppL10n.of(context);
   final isEn = l10n.locale.languageCode == 'en';
   final surahName = isEn ? surah.englishName : surah.name;
+  final titleWidget = isEn
+      ? null
+      : SurahNameFont.buildTitle(
+          prefix: l10n.t('quran.tafsir'),
+          surahNumber: surah.number,
+          ayahNumber: ayah.numberInSurah,
+          color: context.palette.text,
+        );
   return showAppSheet<void>(
     context: context,
     title:
         '${l10n.t('quran.tafsir')} · $surahName ${ayah.numberInSurah}',
+    titleWidget: titleWidget,
     builder: (sheetCtx) => _TafsirBody(surah: surah, ayah: ayah),
   );
 }

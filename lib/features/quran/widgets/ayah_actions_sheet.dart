@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:ionicons/ionicons.dart';
 import '../../../core/i18n/app_l10n.dart';
 import '../../../core/services/ayah_audio_controller.dart';
+import '../../../core/services/surah_name_font_service.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../shared/models/quran.dart';
 import '../../../shared/state/favorites_provider.dart';
@@ -27,10 +28,18 @@ Future<void> showAyahActionsSheet({
   final title = isEn
       ? '${surah.englishName} · ${ayah.numberInSurah}'
       : '${surah.name} · ${ayah.numberInSurah}';
+  final titleWidget = isEn
+      ? null
+      : SurahNameFont.buildTitle(
+          surahNumber: surah.number,
+          ayahNumber: ayah.numberInSurah,
+          color: context.palette.text,
+        );
   while (true) {
     final result = await showAppSheet<String>(
       context: context,
       title: title,
+      titleWidget: titleWidget,
       builder: (sheetCtx) => _AyahActionsBody(
         surah: surah,
         ayah: ayah,

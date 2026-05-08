@@ -6,6 +6,7 @@ import '../../features/azkars/azkars_page.dart';
 import '../../features/calendar/calendar_page.dart';
 import '../../features/home/home_page.dart';
 import '../../features/names/names_page.dart';
+import '../../features/popular_ayahs/popular_ayahs_page.dart';
 import '../../features/qibla/qibla_page.dart';
 import '../../features/quran/quran_page.dart';
 import '../../features/quran/surah_page.dart';
@@ -52,6 +53,11 @@ final appRouter = GoRouter(
           path: '/qibla',
           pageBuilder: (context, state) =>
               _instant(context, state, const QiblaPage()),
+        ),
+        GoRoute(
+          path: '/popular',
+          pageBuilder: (context, state) =>
+              _instant(context, state, const PopularAyahsPage()),
         ),
         GoRoute(
           path: '/quran',

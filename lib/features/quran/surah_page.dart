@@ -16,6 +16,7 @@ import '../../shared/widgets/app_sheet.dart';
 import '../../shared/widgets/app_spinner.dart';
 import '../../shared/widgets/page_scaffold.dart';
 import '../../core/services/mushaf_asset_service.dart';
+import '../../core/services/surah_name_font_service.dart';
 import '../settings/widgets/arabic_font_picker.dart';
 import 'widgets/mushaf_install_sheet.dart';
 import 'widgets/mushaf_view.dart';
@@ -303,6 +304,59 @@ class _SurahPageState extends ConsumerState<SurahPage> {
     super.dispose();
   }
 
+  Future<void> _showMoreSheet(bool isMushaf, bool bookmarked) async {
+    final l10n = AppL10n.of(context);
+    await showAppSheet<void>(
+      context: context,
+      title: l10n.t('quran.moreActions'),
+      builder: (sheetCtx) => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _MoreActionRow(
+            icon: bookmarked
+                ? Ionicons.bookmark
+                : Ionicons.bookmark_outline,
+            iconColor: bookmarked ? context.palette.accent : null,
+            label: bookmarked
+                ? l10n.t('quran.removeBookmark')
+                : l10n.t('quran.bookmarkSurah'),
+            onTap: () {
+              ref
+                  .read(favoritesProvider.notifier)
+                  .toggleBookmarkSurah(widget.number);
+              Navigator.of(sheetCtx).pop();
+            },
+          ),
+          _MoreActionRow(
+            icon: Ionicons.information_circle_outline,
+            label: l10n.t('surahInfo.title'),
+            onTap: () {
+              Navigator.of(sheetCtx).pop();
+              showSurahInfoSheet(
+                context: context,
+                surahNumber: widget.number,
+                displayName: _displayTitle,
+              );
+            },
+          ),
+          if (!isMushaf)
+            _MoreActionRow(
+              icon: Ionicons.text_outline,
+              label: l10n.t('settings.arabicFont'),
+              onTap: () {
+                Navigator.of(sheetCtx).pop();
+                showAppSheet(
+                  context: context,
+                  title: l10n.t('settings.arabicFont'),
+                  builder: (ctx) => const ArabicFontPicker(),
+                );
+              },
+            ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _onPlaySurahTap() async {
     if (_surah == null) return;
     final ctrl = AyahAudioController.instance;
@@ -394,6 +448,21 @@ class _SurahPageState extends ConsumerState<SurahPage> {
     final queueActiveHere =
         AyahAudioController.instance.isQueueActive &&
             AyahAudioController.instance.queueSurah == widget.number;
+    final isEn = l10n.locale.languageCode == 'en';
+    final titleWidget = isEn
+        ? null
+        : Text(
+            SurahNameFont.glyphFor(widget.number),
+            textDirection: TextDirection.rtl,
+            style: TextStyle(
+              color: palette.text,
+              fontSize: 28,
+              height: 1.0,
+              fontFamily: SurahNameFont.fontFamily,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          );
     return Scaffold(
       backgroundColor: palette.bg,
       body: SafeArea(
@@ -402,6 +471,7 @@ class _SurahPageState extends ConsumerState<SurahPage> {
           children: [
             PageHeader(
                 title: _displayTitle,
+                titleWidget: titleWidget,
                 subtitle: _displaySubtitle,
                 back: true,
                 action: Row(
@@ -427,45 +497,9 @@ class _SurahPageState extends ConsumerState<SurahPage> {
                           : _onPlaySurahTap,
                     ),
                     AppIconButton(
-                      icon: Ionicons.information_circle_outline,
-                      semanticLabel: l10n.t('surahInfo.title'),
-                      onPressed: () => showSurahInfoSheet(
-                        context: context,
-                        surahNumber: widget.number,
-                        displayName: _displayTitle,
-                      ),
-                    ),
-                    if (!isMushaf)
-                      AppIconButton(
-                        icon: Ionicons.text_outline,
-                        semanticLabel: l10n.t('settings.arabicFont'),
-                        onPressed: () {
-                          showAppSheet(
-                            context: context,
-                            title: l10n.t('settings.arabicFont'),
-                            builder: (ctx) => const ArabicFontPicker(),
-                          );
-                        },
-                      ),
-                    GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () => ref
-                          .read(favoritesProvider.notifier)
-                          .toggleBookmarkSurah(widget.number),
-                      child: SizedBox(
-                        width: 44,
-                        height: 44,
-                        child: Center(
-                          child: AnimatedToggleIcon(
-                            outlineIcon: Ionicons.bookmark_outline,
-                            filledIcon: Ionicons.bookmark,
-                            active: marked,
-                            activeColor: palette.accent,
-                            inactiveColor: palette.textMuted,
-                            size: 22,
-                          ),
-                        ),
-                      ),
+                      icon: Ionicons.ellipsis_horizontal,
+                      semanticLabel: l10n.t('quran.moreActions'),
+                      onPressed: () => _showMoreSheet(isMushaf, marked),
                     ),
                   ],
                 ),
@@ -785,6 +819,60 @@ class _AyahRowState extends ConsumerState<_AyahRow> {
             ),
           ],
         ],
+      ),
+    );
+  }
+}
+
+class _MoreActionRow extends StatefulWidget {
+  const _MoreActionRow({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    this.iconColor,
+  });
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+  final Color? iconColor;
+
+  @override
+  State<_MoreActionRow> createState() => _MoreActionRowState();
+}
+
+class _MoreActionRowState extends State<_MoreActionRow> {
+  bool _down = false;
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTapDown: (_) => setState(() => _down = true),
+      onTapCancel: () => setState(() => _down = false),
+      onTapUp: (_) => setState(() => _down = false),
+      onTap: widget.onTap,
+      child: AnimatedContainer(
+        duration: AppTokens.durationFast,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        decoration: BoxDecoration(
+          color: _down ? palette.surface2 : Colors.transparent,
+          borderRadius: BorderRadius.circular(AppTokens.radius),
+        ),
+        child: Row(
+          children: [
+            Icon(widget.icon,
+                size: 20, color: widget.iconColor ?? palette.textMuted),
+            const SizedBox(width: 14),
+            Text(
+              widget.label,
+              style: TextStyle(
+                color: palette.text,
+                fontSize: 15,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

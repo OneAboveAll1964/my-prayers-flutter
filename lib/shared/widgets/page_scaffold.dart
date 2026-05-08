@@ -7,6 +7,7 @@ class PageHeader extends StatelessWidget {
   const PageHeader({
     super.key,
     required this.title,
+    this.titleWidget,
     this.subtitle,
     this.back = false,
     this.action,
@@ -15,6 +16,7 @@ class PageHeader extends StatelessWidget {
   });
 
   final String title;
+  final Widget? titleWidget;
   final String? subtitle;
   final bool back;
   final Widget? action;
@@ -45,18 +47,19 @@ class PageHeader extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      title,
-                      style: TextStyle(
-                        color: palette.text,
-                        fontSize: 22,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: -0.4,
-                        height: 1.15,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                    titleWidget ??
+                        Text(
+                          title,
+                          style: TextStyle(
+                            color: palette.text,
+                            fontSize: 22,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: -0.4,
+                            height: 1.15,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                     if (subtitle != null)
                       Padding(
                         padding: const EdgeInsets.only(top: 4),

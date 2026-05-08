@@ -4,6 +4,7 @@ import 'package:ionicons/ionicons.dart';
 
 import '../../../core/i18n/app_l10n.dart';
 import '../../../core/services/surah_info_service.dart';
+import '../../../core/services/surah_name_font_service.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../shared/state/settings_provider.dart';
 import '../../../shared/widgets/app_button.dart';
@@ -34,7 +35,8 @@ const Map<String, String> _appLangToInfoLang = {
   'ckb_Badini': 'arabic',
 };
 
-String surahInfoLanguageFor(AppL10n l10n) {
+String surahInfoLanguageFor(AppL10n l10n, {String? override}) {
+  if (override != null && override.isNotEmpty) return override;
   return _appLangToInfoLang[langKey(l10n.locale)] ?? 'english';
 }
 
@@ -46,9 +48,18 @@ Future<void> showSurahInfoSheet({
   required String displayName,
 }) {
   final l10n = AppL10n.of(context);
+  final isEn = l10n.locale.languageCode == 'en';
+  final titleWidget = isEn
+      ? null
+      : SurahNameFont.buildTitle(
+          prefix: l10n.t('surahInfo.title'),
+          surahNumber: surahNumber,
+          color: context.palette.text,
+        );
   return showAppSheet<void>(
     context: context,
     title: '${l10n.t('surahInfo.title')} · $displayName',
+    titleWidget: titleWidget,
     builder: (sheetCtx) => _SurahInfoBody(surahNumber: surahNumber),
   );
 }
@@ -77,7 +88,10 @@ class _SurahInfoBodyState extends ConsumerState<_SurahInfoBody> {
   }
 
   Future<void> _load() async {
-    final lang = surahInfoLanguageFor(AppL10n.of(context));
+    final selected =
+        ref.read(settingsProvider).selectedSurahInfoLanguage;
+    final lang =
+        surahInfoLanguageFor(AppL10n.of(context), override: selected);
     setState(() {
       _loading = true;
       _error = null;
@@ -105,7 +119,9 @@ class _SurahInfoBodyState extends ConsumerState<_SurahInfoBody> {
   Widget build(BuildContext context) {
     final palette = context.palette;
     final l10n = AppL10n.of(context);
-    final lang = surahInfoLanguageFor(l10n);
+    final selected = ref
+        .watch(settingsProvider.select((s) => s.selectedSurahInfoLanguage));
+    final lang = surahInfoLanguageFor(l10n, override: selected);
     final trScale =
         ref.watch(settingsProvider.select((s) => s.translationFontScale));
     final bold = ref.watch(settingsProvider.select((s) => s.quranBold));

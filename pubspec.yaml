@@ -69,3 +69,6 @@ flutter:
     - family: AllahNamesColor
       fonts:
         - asset: assets/fonts/AllahNamesColor.ttf
+    - family: SurahNameV2
+      fonts:
+        - asset: assets/fonts/SurahNameV2.ttf

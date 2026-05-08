@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/i18n/app_l10n.dart';
+import '../../../core/services/surah_name_font_service.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../shared/state/favorites_provider.dart';
 import 'package:ionicons/ionicons.dart';
@@ -24,7 +25,6 @@ class _LastReadCardState extends State<LastReadCard> {
     final isEn = l10n.locale.languageCode == 'en';
     final chev =
         isRtl ? Ionicons.chevron_back : Ionicons.chevron_forward;
-    final displayName = isEn ? widget.entry.englishName : widget.entry.name;
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -62,31 +62,59 @@ class _LastReadCardState extends State<LastReadCard> {
                     ),
                   ),
                   const SizedBox(height: 2),
-                  Text(
-                    widget.entry.lastAyah > 1
-                        ? '$displayName · ${widget.entry.number}:${widget.entry.lastAyah}'
-                        : displayName,
-                    textDirection: isEn ? null : TextDirection.rtl,
-                    style: TextStyle(
-                      fontSize: isEn ? 16 : 18,
-                      fontWeight: FontWeight.w700,
-                      color: palette.accentStrong,
-                      fontFamily: isEn ? null : 'UthmanicHafs',
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  isEn
+                      ? Text(
+                          widget.entry.lastAyah > 1
+                              ? '${widget.entry.englishName} · ${widget.entry.number}:${widget.entry.lastAyah}'
+                              : widget.entry.englishName,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: palette.accentStrong,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        )
+                      : Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              SurahNameFont.glyphFor(widget.entry.number),
+                              textDirection: TextDirection.rtl,
+                              style: TextStyle(
+                                fontSize: 26,
+                                height: 1.0,
+                                color: palette.accentStrong,
+                                fontFamily: SurahNameFont.fontFamily,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            if (widget.entry.lastAyah > 1) ...[
+                              const SizedBox(width: 8),
+                              Text(
+                                '${widget.entry.number}:${widget.entry.lastAyah}',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: palette.accentStrong,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
                 ],
               ),
             ),
             if (isEn) ...[
               const SizedBox(width: 8),
               Text(
-                widget.entry.name,
+                SurahNameFont.glyphFor(widget.entry.number),
                 style: TextStyle(
                   color: palette.accentStrong,
-                  fontFamily: 'UthmanicHafs',
-                  fontSize: 18,
+                  fontFamily: SurahNameFont.fontFamily,
+                  fontSize: 28,
+                  height: 1.0,
                 ),
               ),
             ],

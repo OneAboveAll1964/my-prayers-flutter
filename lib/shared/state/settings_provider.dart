@@ -28,6 +28,7 @@ class AppSettings {
     this.quranReadMode = 'scroll',
     this.selectedReciterId,
     this.selectedTafsirId,
+    this.selectedSurahInfoLanguage,
   });
 
   final AppThemeMode themeMode;
@@ -50,6 +51,7 @@ class AppSettings {
   final String quranReadMode;
   final int? selectedReciterId;
   final int? selectedTafsirId;
+  final String? selectedSurahInfoLanguage;
 
   AppSettings copyWith({
     AppThemeMode? themeMode,
@@ -72,6 +74,7 @@ class AppSettings {
     String? quranReadMode,
     Object? selectedReciterId = _sentinel,
     Object? selectedTafsirId = _sentinel,
+    Object? selectedSurahInfoLanguage = _sentinel,
   }) {
     return AppSettings(
       themeMode: themeMode ?? this.themeMode,
@@ -99,6 +102,9 @@ class AppSettings {
       selectedTafsirId: selectedTafsirId == _sentinel
           ? this.selectedTafsirId
           : selectedTafsirId as int?,
+      selectedSurahInfoLanguage: selectedSurahInfoLanguage == _sentinel
+          ? this.selectedSurahInfoLanguage
+          : selectedSurahInfoLanguage as String?,
     );
   }
 
@@ -125,6 +131,7 @@ class AppSettings {
         'quranReadMode': quranReadMode,
         'selectedReciterId': selectedReciterId,
         'selectedTafsirId': selectedTafsirId,
+        'selectedSurahInfoLanguage': selectedSurahInfoLanguage,
       };
 
   factory AppSettings.fromJson(Map<String, dynamic> j) => AppSettings(
@@ -167,6 +174,8 @@ class AppSettings {
         quranReadMode: (j['quranReadMode'] ?? 'scroll') as String,
         selectedReciterId: (j['selectedReciterId'] as num?)?.toInt(),
         selectedTafsirId: (j['selectedTafsirId'] as num?)?.toInt(),
+        selectedSurahInfoLanguage:
+            j['selectedSurahInfoLanguage'] as String?,
       );
 
   PrayerAttribute toAttribute() => PrayerAttribute(
@@ -236,6 +245,8 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       update((s) => s.copyWith(selectedReciterId: id));
   void setSelectedTafsir(int? id) =>
       update((s) => s.copyWith(selectedTafsirId: id));
+  void setSelectedSurahInfoLanguage(String? lang) =>
+      update((s) => s.copyWith(selectedSurahInfoLanguage: lang));
 }
 
 final settingsProvider =

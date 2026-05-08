@@ -1,98 +1,73 @@
-import 'dart:io';
+import 'package:flutter/material.dart';
 
-import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
-import 'package:http/http.dart' as http;
-import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
+class SurahNameFont {
+  SurahNameFont._();
 
-const _fontUrl =
-    'https://static-cdn.tarteel.ai/qul/fonts/surah-names/v2/surah-name-v2.ttf';
-const _fontFileName = 'surah-name-v2.ttf';
-const _fontFamily = 'SurahNameV2';
+  static const String fontFamily = 'SurahNameV2';
 
-class SurahNameFontService {
-  SurahNameFontService._();
-  static final SurahNameFontService instance = SurahNameFontService._();
-
-  bool _loadedIntoSkia = false;
-  Future<void>? _loading;
-  final ValueNotifier<bool> ready = ValueNotifier<bool>(false);
-
-  String get fontFamily => _fontFamily;
-
-  String surahGlyph(int surahNumber) =>
+  static String glyphFor(int surahNumber) =>
       'surah${surahNumber.toString().padLeft(3, '0')}';
 
-  Future<File> _file() async {
-    final base = await getApplicationSupportDirectory();
-    final dir = Directory(p.join(base.path, 'fonts'));
-    if (!await dir.exists()) await dir.create(recursive: true);
-    return File(p.join(dir.path, _fontFileName));
-  }
-
-  Future<bool> isInstalled() async {
-    final f = await _file();
-    return await f.exists() && await f.length() > 0;
-  }
-
-  Future<void> install() async {
-    final f = await _file();
-    if (!await f.exists() || await f.length() == 0) {
-      final res = await http
-          .get(Uri.parse(_fontUrl),
-              headers: const {'User-Agent': 'MyPrayers/1.0'})
-          .timeout(const Duration(seconds: 30));
-      if (res.statusCode != 200 || res.bodyBytes.isEmpty) {
-        throw Exception('font ${res.statusCode}');
-      }
-      await f.writeAsBytes(res.bodyBytes, flush: true);
-    }
-    _loadedIntoSkia = false;
-    await _ensureLoaded();
-    ready.value = true;
-  }
-
-  Future<void> uninstall() async {
-    final f = await _file();
-    if (await f.exists()) await f.delete();
-    _loadedIntoSkia = false;
-    ready.value = false;
-  }
-
-  Future<bool> loadIfInstalled() async {
-    if (_loadedIntoSkia) {
-      ready.value = true;
-      return true;
-    }
-    if (await isInstalled()) {
-      await _ensureLoaded();
-      ready.value = true;
-      return true;
-    }
-    ready.value = false;
-    return false;
-  }
-
-  Future<void> _ensureLoaded() {
-    return _loading ??= _doLoad();
-  }
-
-  Future<void> _doLoad() async {
-    try {
-      final f = await _file();
-      if (!await f.exists() || await f.length() == 0) return;
-      final loader = FontLoader(_fontFamily);
-      loader.addFont(_readBytes(f));
-      await loader.load();
-      _loadedIntoSkia = true;
-    } finally {
-      _loading = null;
-    }
-  }
-
-  Future<ByteData> _readBytes(File f) async {
-    final bytes = await f.readAsBytes();
-    return ByteData.view(bytes.buffer, bytes.offsetInBytes, bytes.lengthInBytes);
+  /// Builds a Row that combines an optional prefix (e.g. "Tafsir"),
+  /// the calligraphic surah glyph, and an optional ayah number, all
+  /// separated by " · ". Designed for sheet/page titles.
+  static Widget buildTitle({
+    required int surahNumber,
+    String? prefix,
+    int? ayahNumber,
+    double glyphSize = 24,
+    double textSize = 17,
+    FontWeight textWeight = FontWeight.w700,
+    Color? color,
+  }) {
+    final divider = Text(
+      ' · ',
+      style: TextStyle(
+        fontSize: textSize,
+        fontWeight: textWeight,
+        color: color,
+      ),
+    );
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (prefix != null && prefix.isNotEmpty) ...[
+          Flexible(
+            child: Text(
+              prefix,
+              style: TextStyle(
+                fontSize: textSize,
+                fontWeight: textWeight,
+                color: color,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          divider,
+        ],
+        Text(
+          glyphFor(surahNumber),
+          style: TextStyle(
+            fontSize: glyphSize,
+            height: 1.0,
+            fontFamily: fontFamily,
+            color: color,
+          ),
+        ),
+        if (ayahNumber != null) ...[
+          divider,
+          Text(
+            '$ayahNumber',
+            style: TextStyle(
+              fontSize: textSize,
+              fontWeight: textWeight,
+              color: color,
+              fontFeatures: const [FontFeature.tabularFigures()],
+            ),
+          ),
+        ],
+      ],
+    );
   }
 }

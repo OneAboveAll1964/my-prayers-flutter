@@ -38,7 +38,7 @@ class _BottomTabBar extends StatelessWidget {
   static const _tabs = [
     _TabSpec(path: '/', label: 'home', icon: Ionicons.home_outline, activeIcon: Ionicons.home),
     _TabSpec(path: '/azkars', label: 'azkars', icon: Ionicons.bookmark_outline, activeIcon: Ionicons.bookmark),
-    _TabSpec(path: '/qibla', label: 'qibla', icon: Ionicons.compass_outline, activeIcon: Ionicons.compass),
+    _TabSpec(path: '/popular', label: 'popular', icon: Ionicons.sparkles_outline, activeIcon: Ionicons.sparkles),
     _TabSpec(path: '/quran', label: 'quran', icon: Ionicons.book_outline, activeIcon: Ionicons.book),
   ];
 
@@ -171,6 +171,7 @@ class _TabButton extends StatelessWidget {
 
 class _MoreSheet extends StatelessWidget {
   static const _items = [
+    _MoreItem(path: '/qibla', label: 'qibla', icon: Ionicons.compass_outline),
     _MoreItem(path: '/calendar', label: 'calendar', icon: Ionicons.calendar_outline),
     _MoreItem(path: '/names', label: 'names', icon: Ionicons.list_outline),
     _MoreItem(path: '/tasbih', label: 'tasbih', icon: Ionicons.disc_outline),

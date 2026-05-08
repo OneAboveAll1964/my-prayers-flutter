@@ -7,6 +7,7 @@ import 'package:ionicons/ionicons.dart';
 import '../../../core/i18n/app_l10n.dart';
 import '../../../core/services/surah_info_service.dart';
 import '../../../core/theme/tokens.dart';
+import '../../../shared/state/settings_provider.dart';
 import '../../../shared/widgets/app_button.dart';
 import '../../../shared/widgets/app_sheet.dart';
 import '../../../shared/widgets/page_scaffold.dart';
@@ -52,7 +53,15 @@ class _SurahInfoLanguagesPageState
       dismissible: false,
       builder: (ctx) => _InstallProgressBody(lang: lang),
     );
-    if (ok == true) await _refresh();
+    if (ok == true) {
+      await _refresh();
+      final settings = ref.read(settingsProvider);
+      if (settings.selectedSurahInfoLanguage == null) {
+        ref
+            .read(settingsProvider.notifier)
+            .setSelectedSurahInfoLanguage(lang);
+      }
+    }
   }
 
   Future<void> _uninstall(String lang) async {
@@ -65,6 +74,8 @@ class _SurahInfoLanguagesPageState
     final l10n = AppL10n.of(context);
     final palette = context.palette;
     final langs = supportedSurahInfoLanguages();
+    final activeLang = ref
+        .watch(settingsProvider.select((s) => s.selectedSurahInfoLanguage));
 
     return Scaffold(
       backgroundColor: palette.bg,
@@ -74,13 +85,23 @@ class _SurahInfoLanguagesPageState
           children: [
             PageHeader(title: l10n.t('resources.surahInfo'), back: true),
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 4),
               child: Text(
                 l10n.t('surahInfo.description'),
                 style: TextStyle(
                   color: palette.textSubtle,
                   fontSize: 12.5,
                   height: 1.5,
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 4, 20, 6),
+              child: Text(
+                l10n.t('surahInfo.selectActive'),
+                style: TextStyle(
+                  color: palette.textSubtle,
+                  fontSize: 12,
                 ),
               ),
             ),
@@ -92,53 +113,93 @@ class _SurahInfoLanguagesPageState
                 itemBuilder: (ctx, i) {
                   final lang = langs[i];
                   final installed = _installed.contains(lang);
-                  return Container(
-                    decoration: BoxDecoration(
-                      color: palette.surface,
-                      borderRadius: BorderRadius.circular(AppTokens.radius),
-                      border: Border.all(
-                          color: installed ? palette.accent : palette.line),
-                    ),
-                    padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 40,
-                          height: 40,
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            color: palette.surface2,
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: palette.line),
+                  final active = activeLang == lang;
+                  return GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: active
+                        ? null
+                        : () => ref
+                            .read(settingsProvider.notifier)
+                            .setSelectedSurahInfoLanguage(lang),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: active ? palette.accentSoft : palette.surface,
+                        borderRadius: BorderRadius.circular(AppTokens.radius),
+                        border: Border.all(
+                            color:
+                                active ? palette.accent : palette.line),
+                      ),
+                      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 40,
+                            height: 40,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: palette.surface2,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: palette.line),
+                            ),
+                            child: Icon(Ionicons.information_circle_outline,
+                                size: 18, color: palette.textMuted),
                           ),
-                          child: Icon(Ionicons.information_circle_outline,
-                              size: 18, color: palette.textMuted),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            localizedLanguageName(l10n, lang),
-                            style: TextStyle(
-                              color: palette.text,
-                              fontSize: 14.5,
-                              fontWeight: FontWeight.w600,
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Flexible(
+                                  child: Text(
+                                    localizedLanguageName(l10n, lang),
+                                    style: TextStyle(
+                                      color: palette.text,
+                                      fontSize: 14.5,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                if (active) ...[
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 8, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: palette.accent,
+                                      borderRadius:
+                                          BorderRadius.circular(999),
+                                    ),
+                                    child: Text(
+                                      l10n.t('reciters.active'),
+                                      style: TextStyle(
+                                        color: palette.accentOn,
+                                        fontSize: 10.5,
+                                        fontWeight: FontWeight.w700,
+                                        letterSpacing: 0.3,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ],
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 10),
-                        AppButton(
-                          label: installed
-                              ? l10n.t('reciters.uninstall')
-                              : l10n.t('reciters.install'),
-                          size: AppButtonSize.sm,
-                          variant: installed
-                              ? AppButtonVariant.outline
-                              : AppButtonVariant.solid,
-                          onPressed: installed
-                              ? () => _uninstall(lang)
-                              : () => _install(lang),
-                        ),
-                      ],
+                          const SizedBox(width: 10),
+                          AppButton(
+                            label: installed
+                                ? l10n.t('reciters.uninstall')
+                                : l10n.t('reciters.install'),
+                            size: AppButtonSize.sm,
+                            variant: installed
+                                ? AppButtonVariant.outline
+                                : AppButtonVariant.solid,
+                            onPressed: installed
+                                ? () => _uninstall(lang)
+                                : () => _install(lang),
+                          ),
+                        ],
+                      ),
                     ),
                   );
                 },

@@ -4,7 +4,6 @@ import 'package:flutter_displaymode/flutter_displaymode.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'app.dart';
 import 'core/services/notification_service.dart';
-import 'core/services/surah_name_font_service.dart';
 import 'shared/data/muslim_db.dart';
 import 'shared/state/favorites_provider.dart';
 import 'shared/state/settings_provider.dart';
@@ -28,7 +27,6 @@ Future<void> main() async {
   final favorites = await FavoritesNotifier.create();
   await MuslimDb.instance.open();
   await NotificationService.instance.init();
-  await SurahNameFontService.instance.loadIfInstalled();
 
   runApp(
     ProviderScope(

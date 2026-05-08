@@ -50,16 +50,23 @@ class _MushafViewState extends ConsumerState<MushafView> {
         ? widget.surah.ayahs.first
         : widget.surah.ayahs.firstWhere(
             (a) => a.numberInSurah == widget.initialAyah,
-            orElse: () => widget.surah.ayahs.first);
-    final initialIdx = (initialAyah.page - _firstPage).clamp(0, _lastPage - _firstPage);
+            orElse: () => widget.surah.ayahs.first,
+          );
+    final initialIdx = (initialAyah.page - _firstPage).clamp(
+      0,
+      _lastPage - _firstPage,
+    );
     _pageController = PreloadPageController(initialPage: initialIdx);
     _ayahByKey = {
       for (final a in widget.surah.ayahs)
         '${widget.surah.number}:${a.numberInSurah}': a,
     };
     final pageCount = _lastPage - _firstPage + 1;
-    _scheduleSettledPreload(initialIdx, pageCount,
-        delay: const Duration(milliseconds: 600));
+    _scheduleSettledPreload(
+      initialIdx,
+      pageCount,
+      delay: const Duration(milliseconds: 600),
+    );
   }
 
   void _scheduleSettledPreload(
@@ -81,8 +88,11 @@ class _MushafViewState extends ConsumerState<MushafView> {
       if (i < 0 || i >= pageCount) continue;
       final pageNumber = _firstPage + i;
       service.loadFontForPage(pageNumber).catchError((_) => '');
-      service.getPageData(pageNumber).catchError((_) =>
-          MushafPageData(pageNumber: pageNumber, lines: const []));
+      service
+          .getPageData(pageNumber)
+          .catchError(
+            (_) => MushafPageData(pageNumber: pageNumber, lines: const []),
+          );
     }
   }
 
@@ -105,8 +115,10 @@ class _MushafViewState extends ConsumerState<MushafView> {
 
     if (tappedSurah != widget.surah.number) {
       final lang = AppL10n.of(context).locale;
-      final loaded = await QuranRepository.instance
-          .getSurah(tappedSurah, langKey(lang));
+      final loaded = await QuranRepository.instance.getSurah(
+        tappedSurah,
+        langKey(lang),
+      );
       if (!mounted || loaded == null) return;
       surah = loaded;
       resolved = _closestAyah(loaded.ayahs, tappedAyah);
@@ -154,15 +166,15 @@ class _MushafViewState extends ConsumerState<MushafView> {
       itemCount: pageCount,
       reverse: false,
       preloadPagesCount: 1,
-      onPageChanged: (idx) {
-        final pageNumber = _firstPage + idx;
-        final firstAyah = widget.surah.ayahs.firstWhere(
-          (a) => a.page == pageNumber,
-          orElse: () => widget.surah.ayahs.first,
-        );
-        widget.onPageAyahChanged?.call(firstAyah);
-        _scheduleSettledPreload(idx, pageCount);
-      },
+      // onPageChanged: (idx) {
+      //   final pageNumber = _firstPage + idx;
+      //   final firstAyah = widget.surah.ayahs.firstWhere(
+      //     (a) => a.page == pageNumber,
+      //     orElse: () => widget.surah.ayahs.first,
+      //   );
+      //   widget.onPageAyahChanged?.call(firstAyah);
+      //   _scheduleSettledPreload(idx, pageCount);
+      // },
       itemBuilder: (ctx, idx) {
         final pageNumber = _firstPage + idx;
         return RepaintBoundary(
@@ -284,13 +296,18 @@ class _MushafPageViewState extends State<_MushafPageView> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Ionicons.alert_circle_outline,
-                              size: 32, color: palette.textMuted),
+                          Icon(
+                            Ionicons.alert_circle_outline,
+                            size: 32,
+                            color: palette.textMuted,
+                          ),
                           const SizedBox(height: 8),
                           Text(
                             l10n.t('common.error'),
                             style: TextStyle(
-                                color: palette.textMuted, fontSize: 13),
+                              color: palette.textMuted,
+                              fontSize: 13,
+                            ),
                           ),
                           const SizedBox(height: 12),
                           GestureDetector(
@@ -300,7 +317,9 @@ class _MushafPageViewState extends State<_MushafPageView> {
                             }),
                             child: Container(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 10),
+                                horizontal: 16,
+                                vertical: 10,
+                              ),
                               decoration: BoxDecoration(
                                 color: palette.surface2,
                                 borderRadius: BorderRadius.circular(10),
@@ -361,8 +380,9 @@ class _MushafPageViewState extends State<_MushafPageView> {
                             icon: Ionicons.chevron_forward,
                             onTap: widget.onSwitchSurah == null
                                 ? null
-                                : () => widget
-                                    .onSwitchSurah!(widget.surahNumber - 1),
+                                : () => widget.onSwitchSurah!(
+                                    widget.surahNumber - 1,
+                                  ),
                           )
                         : null,
                   ),
@@ -381,14 +401,16 @@ class _MushafPageViewState extends State<_MushafPageView> {
                   ),
                   SizedBox(
                     width: 40,
-                    child: widget.pageIndex == widget.totalPages - 1 &&
+                    child:
+                        widget.pageIndex == widget.totalPages - 1 &&
                             widget.surahNumber < 114
                         ? _SurahNavButton(
                             icon: Ionicons.chevron_back,
                             onTap: widget.onSwitchSurah == null
                                 ? null
-                                : () => widget
-                                    .onSwitchSurah!(widget.surahNumber + 1),
+                                : () => widget.onSwitchSurah!(
+                                    widget.surahNumber + 1,
+                                  ),
                           )
                         : null,
                   ),
@@ -431,45 +453,44 @@ class _MushafPageContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
-    return LayoutBuilder(builder: (ctx, c) {
-      const padH = 24.0;
-      const padV = 12.0;
-      final usableHeight = c.maxHeight - padV * 2;
-      final lineHeight = usableHeight / _linesPerPage;
-      final fontSize = lineHeight * 0.55;
+    return LayoutBuilder(
+      builder: (ctx, c) {
+        const padH = 24.0;
+        const padV = 12.0;
+        final usableHeight = c.maxHeight - padV * 2;
+        final lineHeight = usableHeight / _linesPerPage;
+        final fontSize = lineHeight * 0.55;
 
-      return Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: padH,
-          vertical: padV,
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            for (final line in bundle.data.lines)
-              SizedBox(
-                height: lineHeight,
-                child: ClipRect(
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    alignment: Alignment.center,
-                    child: _LineWidget(
-                      line: line,
-                      fontFamily: bundle.fontFamily,
-                      fontSize: fontSize,
-                      ayahByKey: ayahByKey,
-                      selectedKey: selectedKey,
-                      onTapWord: onTapWord,
-                      palette: palette,
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: padH, vertical: padV),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              for (final line in bundle.data.lines)
+                SizedBox(
+                  height: lineHeight,
+                  child: ClipRect(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.center,
+                      child: _LineWidget(
+                        line: line,
+                        fontFamily: bundle.fontFamily,
+                        fontSize: fontSize,
+                        ayahByKey: ayahByKey,
+                        selectedKey: selectedKey,
+                        onTapWord: onTapWord,
+                        palette: palette,
+                      ),
                     ),
                   ),
                 ),
-              ),
-          ],
-        ),
-      );
-    });
+            ],
+          ),
+        );
+      },
+    );
   }
 }
 
@@ -499,9 +520,7 @@ class _LineWidget extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          for (final w in line.words) _wordWidget(w),
-        ],
+        children: [for (final w in line.words) _wordWidget(w)],
       ),
     );
   }
@@ -530,10 +549,7 @@ class _LineWidget extends StatelessWidget {
 }
 
 class _SurahNavButton extends StatelessWidget {
-  const _SurahNavButton({
-    required this.icon,
-    required this.onTap,
-  });
+  const _SurahNavButton({required this.icon, required this.onTap});
 
   final IconData icon;
   final VoidCallback? onTap;
@@ -553,10 +569,13 @@ class _SurahNavButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(10),
           border: Border.all(color: palette.line),
         ),
-        child: Icon(icon,
-            size: 18, color: palette.text, textDirection: TextDirection.ltr),
+        child: Icon(
+          icon,
+          size: 18,
+          color: palette.text,
+          textDirection: TextDirection.ltr,
+        ),
       ),
     );
   }
 }
-

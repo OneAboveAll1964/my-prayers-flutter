@@ -118,14 +118,13 @@ class _SurahPageState extends ConsumerState<SurahPage> {
       if (ctx != null) {
         final box = ctx.findRenderObject() as RenderBox?;
         if (box != null && box.attached && _controller.hasClients) {
-          final viewport = _controller.position.viewportDimension;
           final globalY = box.localToGlobal(Offset.zero).dy;
           final scrollableBox =
               Scrollable.maybeOf(ctx)?.context.findRenderObject() as RenderBox?;
           final viewportTop =
               scrollableBox?.localToGlobal(Offset.zero).dy ?? 0;
           final relY = globalY - viewportTop;
-          final delta = relY - viewport * 0.06;
+          final delta = relY - 4;
           final newOffset =
               (_controller.offset + delta).clamp(0.0, _controller.position.maxScrollExtent);
           await _controller.animateTo(

@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:preload_page_view/preload_page_view.dart';
 import '../../../core/i18n/app_l10n.dart';
@@ -37,6 +39,8 @@ class _MushafViewState extends ConsumerState<MushafView> {
   String? _selectedKey;
   late Map<String, Ayah> _ayahByKey;
   Timer? _preloadTimer;
+  double _edgeDragAccum = 0;
+  bool _edgeNavTriggered = false;
 
   @override
   void initState() {
@@ -144,13 +148,36 @@ class _MushafViewState extends ConsumerState<MushafView> {
     return best;
   }
 
+  void _handleEdgeOverscroll(double overscroll) {
+    _edgeDragAccum += overscroll;
+    if (_edgeNavTriggered) return;
+    if (_edgeDragAccum.abs() < 110) return;
+    _edgeNavTriggered = true;
+    HapticFeedback.mediumImpact();
+    final goNext = _edgeDragAccum > 0;
+    final target = goNext ? widget.surah.number + 1 : widget.surah.number - 1;
+    if (target < 1 || target > 114) return;
+    GoRouter.of(context).push('/quran/$target');
+  }
+
   @override
   Widget build(BuildContext context) {
     final pageCount = _lastPage - _firstPage + 1;
-    return PreloadPageView.builder(
+    return NotificationListener<ScrollNotification>(
+      onNotification: (n) {
+        if (n is OverscrollNotification) {
+          _handleEdgeOverscroll(n.overscroll);
+        } else if (n is ScrollEndNotification) {
+          _edgeDragAccum = 0;
+          _edgeNavTriggered = false;
+        }
+        return false;
+      },
+      child: PreloadPageView.builder(
       controller: _pageController,
       itemCount: pageCount,
       reverse: Directionality.of(context) == TextDirection.rtl,
+      physics: const BouncingScrollPhysics(),
       preloadPagesCount: 1,
       onPageChanged: (idx) {
         final pageNumber = _firstPage + idx;
@@ -163,15 +190,18 @@ class _MushafViewState extends ConsumerState<MushafView> {
       },
       itemBuilder: (ctx, idx) {
         final pageNumber = _firstPage + idx;
-        return _MushafPageView(
-          pageNumber: pageNumber,
-          ayahByKey: _ayahByKey,
-          selectedKey: _selectedKey,
-          onTapWord: _handleTapWord,
-          pageIndex: idx,
-          totalPages: pageCount,
+        return RepaintBoundary(
+          child: _MushafPageView(
+            pageNumber: pageNumber,
+            ayahByKey: _ayahByKey,
+            selectedKey: _selectedKey,
+            onTapWord: _handleTapWord,
+            pageIndex: idx,
+            totalPages: pageCount,
+          ),
         );
       },
+      ),
     );
   }
 }
@@ -468,7 +498,7 @@ class _LineWidget extends StatelessWidget {
       style: TextStyle(
         fontFamily: fontFamily,
         fontSize: fontSize,
-        color: w.isAyahEnd ? palette.accent : palette.text,
+        color: w.isAyahEnd ? palette.accent : null,
         height: 1.4,
       ),
     );

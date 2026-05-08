@@ -131,7 +131,25 @@ class MushafAssetService {
     final dir = await getApplicationSupportDirectory();
     final root = Directory(p.join(dir.path, _storageFolder));
     await Directory(p.join(root.path, 'fonts')).create(recursive: true);
-    await Directory(p.join(root.path, 'pages_full')).create(recursive: true);
+    final pagesDir = Directory(p.join(root.path, 'pages'));
+    final pagesV3Dir = Directory(p.join(root.path, 'pages_v3'));
+    final pagesFullDir = Directory(p.join(root.path, 'pages_full'));
+    if (await pagesV3Dir.exists()) {
+      if (await pagesDir.exists()) {
+        try {
+          await pagesDir.delete(recursive: true);
+        } catch (_) {}
+      }
+      try {
+        await pagesV3Dir.rename(pagesDir.path);
+      } catch (_) {}
+    }
+    if (await pagesFullDir.exists()) {
+      try {
+        await pagesFullDir.delete(recursive: true);
+      } catch (_) {}
+    }
+    await pagesDir.create(recursive: true);
     _root = root;
     return root;
   }
@@ -144,7 +162,7 @@ class MushafAssetService {
       _installed = false;
       return false;
     }
-    final samplePage = File(p.join(root.path, 'pages_full', '1.json'));
+    final samplePage = File(p.join(root.path, 'pages', '1.json'));
     if (!await samplePage.exists()) {
       _installed = false;
       return false;
@@ -182,7 +200,7 @@ class MushafAssetService {
     try {
       final root = await _ensureRoot();
       final fontDir = Directory(p.join(root.path, 'fonts'));
-      final pageDir = Directory(p.join(root.path, 'pages_full'));
+      final pageDir = Directory(p.join(root.path, 'pages'));
 
       var fontsDone = 0;
       var dataDone = 0;
@@ -382,14 +400,24 @@ class MushafAssetService {
     for (final verse in verses) {
       final v = verse as Map<String, dynamic>;
       final verseKey = v['verse_key'] as String;
-      final words = v['words'] as List;
-      for (final word in words) {
-        final w = word as Map<String, dynamic>;
+      final rawWords = (v['words'] as List).cast<Map<String, dynamic>>();
+      var hasExplicitEnd = false;
+      for (final w in rawWords) {
+        if (w['char_type_name'] == 'end') {
+          hasExplicitEnd = true;
+          break;
+        }
+      }
+      for (var i = 0; i < rawWords.length; i++) {
+        final w = rawWords[i];
         final lineNumber = w['line_number'] as int;
         final code = (w[_codeField] ?? '') as String;
         if (code.isEmpty) continue;
         final type = w['char_type_name'] as String?;
-        final isEnd = type == 'end';
+        var isEnd = type == 'end';
+        if (!hasExplicitEnd && i == rawWords.length - 1) {
+          isEnd = true;
+        }
         linesByNumber
             .putIfAbsent(lineNumber, () => <MushafLineWord>[])
             .add(MushafLineWord(
@@ -452,7 +480,7 @@ class MushafAssetService {
   Future<MushafPageData> getPageData(int page) async {
     if (_pageCache.containsKey(page)) return _pageCache[page]!;
     final root = await _ensureRoot();
-    final pageDir = Directory(p.join(root.path, 'pages_full'));
+    final pageDir = Directory(p.join(root.path, 'pages'));
     final file = File(p.join(pageDir.path, '$page.json'));
     if (!await file.exists() || await file.length() == 0) {
       final client = http.Client();

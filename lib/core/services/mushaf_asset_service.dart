@@ -15,6 +15,9 @@ const _pageDataUrlPattern =
     '?words=true&word_fields=line_number,code_v2,char_type_name'
     '&fields=verse_key';
 const _maxConcurrentDownloads = 8;
+const _storageFolder = 'mushaf_v2';
+const _fontFamilyPrefix = 'QCFv2_p';
+const _codeField = 'code_v2';
 
 class MushafInstallProgress {
   const MushafInstallProgress({
@@ -126,7 +129,7 @@ class MushafAssetService {
   Future<Directory> _ensureRoot() async {
     if (_root != null) return _root!;
     final dir = await getApplicationSupportDirectory();
-    final root = Directory(p.join(dir.path, 'mushaf_v2'));
+    final root = Directory(p.join(dir.path, _storageFolder));
     await Directory(p.join(root.path, 'fonts')).create(recursive: true);
     await Directory(p.join(root.path, 'pages')).create(recursive: true);
     _root = root;
@@ -374,7 +377,7 @@ class MushafAssetService {
       for (final word in words) {
         final w = word as Map<String, dynamic>;
         final lineNumber = w['line_number'] as int;
-        final code = (w['code_v2'] ?? '') as String;
+        final code = (w[_codeField] ?? '') as String;
         if (code.isEmpty) continue;
         final type = w['char_type_name'] as String?;
         final isEnd = type == 'end';
@@ -425,7 +428,7 @@ class MushafAssetService {
         client.close();
       }
     }
-    final family = 'QCFv2_p$page';
+    final family = '$_fontFamilyPrefix$page';
     final loader = FontLoader(family);
     loader.addFont(_readFontBytes(file));
     await loader.load();

@@ -46,7 +46,6 @@ class _SurahPageState extends ConsumerState<SurahPage> {
   int _visibleAyah = 1;
   bool _initialScrollScheduled = false;
   Timer? _scrollDebounce;
-  bool _mushafFullscreen = false;
   bool _switchingToMushaf = false;
 
   @override
@@ -240,16 +239,13 @@ class _SurahPageState extends ConsumerState<SurahPage> {
     final marked = fav.surahs.contains(widget.number);
 
     final isMushaf = settings.quranReadMode == 'mushaf';
-    final hideHeader = isMushaf && _mushafFullscreen;
-
     return Scaffold(
       backgroundColor: palette.bg,
       body: SafeArea(
         bottom: false,
         child: Column(
           children: [
-            if (!hideHeader)
-              PageHeader(
+            PageHeader(
                 title: _displayTitle,
                 subtitle: _displaySubtitle,
                 back: true,
@@ -332,10 +328,6 @@ class _SurahPageState extends ConsumerState<SurahPage> {
                                   child: MushafView(
                                     surah: _surah!,
                                     initialAyah: widget.initialAyah,
-                                    fullscreen: _mushafFullscreen,
-                                    onToggleFullscreen: () => setState(() =>
-                                        _mushafFullscreen =
-                                            !_mushafFullscreen),
                                   ),
                                 )
                               : ListView.separated(

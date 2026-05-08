@@ -6,6 +6,7 @@ import '../../../core/i18n/app_l10n.dart';
 import '../../../core/services/mushaf_asset_service.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../shared/models/quran.dart';
+import '../../../shared/state/settings_provider.dart';
 import 'ayah_actions_sheet.dart';
 
 const _linesPerPage = 15;
@@ -14,14 +15,10 @@ class MushafView extends ConsumerStatefulWidget {
   const MushafView({
     super.key,
     required this.surah,
-    required this.fullscreen,
-    required this.onToggleFullscreen,
     this.initialAyah,
   });
 
   final Surah surah;
-  final bool fullscreen;
-  final VoidCallback onToggleFullscreen;
   final int? initialAyah;
 
   @override
@@ -60,7 +57,7 @@ class _MushafViewState extends ConsumerState<MushafView> {
 
   void _preloadAround(int idx, int pageCount) {
     final service = MushafAssetService.instance;
-    for (final delta in const [0, 1, -1, 2, -2, 3, -3]) {
+    for (final delta in const [0, 1, -1]) {
       final i = idx + delta;
       if (i < 0 || i >= pageCount) continue;
       final pageNumber = _firstPage + i;
@@ -79,13 +76,16 @@ class _MushafViewState extends ConsumerState<MushafView> {
   void _handleTapAyah(Ayah ayah) {
     setState(() => _selectedKey =
         '${widget.surah.number}:${ayah.numberInSurah}');
+    final settings = ref.read(settingsProvider);
+    final fontFamily =
+        arabicFontFamilies[settings.arabicFont] ?? 'UthmanicHafs';
     showAyahActionsSheet(
       context: context,
       surah: widget.surah,
       ayah: ayah,
       ref: ref,
-      fontFamily: 'UthmanicHafs',
-      arScale: 1.0,
+      fontFamily: fontFamily,
+      arScale: settings.arabicFontScale,
     ).whenComplete(() {
       if (!mounted) return;
       setState(() => _selectedKey = null);
@@ -95,40 +95,22 @@ class _MushafViewState extends ConsumerState<MushafView> {
   @override
   Widget build(BuildContext context) {
     final pageCount = _lastPage - _firstPage + 1;
-    return Stack(
-      children: [
-        PageView.builder(
-          controller: _pageController,
-          itemCount: pageCount,
-          reverse: Directionality.of(context) == TextDirection.rtl,
-          onPageChanged: (idx) => _preloadAround(idx, pageCount),
-          itemBuilder: (ctx, idx) {
-            final pageNumber = _firstPage + idx;
-            return _MushafPageView(
-              pageNumber: pageNumber,
-              ayahByKey: _ayahByKey,
-              selectedKey: _selectedKey,
-              onTapAyah: _handleTapAyah,
-              fullscreen: widget.fullscreen,
-              onToggleFullscreen: widget.onToggleFullscreen,
-              pageIndex: idx,
-              totalPages: pageCount,
-            );
-          },
-        ),
-        if (widget.fullscreen)
-          Positioned(
-            top: MediaQuery.of(context).padding.top + 8,
-            right:
-                Directionality.of(context) == TextDirection.rtl ? null : 12,
-            left:
-                Directionality.of(context) == TextDirection.rtl ? 12 : null,
-            child: _FloatingButton(
-              icon: Ionicons.contract_outline,
-              onTap: widget.onToggleFullscreen,
-            ),
-          ),
-      ],
+    return PageView.builder(
+      controller: _pageController,
+      itemCount: pageCount,
+      reverse: Directionality.of(context) == TextDirection.rtl,
+      onPageChanged: (idx) => _preloadAround(idx, pageCount),
+      itemBuilder: (ctx, idx) {
+        final pageNumber = _firstPage + idx;
+        return _MushafPageView(
+          pageNumber: pageNumber,
+          ayahByKey: _ayahByKey,
+          selectedKey: _selectedKey,
+          onTapAyah: _handleTapAyah,
+          pageIndex: idx,
+          totalPages: pageCount,
+        );
+      },
     );
   }
 }
@@ -150,8 +132,6 @@ class _MushafPageView extends StatefulWidget {
     required this.ayahByKey,
     required this.selectedKey,
     required this.onTapAyah,
-    required this.fullscreen,
-    required this.onToggleFullscreen,
     required this.pageIndex,
     required this.totalPages,
   });
@@ -160,8 +140,6 @@ class _MushafPageView extends StatefulWidget {
   final Map<String, Ayah> ayahByKey;
   final String? selectedKey;
   final void Function(Ayah ayah) onTapAyah;
-  final bool fullscreen;
-  final VoidCallback onToggleFullscreen;
   final int pageIndex;
   final int totalPages;
 
@@ -200,32 +178,30 @@ class _MushafPageViewState extends State<_MushafPageView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (widget.fullscreen) const SizedBox(height: 56),
-          if (!widget.fullscreen)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 4, 20, 6),
-              child: Row(
-                children: [
-                  Text(
-                    '${l10n.t('quran.juz')} ${_localeNumber(_juzForPage(widget.pageNumber, widget.ayahByKey), context)}',
-                    style: TextStyle(
-                      color: palette.textSubtle,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 4, 20, 6),
+            child: Row(
+              children: [
+                Text(
+                  '${l10n.t('quran.juz')} ${_localeNumber(_juzForPage(widget.pageNumber, widget.ayahByKey), context)}',
+                  style: TextStyle(
+                    color: palette.textSubtle,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
                   ),
-                  const Spacer(),
-                  Text(
-                    '${l10n.t('quran.page')} ${_localeNumber(widget.pageNumber, context)}',
-                    style: TextStyle(
-                      color: palette.textSubtle,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
+                ),
+                const Spacer(),
+                Text(
+                  '${l10n.t('quran.page')} ${_localeNumber(widget.pageNumber, context)}',
+                  style: TextStyle(
+                    color: palette.textSubtle,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
+          ),
           Expanded(
             child: FutureBuilder<_PageBundle>(
               future: _bundleFuture,
@@ -296,44 +272,20 @@ class _MushafPageViewState extends State<_MushafPageView> {
               },
             ),
           ),
-          if (!widget.fullscreen)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 6, 16, 12),
-              child: Row(
-                children: [
-                  GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: widget.onToggleFullscreen,
-                    child: Container(
-                      width: 36,
-                      height: 36,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: palette.surface,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: palette.line),
-                      ),
-                      child: Icon(Ionicons.expand_outline,
-                          size: 16, color: palette.textMuted),
-                    ),
-                  ),
-                  Expanded(
-                    child: Center(
-                      child: Text(
-                        '${_localeNumber(widget.pageIndex + 1, context)} / ${_localeNumber(widget.totalPages, context)}',
-                        style: TextStyle(
-                          color: palette.textSubtle,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          fontFeatures: const [FontFeature.tabularFigures()],
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 36),
-                ],
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12, top: 6),
+            child: Center(
+              child: Text(
+                '${_localeNumber(widget.pageIndex + 1, context)} / ${_localeNumber(widget.totalPages, context)}',
+                style: TextStyle(
+                  color: palette.textSubtle,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                ),
               ),
             ),
+          ),
         ],
       ),
     );
@@ -392,10 +344,9 @@ class _MushafPageContent extends StatelessWidget {
       }
       final widthScale =
           maxNaturalWidth == 0 ? 1.0 : availableWidth / maxNaturalWidth;
-      final naturalHeight = referenceFontSize * 1.0;
-      final heightScale =
-          naturalHeight == 0 ? 1.0 : lineHeight / naturalHeight;
-      final scale = widthScale < heightScale ? widthScale : heightScale;
+      final heightScale = lineHeight / referenceFontSize;
+      final scale =
+          (widthScale < heightScale ? widthScale : heightScale) * 0.95;
       final fontSize = referenceFontSize * scale;
 
       return Padding(
@@ -407,14 +358,21 @@ class _MushafPageContent extends StatelessWidget {
             for (final line in bundle.data.lines)
               SizedBox(
                 height: lineHeight,
-                child: _LineWidget(
-                  line: line,
-                  fontFamily: bundle.fontFamily,
-                  fontSize: fontSize,
-                  ayahByKey: ayahByKey,
-                  selectedKey: selectedKey,
-                  onTapAyah: onTapAyah,
-                  palette: palette,
+                width: availableWidth,
+                child: ClipRect(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.center,
+                    child: _LineWidget(
+                      line: line,
+                      fontFamily: bundle.fontFamily,
+                      fontSize: fontSize,
+                      ayahByKey: ayahByKey,
+                      selectedKey: selectedKey,
+                      onTapAyah: onTapAyah,
+                      palette: palette,
+                    ),
+                  ),
                 ),
               ),
           ],
@@ -472,42 +430,14 @@ class _LineWidget extends StatelessWidget {
         spans.add(const TextSpan(text: ' '));
       }
     }
-    return Center(
-      child: Directionality(
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Text.rich(
+        TextSpan(children: spans),
         textDirection: TextDirection.rtl,
-        child: Text.rich(
-          TextSpan(children: spans),
-          textDirection: TextDirection.rtl,
-          maxLines: 1,
-          softWrap: false,
-          overflow: TextOverflow.visible,
-        ),
-      ),
-    );
-  }
-}
-
-class _FloatingButton extends StatelessWidget {
-  const _FloatingButton({required this.icon, required this.onTap});
-  final IconData icon;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = context.palette;
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onTap,
-      child: Container(
-        width: 42,
-        height: 42,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: palette.surface,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: palette.line),
-        ),
-        child: Icon(icon, size: 18, color: palette.textMuted),
+        maxLines: 1,
+        softWrap: false,
+        overflow: TextOverflow.visible,
       ),
     );
   }

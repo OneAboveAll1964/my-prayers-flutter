@@ -10,7 +10,7 @@ class AppSettings {
   AppSettings({
     this.themeMode = AppThemeMode.auto,
     this.language,
-    this.arabicFont = 'uthmanic-hafs',
+    this.arabicFont = 'scheherazade',
     this.location,
     this.calculationMethod = CalculationMethod.makkah,
     this.asrMethod = AsrMethod.shafii,
@@ -21,7 +21,7 @@ class AppSettings {
     this.useFixedTimes = true,
     this.notificationsEnabled = true,
     this.perPrayerNotifications = const [true, false, true, true, true, true],
-    this.timeFormat = '24h',
+    this.timeFormat = '12h',
     this.arabicFontScale = 1.0,
     this.quranReadMode = 'scroll',
   });
@@ -108,7 +108,7 @@ class AppSettings {
           orElse: () => AppThemeMode.auto,
         ),
         language: j['language'] as String?,
-        arabicFont: (j['arabicFont'] ?? 'uthmanic-hafs') as String,
+        arabicFont: (j['arabicFont'] ?? 'scheherazade') as String,
         location: j['location'] != null
             ? AppLocation.fromJson(j['location'] as Map<String, dynamic>)
             : null,
@@ -134,7 +134,7 @@ class AppSettings {
                 ?.map((e) => e as bool)
                 .toList() ??
             const [true, false, true, true, true, true],
-        timeFormat: (j['timeFormat'] ?? '24h') as String,
+        timeFormat: (j['timeFormat'] ?? '12h') as String,
         arabicFontScale: (j['arabicFontScale'] as num?)?.toDouble() ?? 1.0,
         quranReadMode: (j['quranReadMode'] ?? 'scroll') as String,
       );

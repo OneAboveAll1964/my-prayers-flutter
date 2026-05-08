@@ -12,7 +12,9 @@ import '../../shared/widgets/app_button.dart';
 import '../../shared/widgets/app_sheet.dart';
 import '../../shared/widgets/app_spinner.dart';
 import '../../shared/widgets/page_scaffold.dart';
+import '../../core/services/mushaf_asset_service.dart';
 import '../settings/widgets/arabic_font_picker.dart';
+import 'widgets/mushaf_install_sheet.dart';
 import 'widgets/mushaf_view.dart';
 import 'package:ionicons/ionicons.dart';
 
@@ -45,6 +47,7 @@ class _SurahPageState extends ConsumerState<SurahPage> {
   bool _initialScrollScheduled = false;
   Timer? _scrollDebounce;
   bool _mushafFullscreen = false;
+  bool _switchingToMushaf = false;
 
   @override
   void initState() {
@@ -157,6 +160,26 @@ class _SurahPageState extends ConsumerState<SurahPage> {
     }
   }
 
+  Future<void> _toggleMode(bool isMushaf) async {
+    if (isMushaf) {
+      ref.read(settingsProvider.notifier).setQuranReadMode('scroll');
+      return;
+    }
+    final installed = await MushafAssetService.instance.isInstalled();
+    if (installed) {
+      ref.read(settingsProvider.notifier).setQuranReadMode('mushaf');
+      return;
+    }
+    if (!mounted) return;
+    setState(() => _switchingToMushaf = true);
+    final ok = await showMushafInstallSheet(context);
+    if (!mounted) return;
+    setState(() => _switchingToMushaf = false);
+    if (ok) {
+      ref.read(settingsProvider.notifier).setQuranReadMode('mushaf');
+    }
+  }
+
   void _saveLastRead(int ayah) {
     if (_surah == null) return;
     ref.read(favoritesProvider.notifier).setLastSurah(LastReadEntry(
@@ -238,24 +261,22 @@ class _SurahPageState extends ConsumerState<SurahPage> {
                           ? Ionicons.list_outline
                           : Ionicons.book_outline,
                       semanticLabel: l10n.t('quran.toggleMode'),
-                      onPressed: () {
-                        final next = isMushaf ? 'scroll' : 'mushaf';
-                        ref
-                            .read(settingsProvider.notifier)
-                            .setQuranReadMode(next);
-                      },
+                      onPressed: _switchingToMushaf
+                          ? null
+                          : () => _toggleMode(isMushaf),
                     ),
-                    AppIconButton(
-                      icon: Ionicons.text_outline,
-                      semanticLabel: l10n.t('settings.arabicFont'),
-                      onPressed: () {
-                        showAppSheet(
-                          context: context,
-                          title: l10n.t('settings.arabicFont'),
-                          builder: (ctx) => const ArabicFontPicker(),
-                        );
-                      },
-                    ),
+                    if (!isMushaf)
+                      AppIconButton(
+                        icon: Ionicons.text_outline,
+                        semanticLabel: l10n.t('settings.arabicFont'),
+                        onPressed: () {
+                          showAppSheet(
+                            context: context,
+                            title: l10n.t('settings.arabicFont'),
+                            builder: (ctx) => const ArabicFontPicker(),
+                          );
+                        },
+                      ),
                     GestureDetector(
                       behavior: HitTestBehavior.opaque,
                       onTap: () => ref
@@ -290,34 +311,53 @@ class _SurahPageState extends ConsumerState<SurahPage> {
                             style: TextStyle(color: palette.textMuted),
                           ),
                         )
-                      : isMushaf
-                          ? MushafView(
-                              surah: _surah!,
-                              fontFamily: fontFamily,
-                              arScale: arScale,
-                              initialAyah: widget.initialAyah,
-                              fullscreen: _mushafFullscreen,
-                              onToggleFullscreen: () => setState(() =>
-                                  _mushafFullscreen = !_mushafFullscreen),
-                            )
-                          : ListView.separated(
-                          controller: _controller,
-                          physics: const ClampingScrollPhysics(),
-                          padding:
-                              const EdgeInsets.fromLTRB(18, 4, 18, 32),
-                          itemCount: _surah!.ayahs.length,
-                          separatorBuilder: (ctx, i) =>
-                              const SizedBox(height: 12),
-                          itemBuilder: (ctx, i) {
-                            final a = _surah!.ayahs[i];
-                            return _AyahRow(
-                              key: _ayahKeys[a.numberInSurah],
-                              ayah: a,
-                              surah: _surah!,
-                              fontFamily: fontFamily,
-                              arScale: arScale,
+                      : AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 320),
+                          switchInCurve: Curves.easeOutCubic,
+                          switchOutCurve: Curves.easeInCubic,
+                          transitionBuilder: (child, anim) {
+                            final fade = FadeTransition(
+                                opacity: anim, child: child);
+                            return ScaleTransition(
+                              scale: Tween(begin: 0.96, end: 1.0).animate(
+                                  CurvedAnimation(
+                                      parent: anim,
+                                      curve: Curves.easeOutCubic)),
+                              child: fade,
                             );
                           },
+                          child: isMushaf
+                              ? KeyedSubtree(
+                                  key: const ValueKey('mushaf'),
+                                  child: MushafView(
+                                    surah: _surah!,
+                                    initialAyah: widget.initialAyah,
+                                    fullscreen: _mushafFullscreen,
+                                    onToggleFullscreen: () => setState(() =>
+                                        _mushafFullscreen =
+                                            !_mushafFullscreen),
+                                  ),
+                                )
+                              : ListView.separated(
+                                  key: const ValueKey('scroll'),
+                                  controller: _controller,
+                                  physics: const ClampingScrollPhysics(),
+                                  padding: const EdgeInsets.fromLTRB(
+                                      18, 4, 18, 32),
+                                  itemCount: _surah!.ayahs.length,
+                                  separatorBuilder: (ctx, i) =>
+                                      const SizedBox(height: 12),
+                                  itemBuilder: (ctx, i) {
+                                    final a = _surah!.ayahs[i];
+                                    return _AyahRow(
+                                      key: _ayahKeys[a.numberInSurah],
+                                      ayah: a,
+                                      surah: _surah!,
+                                      fontFamily: fontFamily,
+                                      arScale: arScale,
+                                    );
+                                  },
+                                ),
                         ),
             ),
           ],

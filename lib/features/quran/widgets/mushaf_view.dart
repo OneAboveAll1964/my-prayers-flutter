@@ -3,25 +3,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ionicons/ionicons.dart';
 import '../../../core/i18n/app_l10n.dart';
+import '../../../core/services/mushaf_asset_service.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../shared/models/quran.dart';
-import '../../../shared/state/favorites_provider.dart';
 import 'ayah_actions_sheet.dart';
+
+const _linesPerPage = 15;
 
 class MushafView extends ConsumerStatefulWidget {
   const MushafView({
     super.key,
     required this.surah,
-    required this.fontFamily,
-    required this.arScale,
     required this.fullscreen,
     required this.onToggleFullscreen,
     this.initialAyah,
   });
 
   final Surah surah;
-  final String fontFamily;
-  final double arScale;
   final bool fullscreen;
   final VoidCallback onToggleFullscreen;
   final int? initialAyah;
@@ -31,31 +29,44 @@ class MushafView extends ConsumerStatefulWidget {
 }
 
 class _MushafViewState extends ConsumerState<MushafView> {
-  late final List<_MushafPage> _pages;
-  late final PageController _pageController;
-  int? _selectedAyah;
-
-  double? _baseFont;
-  double? _bodyHeight;
-  String? _baseKey;
+  late int _firstPage;
+  late int _lastPage;
+  late PageController _pageController;
+  String? _selectedKey;
+  late Map<String, Ayah> _ayahByKey;
 
   @override
   void initState() {
     super.initState();
-    _pages = _groupByPage(widget.surah.ayahs);
-    final initial = widget.initialAyah == null
-        ? 0
-        : _pages.indexWhere(
-            (p) => p.ayahs.any((a) => a.numberInSurah == widget.initialAyah));
-    _pageController = PageController(initialPage: initial < 0 ? 0 : initial);
+    final pages = widget.surah.ayahs.map((a) => a.page).toList()..sort();
+    _firstPage = pages.first;
+    _lastPage = pages.last;
+    final initialAyah = widget.initialAyah == null
+        ? widget.surah.ayahs.first
+        : widget.surah.ayahs.firstWhere(
+            (a) => a.numberInSurah == widget.initialAyah,
+            orElse: () => widget.surah.ayahs.first);
+    final initialIdx = (initialAyah.page - _firstPage).clamp(0, _lastPage - _firstPage);
+    _pageController = PageController(initialPage: initialIdx);
+    _ayahByKey = {
+      for (final a in widget.surah.ayahs)
+        '${widget.surah.number}:${a.numberInSurah}': a,
+    };
+    final pageCount = _lastPage - _firstPage + 1;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _preloadAround(initialIdx, pageCount);
+    });
   }
 
-  @override
-  void didUpdateWidget(covariant MushafView oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.fontFamily != widget.fontFamily ||
-        oldWidget.fullscreen != widget.fullscreen) {
-      _baseFont = null;
+  void _preloadAround(int idx, int pageCount) {
+    final service = MushafAssetService.instance;
+    for (final delta in const [0, 1, -1, 2, -2, 3, -3]) {
+      final i = idx + delta;
+      if (i < 0 || i >= pageCount) continue;
+      final pageNumber = _firstPage + i;
+      service.loadFontForPage(pageNumber).catchError((_) => '');
+      service.getPageData(pageNumber).catchError((_) =>
+          MushafPageData(pageNumber: pageNumber, lines: const []));
     }
   }
 
@@ -65,148 +76,61 @@ class _MushafViewState extends ConsumerState<MushafView> {
     super.dispose();
   }
 
-  static List<_MushafPage> _groupByPage(List<Ayah> ayahs) {
-    final out = <_MushafPage>[];
-    for (final a in ayahs) {
-      if (out.isEmpty || out.last.pageNumber != a.page) {
-        out.add(_MushafPage(pageNumber: a.page, ayahs: [a]));
-      } else {
-        out.last.ayahs.add(a);
-      }
-    }
-    return out;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(builder: (rootCtx, rootC) {
-      final viewportKey =
-          '${rootC.maxWidth.toStringAsFixed(0)}x${rootC.maxHeight.toStringAsFixed(0)}|${widget.fontFamily}|${widget.fullscreen}';
-      if (_baseFont == null || _baseKey != viewportKey) {
-        const headerH = 28.0;
-        const footerH = 48.0;
-        const padH = 18.0;
-        const padV = 8.0;
-        final width = rootC.maxWidth - padH * 2;
-        final available = widget.fullscreen
-            ? rootC.maxHeight - 56 - padV * 2
-            : rootC.maxHeight - headerH - footerH - padV * 2;
-        final body = available * 0.94;
-        _bodyHeight = available;
-        _baseFont = _computeBaseFont(width: width, height: body);
-        _baseKey = viewportKey;
-      }
-      final size = _baseFont! * widget.arScale;
-      return Stack(
-        children: [
-          PageView.builder(
-            controller: _pageController,
-            itemCount: _pages.length,
-            reverse: Directionality.of(context) == TextDirection.rtl,
-            itemBuilder: (ctx, idx) {
-              final page = _pages[idx];
-              return _MushafPageView(
-                page: page,
-                surahNumber: widget.surah.number,
-                fontFamily: widget.fontFamily,
-                fontSize: size,
-                arScale: widget.arScale,
-                selectedAyah: _selectedAyah,
-                onTapAyah: _handleTap,
-                totalPages: _pages.length,
-                pageIndex: idx,
-                fullscreen: widget.fullscreen,
-                onToggleFullscreen: widget.onToggleFullscreen,
-                bodyHeight: _bodyHeight ?? rootC.maxHeight,
-              );
-            },
-          ),
-          if (widget.fullscreen)
-            Positioned(
-              top: MediaQuery.of(context).padding.top + 8,
-              right:
-                  Directionality.of(context) == TextDirection.rtl ? null : 12,
-              left:
-                  Directionality.of(context) == TextDirection.rtl ? 12 : null,
-              child: _FloatingButton(
-                icon: Ionicons.contract_outline,
-                onTap: widget.onToggleFullscreen,
-              ),
-            ),
-        ],
-      );
-    });
-  }
-
-  double _computeBaseFont({required double width, required double height}) {
-    var minSize = 26.0;
-    for (final page in _pages) {
-      final s = _maxFitForPage(page, width: width, height: height);
-      if (s < minSize) minSize = s;
-    }
-    return minSize.clamp(14.0, 26.0);
-  }
-
-  double _maxFitForPage(
-    _MushafPage page, {
-    required double width,
-    required double height,
-  }) {
-    final measure = _pageMeasureText(page);
-    var lo = 14.0;
-    var hi = 26.0;
-    for (var i = 0; i < 8; i++) {
-      final mid = (lo + hi) / 2;
-      final tp = TextPainter(
-        text: TextSpan(
-          text: measure,
-          style: TextStyle(
-            fontFamily: widget.fontFamily,
-            fontSize: mid,
-            height: 2.0,
-          ),
-        ),
-        textDirection: TextDirection.rtl,
-        textAlign: TextAlign.justify,
-      )..layout(maxWidth: width);
-      if (tp.height <= height) {
-        lo = mid;
-      } else {
-        hi = mid;
-      }
-    }
-    return lo;
-  }
-
-  String _pageMeasureText(_MushafPage page) {
-    final buf = StringBuffer();
-    for (var i = 0; i < page.ayahs.length; i++) {
-      buf.write(page.ayahs[i].arabic);
-      buf.write(' ۝${_arabicNumber(page.ayahs[i].numberInSurah)} ');
-    }
-    return buf.toString();
-  }
-
-  void _handleTap(Ayah ayah) {
-    setState(() => _selectedAyah = ayah.numberInSurah);
+  void _handleTapAyah(Ayah ayah) {
+    setState(() => _selectedKey =
+        '${widget.surah.number}:${ayah.numberInSurah}');
     showAyahActionsSheet(
       context: context,
       surah: widget.surah,
       ayah: ayah,
       ref: ref,
-      fontFamily: widget.fontFamily,
-      arScale: widget.arScale,
+      fontFamily: 'UthmanicHafs',
+      arScale: 1.0,
     ).whenComplete(() {
       if (!mounted) return;
-      setState(() => _selectedAyah = null);
+      setState(() => _selectedKey = null);
     });
   }
-}
 
-class _MushafPage {
-  _MushafPage({required this.pageNumber, required this.ayahs});
-  final int pageNumber;
-  final List<Ayah> ayahs;
+  @override
+  Widget build(BuildContext context) {
+    final pageCount = _lastPage - _firstPage + 1;
+    return Stack(
+      children: [
+        PageView.builder(
+          controller: _pageController,
+          itemCount: pageCount,
+          reverse: Directionality.of(context) == TextDirection.rtl,
+          onPageChanged: (idx) => _preloadAround(idx, pageCount),
+          itemBuilder: (ctx, idx) {
+            final pageNumber = _firstPage + idx;
+            return _MushafPageView(
+              pageNumber: pageNumber,
+              ayahByKey: _ayahByKey,
+              selectedKey: _selectedKey,
+              onTapAyah: _handleTapAyah,
+              fullscreen: widget.fullscreen,
+              onToggleFullscreen: widget.onToggleFullscreen,
+              pageIndex: idx,
+              totalPages: pageCount,
+            );
+          },
+        ),
+        if (widget.fullscreen)
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 8,
+            right:
+                Directionality.of(context) == TextDirection.rtl ? null : 12,
+            left:
+                Directionality.of(context) == TextDirection.rtl ? 12 : null,
+            child: _FloatingButton(
+              icon: Ionicons.contract_outline,
+              onTap: widget.onToggleFullscreen,
+            ),
+          ),
+      ],
+    );
+  }
 }
 
 const _arabicDigits = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
@@ -220,66 +144,70 @@ String _localeNumber(int n, BuildContext context) {
   return _arabicNumber(n);
 }
 
-class _MushafPageView extends ConsumerWidget {
+class _MushafPageView extends StatefulWidget {
   const _MushafPageView({
-    required this.page,
-    required this.surahNumber,
-    required this.fontFamily,
-    required this.fontSize,
-    required this.arScale,
-    required this.selectedAyah,
+    required this.pageNumber,
+    required this.ayahByKey,
+    required this.selectedKey,
     required this.onTapAyah,
-    required this.totalPages,
-    required this.pageIndex,
     required this.fullscreen,
     required this.onToggleFullscreen,
-    required this.bodyHeight,
+    required this.pageIndex,
+    required this.totalPages,
   });
 
-  final _MushafPage page;
-  final int surahNumber;
-  final String fontFamily;
-  final double fontSize;
-  final double arScale;
-  final int? selectedAyah;
+  final int pageNumber;
+  final Map<String, Ayah> ayahByKey;
+  final String? selectedKey;
   final void Function(Ayah ayah) onTapAyah;
-  final int totalPages;
-  final int pageIndex;
   final bool fullscreen;
   final VoidCallback onToggleFullscreen;
-  final double bodyHeight;
+  final int pageIndex;
+  final int totalPages;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final palette = context.palette;
-    final fav = ref.watch(favoritesProvider);
-    final l10n = AppL10n.of(context);
-    final spans = _buildSpans(palette: palette, fav: fav);
+  State<_MushafPageView> createState() => _MushafPageViewState();
+}
 
-    final body = Directionality(
-      textDirection: TextDirection.rtl,
-      child: SizedBox(
-        width: double.infinity,
-        child: Text.rich(
-          TextSpan(children: spans),
-          textAlign: TextAlign.justify,
-        ),
-      ),
+class _MushafPageViewState extends State<_MushafPageView> {
+  Future<_PageBundle>? _bundleFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _bundleFuture = _loadBundle(widget.pageNumber);
+  }
+
+  Future<_PageBundle> _loadBundle(int pageNumber) async {
+    final service = MushafAssetService.instance;
+    final results = await Future.wait([
+      service.getPageData(pageNumber),
+      service.loadFontForPage(pageNumber),
+    ]);
+    return _PageBundle(
+      data: results[0] as MushafPageData,
+      fontFamily: results[1] as String,
     );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    final l10n = AppL10n.of(context);
 
     return SafeArea(
       bottom: false,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (fullscreen) const SizedBox(height: 56),
-          if (!fullscreen)
+          if (widget.fullscreen) const SizedBox(height: 56),
+          if (!widget.fullscreen)
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 4, 20, 6),
               child: Row(
                 children: [
                   Text(
-                    '${l10n.t('quran.juz')} ${_localeNumber(page.ayahs.first.juz, context)}',
+                    '${l10n.t('quran.juz')} ${_localeNumber(_juzForPage(widget.pageNumber, widget.ayahByKey), context)}',
                     style: TextStyle(
                       color: palette.textSubtle,
                       fontSize: 12,
@@ -288,7 +216,7 @@ class _MushafPageView extends ConsumerWidget {
                   ),
                   const Spacer(),
                   Text(
-                    '${l10n.t('quran.page')} ${_localeNumber(page.pageNumber, context)}',
+                    '${l10n.t('quran.page')} ${_localeNumber(widget.pageNumber, context)}',
                     style: TextStyle(
                       color: palette.textSubtle,
                       fontSize: 12,
@@ -299,29 +227,83 @@ class _MushafPageView extends ConsumerWidget {
               ),
             ),
           Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
-              child: arScale > 1.0
-                  ? SingleChildScrollView(
-                      physics: const ClampingScrollPhysics(),
-                      child: body,
-                    )
-                  : Center(
-                      child: SingleChildScrollView(
-                        physics: const NeverScrollableScrollPhysics(),
-                        child: body,
+            child: FutureBuilder<_PageBundle>(
+              future: _bundleFuture,
+              builder: (ctx, snap) {
+                if (snap.hasError) {
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Ionicons.alert_circle_outline,
+                              size: 32, color: palette.textMuted),
+                          const SizedBox(height: 8),
+                          Text(
+                            l10n.t('common.error'),
+                            style: TextStyle(
+                                color: palette.textMuted, fontSize: 13),
+                          ),
+                          const SizedBox(height: 12),
+                          GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () => setState(() {
+                              _bundleFuture = _loadBundle(widget.pageNumber);
+                            }),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 10),
+                              decoration: BoxDecoration(
+                                color: palette.surface2,
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(color: palette.line),
+                              ),
+                              child: Text(
+                                l10n.t('common.retry'),
+                                style: TextStyle(
+                                  color: palette.text,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
+                  );
+                }
+                if (!snap.hasData) {
+                  return Center(
+                    child: SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.4,
+                        color: palette.accent,
+                      ),
+                    ),
+                  );
+                }
+                final bundle = snap.data!;
+                return _MushafPageContent(
+                  bundle: bundle,
+                  ayahByKey: widget.ayahByKey,
+                  selectedKey: widget.selectedKey,
+                  onTapAyah: widget.onTapAyah,
+                );
+              },
             ),
           ),
-          if (!fullscreen)
+          if (!widget.fullscreen)
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 6, 16, 12),
               child: Row(
                 children: [
                   GestureDetector(
                     behavior: HitTestBehavior.opaque,
-                    onTap: onToggleFullscreen,
+                    onTap: widget.onToggleFullscreen,
                     child: Container(
                       width: 36,
                       height: 36,
@@ -338,7 +320,7 @@ class _MushafPageView extends ConsumerWidget {
                   Expanded(
                     child: Center(
                       child: Text(
-                        '${_localeNumber(pageIndex + 1, context)} / ${_localeNumber(totalPages, context)}',
+                        '${_localeNumber(widget.pageIndex + 1, context)} / ${_localeNumber(widget.totalPages, context)}',
                         style: TextStyle(
                           color: palette.textSubtle,
                           fontSize: 11,
@@ -356,78 +338,152 @@ class _MushafPageView extends ConsumerWidget {
       ),
     );
   }
+}
 
-  List<InlineSpan> _buildSpans({
-    required AppPalette palette,
-    required FavoritesState fav,
-  }) {
-    final spans = <InlineSpan>[];
-    for (var i = 0; i < page.ayahs.length; i++) {
-      final a = page.ayahs[i];
-      final isBookmarked = fav.ayahs
-          .any((e) => e.surah == surahNumber && e.ayah == a.numberInSurah);
-      final selected = selectedAyah == a.numberInSurah;
-      final tap = TapGestureRecognizer()..onTap = () => onTapAyah(a);
+int _juzForPage(int page, Map<String, Ayah> map) {
+  for (final a in map.values) {
+    if (a.page == page) return a.juz;
+  }
+  return 1;
+}
 
-      final fillColor = selected
-          ? palette.accentSoft
-          : (isBookmarked
-              ? palette.accentSoft.withValues(alpha: 0.5)
-              : null);
+class _PageBundle {
+  _PageBundle({required this.data, required this.fontFamily});
+  final MushafPageData data;
+  final String fontFamily;
+}
 
-      spans.add(TextSpan(
-        text: a.arabic,
-        recognizer: tap,
-        style: TextStyle(
-          color: palette.text,
-          fontFamily: fontFamily,
-          fontSize: fontSize,
-          height: 2.0,
-          background: fillColor == null ? null : (Paint()..color = fillColor),
-        ),
-      ));
+class _MushafPageContent extends StatelessWidget {
+  const _MushafPageContent({
+    required this.bundle,
+    required this.ayahByKey,
+    required this.selectedKey,
+    required this.onTapAyah,
+  });
 
-      spans.add(WidgetSpan(
-        alignment: PlaceholderAlignment.middle,
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: () => onTapAyah(a),
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: fontSize * 0.08),
-            child: SizedBox(
-              width: fontSize * 1.4,
-              height: fontSize * 1.6,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  Text(
-                    '۝',
-                    style: TextStyle(
-                      color: palette.accent,
-                      fontFamily: fontFamily,
-                      fontSize: fontSize * 1.5,
-                      height: 1.0,
-                    ),
-                  ),
-                  Text(
-                    _arabicNumber(a.numberInSurah),
-                    style: TextStyle(
-                      color: palette.accent,
-                      fontFamily: fontFamily,
-                      fontSize: fontSize * 0.42,
-                      fontWeight: FontWeight.w700,
-                      height: 1.0,
-                      fontFeatures: const [FontFeature.tabularFigures()],
-                    ),
-                  ),
-                ],
-              ),
+  final _PageBundle bundle;
+  final Map<String, Ayah> ayahByKey;
+  final String? selectedKey;
+  final void Function(Ayah ayah) onTapAyah;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    return LayoutBuilder(builder: (ctx, c) {
+      const padH = 12.0;
+      final availableWidth = c.maxWidth - padH * 2;
+      final lineHeight = c.maxHeight / _linesPerPage;
+
+      const referenceFontSize = 100.0;
+      var maxNaturalWidth = 0.0;
+      for (final line in bundle.data.lines) {
+        final tp = TextPainter(
+          text: TextSpan(
+            text: line.codes,
+            style: TextStyle(
+              fontFamily: bundle.fontFamily,
+              fontSize: referenceFontSize,
+              height: 1.0,
             ),
           ),
+          textDirection: TextDirection.rtl,
+        )..layout();
+        if (tp.width > maxNaturalWidth) maxNaturalWidth = tp.width;
+      }
+      final widthScale =
+          maxNaturalWidth == 0 ? 1.0 : availableWidth / maxNaturalWidth;
+      final naturalHeight = referenceFontSize * 1.0;
+      final heightScale =
+          naturalHeight == 0 ? 1.0 : lineHeight / naturalHeight;
+      final scale = widthScale < heightScale ? widthScale : heightScale;
+      final fontSize = referenceFontSize * scale;
+
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: padH),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (final line in bundle.data.lines)
+              SizedBox(
+                height: lineHeight,
+                child: _LineWidget(
+                  line: line,
+                  fontFamily: bundle.fontFamily,
+                  fontSize: fontSize,
+                  ayahByKey: ayahByKey,
+                  selectedKey: selectedKey,
+                  onTapAyah: onTapAyah,
+                  palette: palette,
+                ),
+              ),
+          ],
+        ),
+      );
+    });
+  }
+}
+
+class _LineWidget extends StatelessWidget {
+  const _LineWidget({
+    required this.line,
+    required this.fontFamily,
+    required this.fontSize,
+    required this.ayahByKey,
+    required this.selectedKey,
+    required this.onTapAyah,
+    required this.palette,
+  });
+
+  final MushafLine line;
+  final String fontFamily;
+  final double fontSize;
+  final Map<String, Ayah> ayahByKey;
+  final String? selectedKey;
+  final void Function(Ayah ayah) onTapAyah;
+  final AppPalette palette;
+
+  @override
+  Widget build(BuildContext context) {
+    final spans = <InlineSpan>[];
+    for (var i = 0; i < line.words.length; i++) {
+      final w = line.words[i];
+      final ayah = ayahByKey[w.verseKey];
+      final tap = ayah == null
+          ? null
+          : (TapGestureRecognizer()..onTap = () => onTapAyah(ayah));
+      final isSelected = selectedKey == w.verseKey;
+      final fillColor = isSelected ? palette.accentSoft : null;
+      spans.add(TextSpan(
+        text: w.code,
+        recognizer: tap,
+        style: TextStyle(
+          color: ayah == null
+              ? palette.textMuted.withValues(alpha: 0.65)
+              : (w.isAyahEnd ? palette.accent : palette.text),
+          fontFamily: fontFamily,
+          fontSize: fontSize,
+          height: 1.0,
+          background:
+              fillColor == null ? null : (Paint()..color = fillColor),
         ),
       ));
+      if (i < line.words.length - 1) {
+        spans.add(const TextSpan(text: ' '));
+      }
     }
-    return spans;
+    return Center(
+      child: Directionality(
+        textDirection: TextDirection.rtl,
+        child: Text.rich(
+          TextSpan(children: spans),
+          textDirection: TextDirection.rtl,
+          maxLines: 1,
+          softWrap: false,
+          overflow: TextOverflow.visible,
+        ),
+      ),
+    );
   }
 }
 
@@ -456,3 +512,4 @@ class _FloatingButton extends StatelessWidget {
     );
   }
 }
+

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter/widgets.dart';
 
 import 'recitation_service.dart';
 
@@ -91,6 +92,7 @@ class AyahAudioController {
       c._clearQueue();
       c._emit(c._state.copyWith(playing: false));
     });
+    WidgetsBinding.instance.addObserver(_AudioLifecycleObserver(c));
     return c;
   })();
 
@@ -130,6 +132,12 @@ class AyahAudioController {
     _queueReciter = reciterId;
     _queueEndAyah = endAyah;
     await playAyah(reciterId: reciterId, surah: surah, ayah: startAyah);
+  }
+
+  Future<void> _onAppBackgrounded() async {
+    if (_state.playing || _state.loading || _queueActive) {
+      await stop();
+    }
   }
 
   Future<void> playAyah({
@@ -174,6 +182,19 @@ class AyahAudioController {
         playing: false,
         error: e.toString(),
       ));
+    }
+  }
+}
+
+class _AudioLifecycleObserver with WidgetsBindingObserver {
+  _AudioLifecycleObserver(this._controller);
+  final AyahAudioController _controller;
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached) {
+      _controller._onAppBackgrounded();
     }
   }
 }

@@ -1,6 +1,6 @@
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:ionicons/ionicons.dart';
 import '../../../core/i18n/app_l10n.dart';
 import '../../../core/services/mushaf_asset_service.dart';
@@ -73,23 +73,31 @@ class _MushafViewState extends ConsumerState<MushafView> {
     super.dispose();
   }
 
-  void _handleTapAyah(Ayah ayah) {
-    setState(() => _selectedKey =
-        '${widget.surah.number}:${ayah.numberInSurah}');
-    final settings = ref.read(settingsProvider);
-    final fontFamily =
-        arabicFontFamilies[settings.arabicFont] ?? 'UthmanicHafs';
-    showAyahActionsSheet(
-      context: context,
-      surah: widget.surah,
-      ayah: ayah,
-      ref: ref,
-      fontFamily: fontFamily,
-      arScale: settings.arabicFontScale,
-    ).whenComplete(() {
-      if (!mounted) return;
-      setState(() => _selectedKey = null);
-    });
+  void _handleTapWord(String verseKey, Ayah? ayah) {
+    if (ayah != null) {
+      setState(() => _selectedKey = verseKey);
+      final settings = ref.read(settingsProvider);
+      final fontFamily =
+          arabicFontFamilies[settings.arabicFont] ?? 'UthmanicHafs';
+      showAyahActionsSheet(
+        context: context,
+        surah: widget.surah,
+        ayah: ayah,
+        ref: ref,
+        fontFamily: fontFamily,
+        arScale: settings.arabicFontScale,
+      ).whenComplete(() {
+        if (!mounted) return;
+        setState(() => _selectedKey = null);
+      });
+      return;
+    }
+    final parts = verseKey.split(':');
+    if (parts.length != 2) return;
+    final surahNumber = int.tryParse(parts[0]);
+    final ayahNumber = int.tryParse(parts[1]);
+    if (surahNumber == null || ayahNumber == null) return;
+    GoRouter.of(context).push('/quran/$surahNumber?ayah=$ayahNumber');
   }
 
   @override
@@ -106,7 +114,7 @@ class _MushafViewState extends ConsumerState<MushafView> {
           pageNumber: pageNumber,
           ayahByKey: _ayahByKey,
           selectedKey: _selectedKey,
-          onTapAyah: _handleTapAyah,
+          onTapWord: _handleTapWord,
           pageIndex: idx,
           totalPages: pageCount,
         );
@@ -131,7 +139,7 @@ class _MushafPageView extends StatefulWidget {
     required this.pageNumber,
     required this.ayahByKey,
     required this.selectedKey,
-    required this.onTapAyah,
+    required this.onTapWord,
     required this.pageIndex,
     required this.totalPages,
   });
@@ -139,7 +147,7 @@ class _MushafPageView extends StatefulWidget {
   final int pageNumber;
   final Map<String, Ayah> ayahByKey;
   final String? selectedKey;
-  final void Function(Ayah ayah) onTapAyah;
+  final void Function(String verseKey, Ayah? ayah) onTapWord;
   final int pageIndex;
   final int totalPages;
 
@@ -267,7 +275,7 @@ class _MushafPageViewState extends State<_MushafPageView> {
                   bundle: bundle,
                   ayahByKey: widget.ayahByKey,
                   selectedKey: widget.selectedKey,
-                  onTapAyah: widget.onTapAyah,
+                  onTapWord: widget.onTapWord,
                 );
               },
             ),
@@ -313,47 +321,23 @@ class _MushafPageContent extends StatelessWidget {
     required this.bundle,
     required this.ayahByKey,
     required this.selectedKey,
-    required this.onTapAyah,
+    required this.onTapWord,
   });
 
   final _PageBundle bundle;
   final Map<String, Ayah> ayahByKey;
   final String? selectedKey;
-  final void Function(Ayah ayah) onTapAyah;
+  final void Function(String verseKey, Ayah? ayah) onTapWord;
 
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
     return LayoutBuilder(builder: (ctx, c) {
-      const padH = 12.0;
-      final availableWidth = c.maxWidth - padH * 2;
       final lineHeight = c.maxHeight / _linesPerPage;
-
-      const referenceFontSize = 100.0;
-      var maxNaturalWidth = 0.0;
-      for (final line in bundle.data.lines) {
-        final tp = TextPainter(
-          text: TextSpan(
-            text: line.codes,
-            style: TextStyle(
-              fontFamily: bundle.fontFamily,
-              fontSize: referenceFontSize,
-              height: 1.0,
-            ),
-          ),
-          textDirection: TextDirection.rtl,
-        )..layout();
-        if (tp.width > maxNaturalWidth) maxNaturalWidth = tp.width;
-      }
-      final widthScale =
-          maxNaturalWidth == 0 ? 1.0 : availableWidth / maxNaturalWidth;
-      final heightScale = lineHeight / referenceFontSize;
-      final scale =
-          (widthScale < heightScale ? widthScale : heightScale) * 0.95;
-      final fontSize = referenceFontSize * scale;
+      final fontSize = lineHeight * 0.55;
 
       return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: padH),
+        padding: const EdgeInsets.symmetric(horizontal: 12),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -361,20 +345,15 @@ class _MushafPageContent extends StatelessWidget {
             for (final line in bundle.data.lines)
               SizedBox(
                 height: lineHeight,
-                width: availableWidth,
                 child: ClipRect(
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    alignment: Alignment.center,
-                    child: _LineWidget(
-                      line: line,
-                      fontFamily: bundle.fontFamily,
-                      fontSize: fontSize,
-                      ayahByKey: ayahByKey,
-                      selectedKey: selectedKey,
-                      onTapAyah: onTapAyah,
-                      palette: palette,
-                    ),
+                  child: _LineWidget(
+                    line: line,
+                    fontFamily: bundle.fontFamily,
+                    fontSize: fontSize,
+                    ayahByKey: ayahByKey,
+                    selectedKey: selectedKey,
+                    onTapWord: onTapWord,
+                    palette: palette,
                   ),
                 ),
               ),
@@ -392,7 +371,7 @@ class _LineWidget extends StatelessWidget {
     required this.fontSize,
     required this.ayahByKey,
     required this.selectedKey,
-    required this.onTapAyah,
+    required this.onTapWord,
     required this.palette,
   });
 
@@ -401,46 +380,48 @@ class _LineWidget extends StatelessWidget {
   final double fontSize;
   final Map<String, Ayah> ayahByKey;
   final String? selectedKey;
-  final void Function(Ayah ayah) onTapAyah;
+  final void Function(String verseKey, Ayah? ayah) onTapWord;
   final AppPalette palette;
 
   @override
   Widget build(BuildContext context) {
-    final spans = <InlineSpan>[];
-    for (var i = 0; i < line.words.length; i++) {
-      final w = line.words[i];
-      final ayah = ayahByKey[w.verseKey];
-      final tap = ayah == null
-          ? null
-          : (TapGestureRecognizer()..onTap = () => onTapAyah(ayah));
-      final isSelected = selectedKey == w.verseKey;
-      final fillColor = isSelected ? palette.accentSoft : null;
-      spans.add(TextSpan(
-        text: w.code,
-        recognizer: tap,
-        style: TextStyle(
-          color: ayah == null
-              ? palette.textMuted.withValues(alpha: 0.65)
-              : (w.isAyahEnd ? palette.accent : palette.text),
-          fontFamily: fontFamily,
-          fontSize: fontSize,
-          height: 1.0,
-          background:
-              fillColor == null ? null : (Paint()..color = fillColor),
-        ),
-      ));
-      if (i < line.words.length - 1) {
-        spans.add(const TextSpan(text: ' '));
-      }
-    }
     return Directionality(
       textDirection: TextDirection.rtl,
-      child: Text.rich(
-        TextSpan(children: spans),
-        textDirection: TextDirection.rtl,
-        maxLines: 1,
-        softWrap: false,
-        overflow: TextOverflow.visible,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          for (final w in line.words)
+            _wordWidget(w),
+        ],
+      ),
+    );
+  }
+
+  Widget _wordWidget(MushafLineWord w) {
+    final ayah = ayahByKey[w.verseKey];
+    final isSelected = selectedKey == w.verseKey;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => onTapWord(w.verseKey, ayah),
+      child: Container(
+        decoration: isSelected
+            ? BoxDecoration(
+                color: palette.accentSoft,
+                borderRadius: BorderRadius.circular(4),
+              )
+            : null,
+        padding: const EdgeInsets.symmetric(horizontal: 1),
+        child: Text(
+          w.code,
+          textDirection: TextDirection.rtl,
+          style: TextStyle(
+            fontFamily: fontFamily,
+            fontSize: fontSize,
+            color: w.isAyahEnd ? palette.accent : palette.text,
+            height: 1.4,
+          ),
+        ),
       ),
     );
   }

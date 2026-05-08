@@ -39,7 +39,6 @@ class _MushafViewState extends ConsumerState<MushafView> {
   String? _selectedKey;
   late Map<String, Ayah> _ayahByKey;
   Timer? _preloadTimer;
-  double _edgeDragAccum = 0;
   bool _edgeNavTriggered = false;
 
   @override
@@ -148,16 +147,18 @@ class _MushafViewState extends ConsumerState<MushafView> {
     return best;
   }
 
-  void _handleEdgeOverscroll(double overscroll) {
-    _edgeDragAccum += overscroll;
+  void _checkEdgeMetrics(ScrollMetrics m) {
     if (_edgeNavTriggered) return;
-    if (_edgeDragAccum.abs() < 110) return;
+    final pastEnd = m.pixels - m.maxScrollExtent;
+    final pastStart = m.minScrollExtent - m.pixels;
+    final goNext = pastEnd >= pastStart;
+    final overshoot = goNext ? pastEnd : pastStart;
+    if (overshoot < 50) return;
     _edgeNavTriggered = true;
     HapticFeedback.mediumImpact();
-    final goNext = _edgeDragAccum > 0;
     final target = goNext ? widget.surah.number + 1 : widget.surah.number - 1;
     if (target < 1 || target > 114) return;
-    GoRouter.of(context).push('/quran/$target');
+    GoRouter.of(context).pushReplacement('/quran/$target');
   }
 
   @override
@@ -165,10 +166,10 @@ class _MushafViewState extends ConsumerState<MushafView> {
     final pageCount = _lastPage - _firstPage + 1;
     return NotificationListener<ScrollNotification>(
       onNotification: (n) {
-        if (n is OverscrollNotification) {
-          _handleEdgeOverscroll(n.overscroll);
+        if (n is ScrollUpdateNotification ||
+            n is OverscrollNotification) {
+          _checkEdgeMetrics(n.metrics);
         } else if (n is ScrollEndNotification) {
-          _edgeDragAccum = 0;
           _edgeNavTriggered = false;
         }
         return false;
@@ -177,7 +178,9 @@ class _MushafViewState extends ConsumerState<MushafView> {
       controller: _pageController,
       itemCount: pageCount,
       reverse: Directionality.of(context) == TextDirection.rtl,
-      physics: const BouncingScrollPhysics(),
+      physics: const BouncingScrollPhysics(
+        decelerationRate: ScrollDecelerationRate.fast,
+      ),
       preloadPagesCount: 1,
       onPageChanged: (idx) {
         final pageNumber = _firstPage + idx;

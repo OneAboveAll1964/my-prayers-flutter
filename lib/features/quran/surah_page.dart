@@ -19,6 +19,7 @@ import '../../core/services/mushaf_asset_service.dart';
 import '../settings/widgets/arabic_font_picker.dart';
 import 'widgets/mushaf_install_sheet.dart';
 import 'widgets/mushaf_view.dart';
+import 'widgets/surah_info_sheet.dart';
 import 'widgets/tafsir_sheet.dart';
 import 'package:ionicons/ionicons.dart';
 
@@ -424,6 +425,15 @@ class _SurahPageState extends ConsumerState<SurahPage> {
                       onPressed: _startingSurahPlay
                           ? null
                           : _onPlaySurahTap,
+                    ),
+                    AppIconButton(
+                      icon: Ionicons.information_circle_outline,
+                      semanticLabel: l10n.t('surahInfo.title'),
+                      onPressed: () => showSurahInfoSheet(
+                        context: context,
+                        surahNumber: widget.number,
+                        displayName: _displayTitle,
+                      ),
                     ),
                     if (!isMushaf)
                       AppIconButton(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/i18n/app_l10n.dart';
+import '../../core/services/surah_name_font_service.dart';
 import '../../core/theme/tokens.dart';
 import '../../shared/data/quran_repository.dart';
 import '../../shared/models/quran.dart';
@@ -288,13 +289,31 @@ class _SurahRowState extends State<_SurahRow> {
                   ),
                   if (l10n.locale.languageCode == 'en') ...[
                     const SizedBox(width: 10),
-                    Text(
-                      widget.item.name,
-                      style: TextStyle(
-                        color: palette.text,
-                        fontFamily: widget.arabicFont,
-                        fontSize: 19,
-                      ),
+                    ValueListenableBuilder<bool>(
+                      valueListenable: SurahNameFontService.instance.ready,
+                      builder: (ctx, fontReady, _) {
+                        if (fontReady) {
+                          return Text(
+                            SurahNameFontService.instance
+                                .surahGlyph(widget.item.number),
+                            style: TextStyle(
+                              color: palette.text,
+                              fontFamily:
+                                  SurahNameFontService.instance.fontFamily,
+                              fontSize: 26,
+                              height: 1.0,
+                            ),
+                          );
+                        }
+                        return Text(
+                          widget.item.name,
+                          style: TextStyle(
+                            color: palette.text,
+                            fontFamily: widget.arabicFont,
+                            fontSize: 19,
+                          ),
+                        );
+                      },
                     ),
                   ],
                 ],

@@ -317,56 +317,30 @@ class _SurahPageState extends ConsumerState<SurahPage> {
       context.push('/settings/resources/reciters');
       return;
     }
-    final installed = await RecitationService.instance.isInstalled(reciterId);
-    if (!installed) {
+    final ayahCount = _surah!.ayahs.length;
+    final ready = await RecitationService.instance
+        .isSurahReady(reciterId, widget.number, ayahCount);
+    if (!ready) {
       if (!mounted) return;
-      final go = await showAppSheet<bool>(
+      final ok = await showAppSheet<bool>(
         context: context,
-        title: l10n.t('quran.installToPlayTitle'),
-        builder: (ctx) {
-          final palette = ctx.palette;
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                l10n.t('quran.installToPlayBody'),
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: palette.textMuted,
-                  fontSize: 14,
-                  height: 1.5,
-                ),
-              ),
-              const SizedBox(height: 16),
-              AppButton(
-                label: l10n.t('reciters.openResources'),
-                variant: AppButtonVariant.solid,
-                expand: true,
-                onPressed: () => Navigator.of(ctx).pop(true),
-              ),
-              const SizedBox(height: 8),
-              AppButton(
-                label: l10n.t('common.cancel'),
-                variant: AppButtonVariant.outline,
-                expand: true,
-                onPressed: () => Navigator.of(ctx).pop(false),
-              ),
-            ],
-          );
-        },
+        title: l10n.t('quran.downloadSurahTitle'),
+        dismissible: false,
+        builder: (ctx) => _SurahDownloadBody(
+          reciterId: reciterId,
+          surahNumber: widget.number,
+        ),
       );
-      if (go == true && mounted) {
-        context.push('/settings/resources/reciters');
-      }
-      return;
+      if (ok != true) return;
     }
+    if (!mounted) return;
     setState(() => _startingSurahPlay = true);
     try {
       await ctrl.playSurah(
         reciterId: reciterId,
         surah: widget.number,
         startAyah: _currentAyah,
-        endAyah: _surah!.ayahs.length,
+        endAyah: ayahCount,
       );
     } finally {
       if (mounted) setState(() => _startingSurahPlay = false);
@@ -802,6 +776,149 @@ class _AyahRowState extends ConsumerState<_AyahRow> {
           ],
         ],
       ),
+    );
+  }
+}
+
+class _SurahDownloadBody extends StatefulWidget {
+  const _SurahDownloadBody({
+    required this.reciterId,
+    required this.surahNumber,
+  });
+  final int reciterId;
+  final int surahNumber;
+
+  @override
+  State<_SurahDownloadBody> createState() => _SurahDownloadBodyState();
+}
+
+class _SurahDownloadBodyState extends State<_SurahDownloadBody> {
+  StreamSubscription<RecitationProgress>? _sub;
+  RecitationProgress? _progress;
+  bool _failed = false;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _start();
+  }
+
+  @override
+  void dispose() {
+    _sub?.cancel();
+    super.dispose();
+  }
+
+  void _start() {
+    setState(() {
+      _failed = false;
+      _error = null;
+    });
+    _sub?.cancel();
+    _sub = RecitationService.instance
+        .downloadSurah(
+          reciterId: widget.reciterId,
+          surahNumber: widget.surahNumber,
+        )
+        .listen((p) {
+      if (!mounted) return;
+      setState(() {
+        _progress = p;
+        if (p.failed) {
+          _failed = true;
+          _error = p.errorMessage;
+        }
+      });
+      if (p.isComplete) {
+        Navigator.of(context).pop(true);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppL10n.of(context);
+    final palette = context.palette;
+    final p = _progress;
+    final fraction = p?.fraction ?? 0.0;
+    final done = p?.filesDone ?? 0;
+    final total = p?.totalFiles ?? 0;
+
+    if (_failed) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Icon(Ionicons.alert_circle_outline,
+              size: 28, color: palette.textMuted),
+          const SizedBox(height: 8),
+          Text(
+            l10n.t('reciters.installFailed'),
+            textAlign: TextAlign.center,
+            style: TextStyle(color: palette.text, fontSize: 14),
+          ),
+          if (_error != null) ...[
+            const SizedBox(height: 6),
+            Text(
+              _error!,
+              textAlign: TextAlign.center,
+              style: TextStyle(color: palette.textMuted, fontSize: 12),
+            ),
+          ],
+          const SizedBox(height: 16),
+          AppButton(
+            label: l10n.t('mushaf.installRetry'),
+            variant: AppButtonVariant.solid,
+            expand: true,
+            onPressed: _start,
+          ),
+          const SizedBox(height: 8),
+          AppButton(
+            label: l10n.t('common.cancel'),
+            variant: AppButtonVariant.outline,
+            expand: true,
+            onPressed: () => Navigator.of(context).pop(false),
+          ),
+        ],
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          l10n.t('quran.downloadSurahBody'),
+          textAlign: TextAlign.center,
+          style: TextStyle(color: palette.text, fontSize: 14, height: 1.5),
+        ),
+        const SizedBox(height: 14),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(999),
+          child: LinearProgressIndicator(
+            value: fraction == 0 ? null : fraction,
+            minHeight: 8,
+            backgroundColor: palette.surface2,
+            valueColor: AlwaysStoppedAnimation<Color>(palette.accent),
+          ),
+        ),
+        const SizedBox(height: 10),
+        Text(
+          total == 0 ? '' : '$done / $total',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: palette.textMuted,
+            fontSize: 12.5,
+            fontFeatures: const [FontFeature.tabularFigures()],
+          ),
+        ),
+        const SizedBox(height: 18),
+        AppButton(
+          label: l10n.t('common.cancel'),
+          variant: AppButtonVariant.outline,
+          expand: true,
+          onPressed: () => Navigator.of(context).pop(false),
+        ),
+      ],
     );
   }
 }

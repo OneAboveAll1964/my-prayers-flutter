@@ -439,6 +439,9 @@ class MushafAssetService {
     await file.writeAsString(jsonEncode(pageData.toJson()), flush: true);
   }
 
+  String? cachedFontFamily(int page) => _loadedFontFamilies[page];
+  MushafPageData? cachedPageData(int page) => _pageCache[page];
+
   Future<String> loadFontForPage(int page) async {
     if (_loadedFontFamilies.containsKey(page)) {
       return _loadedFontFamilies[page]!;

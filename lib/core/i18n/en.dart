@@ -161,6 +161,8 @@ const enBundle = <String, String>{
   'quran.playSurah': 'Play surah',
   'quran.installToPlayTitle': 'Install reciter to play surah',
   'quran.installToPlayBody': 'Playing the entire surah requires the active reciter to be fully downloaded. Open Resources to start the install.',
+  'quran.downloadSurahTitle': 'Downloading surah',
+  'quran.downloadSurahBody': 'Downloading the audio for this surah. This only happens once per surah and reciter.',
   'lang.arabic': 'Arabic',
   'lang.english': 'English',
   'lang.urdu': 'Urdu',

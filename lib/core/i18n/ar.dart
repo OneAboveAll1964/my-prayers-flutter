@@ -161,6 +161,8 @@ const arBundle = <String, String>{
   'quran.playSurah': 'تشغيل السورة',
   'quran.installToPlayTitle': 'ثبّت القارئ لتشغيل السورة',
   'quran.installToPlayBody': 'تشغيل السورة كاملةً يتطلب تنزيل القارئ النشط أولًا. افتح الموارد لبدء التنزيل.',
+  'quran.downloadSurahTitle': 'تنزيل السورة',
+  'quran.downloadSurahBody': 'يتم تنزيل صوت هذه السورة. يحدث ذلك مرة واحدة لكل سورة وقارئ.',
   'lang.arabic': 'العربية',
   'lang.english': 'الإنجليزية',
   'lang.urdu': 'الأردية',

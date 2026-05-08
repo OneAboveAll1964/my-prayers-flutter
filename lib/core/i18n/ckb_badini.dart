@@ -161,6 +161,8 @@ const ckbBadiniBundle = <String, String>{
   'quran.playSurah': 'لێدانا سورەتێ',
   'quran.installToPlayTitle': 'قاری دائینە بۆ لێدانا سورەتێ',
   'quran.installToPlayBody': 'بۆ لێدانا تەڤایا سورەتێ پێدڤیە قاریێ چالاک ب تەمامی دائینان بێت. سەرچاڤا ڤەکە بۆ دەستپێکرنا دائینانێ.',
+  'quran.downloadSurahTitle': 'دائینانا سورەتێ',
+  'quran.downloadSurahBody': 'دەنگێ ڤێ سورەتێ داتە ئینان. ئەڤە تنێ جارەکێ پەیدا دبیت بۆ هەر سورەت و قاریەکی.',
   'lang.arabic': 'عەرەبی',
   'lang.english': 'ئینگلیزی',
   'lang.urdu': 'ئوردوو',

@@ -276,6 +276,102 @@ class RecitationService {
     _installedCache[reciterId] = false;
   }
 
+  Future<bool> isSurahReady(
+      int reciterId, int surahNumber, int ayahCount) async {
+    final dir = await reciterDir(reciterId);
+    for (var a = 1; a <= ayahCount; a++) {
+      final f = File(p.join(dir.path, '${_verseKey(surahNumber, a)}.mp3'));
+      if (!await f.exists() || await f.length() == 0) return false;
+    }
+    return true;
+  }
+
+  Stream<RecitationProgress> downloadSurah({
+    required int reciterId,
+    required int surahNumber,
+  }) {
+    final controller = StreamController<RecitationProgress>.broadcast();
+    _runDownloadSurah(reciterId, surahNumber, controller);
+    return controller.stream;
+  }
+
+  Future<void> _runDownloadSurah(int reciterId, int surahNumber,
+      StreamController<RecitationProgress> controller) async {
+    final client = http.Client();
+    var done = 0;
+    var total = 0;
+
+    void emit({bool failed = false, String? error}) {
+      if (controller.isClosed) return;
+      controller.add(RecitationProgress(
+        filesDone: done,
+        totalFiles: total,
+        failed: failed,
+        errorMessage: error,
+      ));
+    }
+
+    try {
+      final dir = await reciterDir(reciterId);
+      final res = await client
+          .get(
+            Uri.parse(
+                'https://api.quran.com/api/v4/quran/recitations/$reciterId?chapter_number=$surahNumber'),
+            headers: const {'User-Agent': 'MyPrayers/1.0'},
+          )
+          .timeout(const Duration(seconds: 30));
+      if (res.statusCode != 200) {
+        throw Exception('catalog ${res.statusCode}');
+      }
+      final body =
+          jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
+      final files = (body['audio_files'] as List).cast<Map<String, dynamic>>();
+      final allFiles = files.map((f) {
+        final key = f['verse_key'] as String;
+        final parts = key.split(':');
+        return _AyahFile(
+          surah: int.parse(parts[0]),
+          ayah: int.parse(parts[1]),
+          url: resolveAudioUrl(f['url'] as String),
+        );
+      }).toList();
+      total = allFiles.length;
+      emit();
+
+      final pending = <_AyahFile>[];
+      for (final f in allFiles) {
+        final local =
+            File(p.join(dir.path, '${_verseKey(f.surah, f.ayah)}.mp3'));
+        if (await local.exists() && await local.length() > 0) {
+          done++;
+        } else {
+          pending.add(f);
+        }
+      }
+      emit();
+
+      await _runConcurrent(
+        items: pending,
+        maxConcurrent: _maxConcurrentDownloads,
+        task: (item) async {
+          final file = File(
+              p.join(dir.path, '${_verseKey(item.surah, item.ayah)}.mp3'));
+          await _downloadOne(client, item.url, file);
+          done++;
+          emit();
+        },
+      );
+
+      done = total;
+      emit();
+    } catch (e) {
+      emit(failed: true, error: e.toString());
+    } finally {
+      client.close();
+      if (!controller.isClosed) await controller.close();
+    }
+  }
+
   Future<void> _downloadOne(http.Client client, String url, File dest) async {
     for (var attempt = 0; attempt < 3; attempt++) {
       try {

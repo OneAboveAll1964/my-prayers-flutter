@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ionicons/ionicons.dart';
-import 'package:preload_page_view/preload_page_view.dart';
 import '../../../core/i18n/app_l10n.dart';
+import '../../../core/services/ayah_audio_controller.dart';
 import '../../../core/services/mushaf_asset_service.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../shared/data/quran_repository.dart';
@@ -35,10 +35,14 @@ class MushafView extends ConsumerStatefulWidget {
 class _MushafViewState extends ConsumerState<MushafView> {
   late int _firstPage;
   late int _lastPage;
-  late PreloadPageController _pageController;
+  late PageController _pageController;
   String? _selectedKey;
+  String? _playingKey;
   late Map<String, Ayah> _ayahByKey;
+  late Map<int, Ayah> _firstAyahByPage;
   Timer? _preloadTimer;
+  StreamSubscription<AyahAudioState>? _audioSub;
+  int? _lastQueueAyah;
 
   @override
   void initState() {
@@ -50,29 +54,57 @@ class _MushafViewState extends ConsumerState<MushafView> {
         ? widget.surah.ayahs.first
         : widget.surah.ayahs.firstWhere(
             (a) => a.numberInSurah == widget.initialAyah,
-            orElse: () => widget.surah.ayahs.first,
-          );
-    final initialIdx = (initialAyah.page - _firstPage).clamp(
-      0,
-      _lastPage - _firstPage,
-    );
-    _pageController = PreloadPageController(initialPage: initialIdx);
+            orElse: () => widget.surah.ayahs.first);
+    final initialIdx =
+        (initialAyah.page - _firstPage).clamp(0, _lastPage - _firstPage);
+    _pageController = PageController(initialPage: initialIdx);
     _ayahByKey = {
       for (final a in widget.surah.ayahs)
         '${widget.surah.number}:${a.numberInSurah}': a,
     };
+    _firstAyahByPage = <int, Ayah>{};
+    for (final a in widget.surah.ayahs) {
+      _firstAyahByPage.putIfAbsent(a.page, () => a);
+    }
     final pageCount = _lastPage - _firstPage + 1;
-    _scheduleSettledPreload(
-      initialIdx,
-      pageCount,
-      delay: const Duration(milliseconds: 600),
+    _scheduleSettledPreload(initialIdx, pageCount,
+        delay: const Duration(milliseconds: 400));
+    _audioSub = AyahAudioController.instance.stream.listen(_onAudio);
+  }
+
+  void _onAudio(AyahAudioState s) {
+    if (!mounted) return;
+    final isThisSurah = s.surah == widget.surah.number && s.ayah != null;
+    final newKey =
+        isThisSurah && (s.playing || s.loading) ? '${s.surah}:${s.ayah}' : null;
+    if (newKey != _playingKey) {
+      setState(() => _playingKey = newKey);
+    }
+    final ctrl = AyahAudioController.instance;
+    if (!ctrl.isQueueActive) return;
+    if (!isThisSurah) return;
+    if (s.ayah == _lastQueueAyah) return;
+    _lastQueueAyah = s.ayah;
+    final ayah = widget.surah.ayahs.firstWhere(
+      (a) => a.numberInSurah == s.ayah,
+      orElse: () => widget.surah.ayahs.first,
+    );
+    final targetIdx =
+        (ayah.page - _firstPage).clamp(0, _lastPage - _firstPage);
+    if (!_pageController.hasClients) return;
+    final current = _pageController.page?.round() ?? 0;
+    if (current == targetIdx) return;
+    _pageController.animateToPage(
+      targetIdx,
+      duration: const Duration(milliseconds: 320),
+      curve: Curves.easeOutCubic,
     );
   }
 
   void _scheduleSettledPreload(
     int idx,
     int pageCount, {
-    Duration delay = const Duration(milliseconds: 500),
+    Duration delay = const Duration(milliseconds: 400),
   }) {
     _preloadTimer?.cancel();
     _preloadTimer = Timer(delay, () {
@@ -83,21 +115,19 @@ class _MushafViewState extends ConsumerState<MushafView> {
 
   void _preloadNeighbours(int idx, int pageCount) {
     final service = MushafAssetService.instance;
-    for (final delta in const [1, -1]) {
+    for (final delta in const [1, -1, 2, -2]) {
       final i = idx + delta;
       if (i < 0 || i >= pageCount) continue;
       final pageNumber = _firstPage + i;
       service.loadFontForPage(pageNumber).catchError((_) => '');
-      service
-          .getPageData(pageNumber)
-          .catchError(
-            (_) => MushafPageData(pageNumber: pageNumber, lines: const []),
-          );
+      service.getPageData(pageNumber).catchError((_) =>
+          MushafPageData(pageNumber: pageNumber, lines: const []));
     }
   }
 
   @override
   void dispose() {
+    _audioSub?.cancel();
     _preloadTimer?.cancel();
     _pageController.dispose();
     super.dispose();
@@ -115,10 +145,8 @@ class _MushafViewState extends ConsumerState<MushafView> {
 
     if (tappedSurah != widget.surah.number) {
       final lang = AppL10n.of(context).locale;
-      final loaded = await QuranRepository.instance.getSurah(
-        tappedSurah,
-        langKey(lang),
-      );
+      final loaded = await QuranRepository.instance
+          .getSurah(tappedSurah, langKey(lang));
       if (!mounted || loaded == null) return;
       surah = loaded;
       resolved = _closestAyah(loaded.ayahs, tappedAyah);
@@ -161,28 +189,26 @@ class _MushafViewState extends ConsumerState<MushafView> {
   @override
   Widget build(BuildContext context) {
     final pageCount = _lastPage - _firstPage + 1;
-    return PreloadPageView.builder(
+    return PageView.builder(
       controller: _pageController,
       itemCount: pageCount,
-      reverse: false,
-      preloadPagesCount: 1,
-      // onPageChanged: (idx) {
-      //   final pageNumber = _firstPage + idx;
-      //   final firstAyah = widget.surah.ayahs.firstWhere(
-      //     (a) => a.page == pageNumber,
-      //     orElse: () => widget.surah.ayahs.first,
-      //   );
-      //   widget.onPageAyahChanged?.call(firstAyah);
-      //   _scheduleSettledPreload(idx, pageCount);
-      // },
+      allowImplicitScrolling: true,
+      onPageChanged: (idx) {
+        final pageNumber = _firstPage + idx;
+        final firstAyah =
+            _firstAyahByPage[pageNumber] ?? widget.surah.ayahs.first;
+        widget.onPageAyahChanged?.call(firstAyah);
+        _scheduleSettledPreload(idx, pageCount);
+      },
       itemBuilder: (ctx, idx) {
         final pageNumber = _firstPage + idx;
         return RepaintBoundary(
           child: _MushafPageView(
+            key: ValueKey<int>(pageNumber),
             pageNumber: pageNumber,
             surahNumber: widget.surah.number,
             ayahByKey: _ayahByKey,
-            selectedKey: _selectedKey,
+            selectedKey: _selectedKey ?? _playingKey,
             onTapWord: _handleTapWord,
             pageIndex: idx,
             totalPages: pageCount,
@@ -207,6 +233,7 @@ String _localeNumber(int n, BuildContext context) {
 
 class _MushafPageView extends StatefulWidget {
   const _MushafPageView({
+    super.key,
     required this.pageNumber,
     required this.surahNumber,
     required this.ayahByKey,
@@ -232,11 +259,19 @@ class _MushafPageView extends StatefulWidget {
 
 class _MushafPageViewState extends State<_MushafPageView> {
   Future<_PageBundle>? _bundleFuture;
+  _PageBundle? _bundle;
 
   @override
   void initState() {
     super.initState();
-    _bundleFuture = _loadBundle(widget.pageNumber);
+    final svc = MushafAssetService.instance;
+    final cachedData = svc.cachedPageData(widget.pageNumber);
+    final cachedFont = svc.cachedFontFamily(widget.pageNumber);
+    if (cachedData != null && cachedFont != null) {
+      _bundle = _PageBundle(data: cachedData, fontFamily: cachedFont);
+    } else {
+      _bundleFuture = _loadBundle(widget.pageNumber);
+    }
   }
 
   Future<_PageBundle> _loadBundle(int pageNumber) async {
@@ -286,7 +321,14 @@ class _MushafPageViewState extends State<_MushafPageView> {
             ),
           ),
           Expanded(
-            child: FutureBuilder<_PageBundle>(
+            child: _bundle != null
+                ? _MushafPageContent(
+                    bundle: _bundle!,
+                    ayahByKey: widget.ayahByKey,
+                    selectedKey: widget.selectedKey,
+                    onTapWord: widget.onTapWord,
+                  )
+                : FutureBuilder<_PageBundle>(
               future: _bundleFuture,
               builder: (ctx, snap) {
                 if (snap.hasError) {
@@ -296,18 +338,13 @@ class _MushafPageViewState extends State<_MushafPageView> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(
-                            Ionicons.alert_circle_outline,
-                            size: 32,
-                            color: palette.textMuted,
-                          ),
+                          Icon(Ionicons.alert_circle_outline,
+                              size: 32, color: palette.textMuted),
                           const SizedBox(height: 8),
                           Text(
                             l10n.t('common.error'),
                             style: TextStyle(
-                              color: palette.textMuted,
-                              fontSize: 13,
-                            ),
+                                color: palette.textMuted, fontSize: 13),
                           ),
                           const SizedBox(height: 12),
                           GestureDetector(
@@ -317,9 +354,7 @@ class _MushafPageViewState extends State<_MushafPageView> {
                             }),
                             child: Container(
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 10,
-                              ),
+                                  horizontal: 16, vertical: 10),
                               decoration: BoxDecoration(
                                 color: palette.surface2,
                                 borderRadius: BorderRadius.circular(10),
@@ -377,13 +412,12 @@ class _MushafPageViewState extends State<_MushafPageView> {
                     width: 40,
                     child: widget.pageIndex == 0 && widget.surahNumber > 1
                         ? _SurahNavButton(
-                            icon: Ionicons.chevron_forward,
-                            onTap: widget.onSwitchSurah == null
-                                ? null
-                                : () => widget.onSwitchSurah!(
-                                    widget.surahNumber - 1,
-                                  ),
-                          )
+                      icon: Ionicons.chevron_forward,
+                      onTap: widget.onSwitchSurah == null
+                          ? null
+                          : () => widget
+                          .onSwitchSurah!(widget.surahNumber - 1),
+                    )
                         : null,
                   ),
                   Expanded(
@@ -401,17 +435,15 @@ class _MushafPageViewState extends State<_MushafPageView> {
                   ),
                   SizedBox(
                     width: 40,
-                    child:
-                        widget.pageIndex == widget.totalPages - 1 &&
-                            widget.surahNumber < 114
+                    child: widget.pageIndex == widget.totalPages - 1 &&
+                        widget.surahNumber < 114
                         ? _SurahNavButton(
-                            icon: Ionicons.chevron_back,
-                            onTap: widget.onSwitchSurah == null
-                                ? null
-                                : () => widget.onSwitchSurah!(
-                                    widget.surahNumber + 1,
-                                  ),
-                          )
+                      icon: Ionicons.chevron_back,
+                      onTap: widget.onSwitchSurah == null
+                          ? null
+                          : () => widget
+                          .onSwitchSurah!(widget.surahNumber + 1),
+                    )
                         : null,
                   ),
                 ],
@@ -453,44 +485,45 @@ class _MushafPageContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
-    return LayoutBuilder(
-      builder: (ctx, c) {
-        const padH = 24.0;
-        const padV = 12.0;
-        final usableHeight = c.maxHeight - padV * 2;
-        final lineHeight = usableHeight / _linesPerPage;
-        final fontSize = lineHeight * 0.55;
+    return LayoutBuilder(builder: (ctx, c) {
+      const padH = 24.0;
+      const padV = 12.0;
+      final usableHeight = c.maxHeight - padV * 2;
+      final lineHeight = usableHeight / _linesPerPage;
+      final fontSize = lineHeight * 0.55;
 
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: padH, vertical: padV),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              for (final line in bundle.data.lines)
-                SizedBox(
-                  height: lineHeight,
-                  child: ClipRect(
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      alignment: Alignment.center,
-                      child: _LineWidget(
-                        line: line,
-                        fontFamily: bundle.fontFamily,
-                        fontSize: fontSize,
-                        ayahByKey: ayahByKey,
-                        selectedKey: selectedKey,
-                        onTapWord: onTapWord,
-                        palette: palette,
-                      ),
+      return Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: padH,
+          vertical: padV,
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (final line in bundle.data.lines)
+              SizedBox(
+                height: lineHeight,
+                child: ClipRect(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.center,
+                    child: _LineWidget(
+                      line: line,
+                      fontFamily: bundle.fontFamily,
+                      fontSize: fontSize,
+                      ayahByKey: ayahByKey,
+                      selectedKey: selectedKey,
+                      onTapWord: onTapWord,
+                      palette: palette,
                     ),
                   ),
                 ),
-            ],
-          ),
-        );
-      },
-    );
+              ),
+          ],
+        ),
+      );
+    });
   }
 }
 
@@ -520,7 +553,9 @@ class _LineWidget extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
-        children: [for (final w in line.words) _wordWidget(w)],
+        children: [
+          for (final w in line.words) _wordWidget(w),
+        ],
       ),
     );
   }
@@ -549,7 +584,10 @@ class _LineWidget extends StatelessWidget {
 }
 
 class _SurahNavButton extends StatelessWidget {
-  const _SurahNavButton({required this.icon, required this.onTap});
+  const _SurahNavButton({
+    required this.icon,
+    required this.onTap,
+  });
 
   final IconData icon;
   final VoidCallback? onTap;
@@ -569,12 +607,8 @@ class _SurahNavButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(10),
           border: Border.all(color: palette.line),
         ),
-        child: Icon(
-          icon,
-          size: 18,
-          color: palette.text,
-          textDirection: TextDirection.ltr,
-        ),
+        child: Icon(icon,
+            size: 18, color: palette.text, textDirection: TextDirection.ltr),
       ),
     );
   }

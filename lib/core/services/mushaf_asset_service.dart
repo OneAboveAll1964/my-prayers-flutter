@@ -13,7 +13,7 @@ const _fontUrlPattern =
 const _pageDataUrlPattern =
     'https://api.qurancdn.com/api/qdc/verses/by_page/{n}'
     '?words=true&word_fields=line_number,code_v2,char_type_name'
-    '&fields=verse_key';
+    '&fields=verse_key&per_page=50';
 const _maxConcurrentDownloads = 8;
 const _storageFolder = 'mushaf_v2';
 const _fontFamilyPrefix = 'QCFv2_p';
@@ -131,7 +131,7 @@ class MushafAssetService {
     final dir = await getApplicationSupportDirectory();
     final root = Directory(p.join(dir.path, _storageFolder));
     await Directory(p.join(root.path, 'fonts')).create(recursive: true);
-    await Directory(p.join(root.path, 'pages')).create(recursive: true);
+    await Directory(p.join(root.path, 'pages_full')).create(recursive: true);
     _root = root;
     return root;
   }
@@ -140,8 +140,17 @@ class MushafAssetService {
     if (_installed != null) return _installed!;
     final root = await _ensureRoot();
     final sentinel = File(p.join(root.path, '.complete'));
-    _installed = await sentinel.exists();
-    return _installed!;
+    if (!await sentinel.exists()) {
+      _installed = false;
+      return false;
+    }
+    final samplePage = File(p.join(root.path, 'pages_full', '1.json'));
+    if (!await samplePage.exists()) {
+      _installed = false;
+      return false;
+    }
+    _installed = true;
+    return true;
   }
 
   Future<int> installedFontsCount() async {
@@ -173,7 +182,7 @@ class MushafAssetService {
     try {
       final root = await _ensureRoot();
       final fontDir = Directory(p.join(root.path, 'fonts'));
-      final pageDir = Directory(p.join(root.path, 'pages'));
+      final pageDir = Directory(p.join(root.path, 'pages_full'));
 
       var fontsDone = 0;
       var dataDone = 0;
@@ -443,7 +452,7 @@ class MushafAssetService {
   Future<MushafPageData> getPageData(int page) async {
     if (_pageCache.containsKey(page)) return _pageCache[page]!;
     final root = await _ensureRoot();
-    final pageDir = Directory(p.join(root.path, 'pages'));
+    final pageDir = Directory(p.join(root.path, 'pages_full'));
     final file = File(p.join(pageDir.path, '$page.json'));
     if (!await file.exists() || await file.length() == 0) {
       final client = http.Client();

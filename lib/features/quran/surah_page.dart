@@ -84,8 +84,13 @@ class _SurahPageState extends ConsumerState<SurahPage> {
           widget.initialAyah != null &&
           widget.initialAyah! > 1) {
         _initialScrollScheduled = true;
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _scrollToAyah(widget.initialAyah!);
+        _suppressScrollSaveUntil =
+            DateTime.now().add(const Duration(seconds: 3));
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
+          if (!mounted) return;
+          await _scrollToAyah(widget.initialAyah!);
+          _suppressScrollSaveUntil =
+              DateTime.now().add(const Duration(milliseconds: 250));
         });
       }
     }
@@ -157,9 +162,6 @@ class _SurahPageState extends ConsumerState<SurahPage> {
       }
     });
     if (best != null && best != _visibleAyah) {
-      // During the brief window after switching modes, ignore scroll events
-      // so the ListView's transient offset-0 doesn't clobber _currentAyah
-      // before _scrollToAyah can land it on the right place.
       if (_suppressScrollSaveUntil != null &&
           DateTime.now().isBefore(_suppressScrollSaveUntil!)) {
         return;
@@ -177,8 +179,6 @@ class _SurahPageState extends ConsumerState<SurahPage> {
 
   Future<void> _toggleMode(bool isMushaf) async {
     if (isMushaf) {
-      // Mushaf -> scroll: scroll to last ayah after rebuild. Capture target
-      // before the rebuild so the scroll listener can't clobber it.
       final target = _currentAyah;
       _suppressScrollSaveUntil =
           DateTime.now().add(const Duration(seconds: 3));
@@ -188,14 +188,11 @@ class _SurahPageState extends ConsumerState<SurahPage> {
         if (target > 1) {
           await _scrollToAyah(target);
         }
-        // Allow scroll-driven saves a moment after we land.
         _suppressScrollSaveUntil =
             DateTime.now().add(const Duration(milliseconds: 250));
       });
       return;
     }
-    // Scroll -> mushaf: MushafView gets initialAyah: _currentAyah which
-    // PageController honours via initialPage; nothing extra needed.
     final installed = await MushafAssetService.instance.isInstalled();
     if (installed) {
       ref.read(settingsProvider.notifier).setQuranReadMode('mushaf');

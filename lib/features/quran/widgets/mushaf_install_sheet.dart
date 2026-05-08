@@ -8,7 +8,6 @@ import '../../../core/theme/tokens.dart';
 import '../../../shared/widgets/app_button.dart';
 import '../../../shared/widgets/app_sheet.dart';
 
-/// Returns true if the user completed the install successfully.
 Future<bool> showMushafInstallSheet(BuildContext context) async {
   final l10n = AppL10n.of(context);
   final result = await showAppSheet<bool>(

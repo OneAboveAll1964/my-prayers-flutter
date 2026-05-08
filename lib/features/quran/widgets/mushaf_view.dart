@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ionicons/ionicons.dart';
+import 'package:preload_page_view/preload_page_view.dart';
 import '../../../core/i18n/app_l10n.dart';
 import '../../../core/services/mushaf_asset_service.dart';
 import '../../../core/theme/tokens.dart';
@@ -32,7 +33,7 @@ class MushafView extends ConsumerStatefulWidget {
 class _MushafViewState extends ConsumerState<MushafView> {
   late int _firstPage;
   late int _lastPage;
-  late PageController _pageController;
+  late PreloadPageController _pageController;
   String? _selectedKey;
   late Map<String, Ayah> _ayahByKey;
   Timer? _preloadTimer;
@@ -49,7 +50,7 @@ class _MushafViewState extends ConsumerState<MushafView> {
             (a) => a.numberInSurah == widget.initialAyah,
             orElse: () => widget.surah.ayahs.first);
     final initialIdx = (initialAyah.page - _firstPage).clamp(0, _lastPage - _firstPage);
-    _pageController = PageController(initialPage: initialIdx);
+    _pageController = PreloadPageController(initialPage: initialIdx);
     _ayahByKey = {
       for (final a in widget.surah.ayahs)
         '${widget.surah.number}:${a.numberInSurah}': a,
@@ -101,7 +102,6 @@ class _MushafViewState extends ConsumerState<MushafView> {
     Ayah? resolved = ayah;
 
     if (tappedSurah != widget.surah.number) {
-      // Foreign surah on a shared page — load it.
       final lang = AppL10n.of(context).locale;
       final loaded = await QuranRepository.instance
           .getSurah(tappedSurah, langKey(lang));
@@ -147,23 +147,18 @@ class _MushafViewState extends ConsumerState<MushafView> {
   @override
   Widget build(BuildContext context) {
     final pageCount = _lastPage - _firstPage + 1;
-    return PageView.builder(
+    return PreloadPageView.builder(
       controller: _pageController,
       itemCount: pageCount,
       reverse: Directionality.of(context) == TextDirection.rtl,
+      preloadPagesCount: 1,
       onPageChanged: (idx) {
-        // Notify the parent immediately (cheap, just updates last-read).
         final pageNumber = _firstPage + idx;
         final firstAyah = widget.surah.ayahs.firstWhere(
           (a) => a.page == pageNumber,
           orElse: () => widget.surah.ayahs.first,
         );
         widget.onPageAyahChanged?.call(firstAyah);
-        // Defer the heavy preload (font registration) until the swipe
-        // animation has fully settled, so it doesn't compete with the
-        // current frame's paint. Each new swipe cancels and reschedules,
-        // so rapid flipping won't trigger any preload at all until the
-        // user pauses.
         _scheduleSettledPreload(idx, pageCount);
       },
       itemBuilder: (ctx, idx) {
@@ -213,12 +208,8 @@ class _MushafPageView extends StatefulWidget {
   State<_MushafPageView> createState() => _MushafPageViewState();
 }
 
-class _MushafPageViewState extends State<_MushafPageView>
-    with AutomaticKeepAliveClientMixin<_MushafPageView> {
+class _MushafPageViewState extends State<_MushafPageView> {
   Future<_PageBundle>? _bundleFuture;
-
-  @override
-  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -232,38 +223,14 @@ class _MushafPageViewState extends State<_MushafPageView>
       service.getPageData(pageNumber),
       service.loadFontForPage(pageNumber),
     ]);
-    final data = results[0] as MushafPageData;
-    final fontFamily = results[1] as String;
-    var maxWidth = 0.0;
-    final buf = StringBuffer();
-    for (final line in data.lines) {
-      buf.clear();
-      for (final w in line.words) {
-        buf.write(w.code);
-      }
-      final tp = TextPainter(
-        text: TextSpan(
-          text: buf.toString(),
-          style: TextStyle(
-            fontFamily: fontFamily,
-            fontSize: 100,
-            height: 1.0,
-          ),
-        ),
-        textDirection: TextDirection.rtl,
-      )..layout();
-      if (tp.width > maxWidth) maxWidth = tp.width;
-    }
     return _PageBundle(
-      data: data,
-      fontFamily: fontFamily,
-      maxNaturalWidthAtRef: maxWidth,
+      data: results[0] as MushafPageData,
+      fontFamily: results[1] as String,
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
     final palette = context.palette;
     final l10n = AppL10n.of(context);
 
@@ -397,14 +364,9 @@ int _juzForPage(int page, Map<String, Ayah> map) {
 }
 
 class _PageBundle {
-  _PageBundle({
-    required this.data,
-    required this.fontFamily,
-    required this.maxNaturalWidthAtRef,
-  });
+  _PageBundle({required this.data, required this.fontFamily});
   final MushafPageData data;
   final String fontFamily;
-  final double maxNaturalWidthAtRef;
 }
 
 class _MushafPageContent extends StatelessWidget {
@@ -426,17 +388,9 @@ class _MushafPageContent extends StatelessWidget {
     return LayoutBuilder(builder: (ctx, c) {
       const padH = 24.0;
       const padV = 12.0;
-      final availableWidth = c.maxWidth - padH * 2;
       final usableHeight = c.maxHeight - padV * 2;
       final lineHeight = usableHeight / _linesPerPage;
-
-      // Cap fontSize so the widest line on this page fits the width.
-      final maxAtRef = bundle.maxNaturalWidthAtRef;
-      final widthCap =
-          maxAtRef == 0 ? lineHeight * 0.55 : 100.0 * (availableWidth / maxAtRef);
-      final fontSize = (lineHeight * 0.55) < widthCap
-          ? lineHeight * 0.55
-          : widthCap * 0.97;
+      final fontSize = lineHeight * 0.55;
 
       return Padding(
         padding: const EdgeInsets.symmetric(
@@ -451,14 +405,18 @@ class _MushafPageContent extends StatelessWidget {
               SizedBox(
                 height: lineHeight,
                 child: ClipRect(
-                  child: _LineWidget(
-                    line: line,
-                    fontFamily: bundle.fontFamily,
-                    fontSize: fontSize,
-                    ayahByKey: ayahByKey,
-                    selectedKey: selectedKey,
-                    onTapWord: onTapWord,
-                    palette: palette,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.center,
+                    child: _LineWidget(
+                      line: line,
+                      fontFamily: bundle.fontFamily,
+                      fontSize: fontSize,
+                      ayahByKey: ayahByKey,
+                      selectedKey: selectedKey,
+                      onTapWord: onTapWord,
+                      palette: palette,
+                    ),
                   ),
                 ),
               ),

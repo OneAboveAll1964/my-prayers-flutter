@@ -255,7 +255,7 @@ class _SurahRowState extends State<_SurahRow> {
                           : widget.item.ayahCount.toString();
                       final secondary = isEn
                           ? '${widget.item.englishNameTranslation} · $count ${l10n.t('quran.ayahs')}'
-                          : '$count ${l10n.t('quran.ayahs')}';
+                          : '${widget.item.englishName} · $count ${l10n.t('quran.ayahs')}';
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [

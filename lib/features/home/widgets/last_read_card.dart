@@ -91,7 +91,14 @@ class _LastReadCardState extends State<LastReadCard> {
                               overflow: TextOverflow.ellipsis,
                             ),
                             if (widget.entry.lastAyah > 1) ...[
-                              const SizedBox(width: 8),
+                              Text(
+                                ' · ',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: palette.accentStrong,
+                                ),
+                              ),
                               Text(
                                 '${widget.entry.number}:${widget.entry.lastAyah}',
                                 style: TextStyle(

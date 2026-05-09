@@ -389,6 +389,7 @@ class _MushafPageViewState extends State<_MushafPageView> {
   }
 
   Widget _buildBody(AppPalette palette, AppL10n l10n) {
+    if (!_isSettled) return const SizedBox.expand();
     if (_error != null) {
       return Center(
         child: Padding(

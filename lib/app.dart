@@ -43,7 +43,6 @@ class MyPrayersApp extends ConsumerWidget {
 
     return MaterialApp.router(
       title: 'My Prayers',
-      debugShowCheckedModeBanner: false,
       showPerformanceOverlay: true,
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),

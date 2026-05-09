@@ -66,8 +66,26 @@ class RecitationService {
     return '$s$a';
   }
 
+  Reciter? _reciterFor(int reciterId) {
+    final cached = ReciterCatalog.cachedAll();
+    if (cached == null) return null;
+    for (final r in cached) {
+      if (r.id == reciterId) return r;
+    }
+    return null;
+  }
+
+  bool _isChapterReciter(int reciterId) =>
+      _reciterFor(reciterId)?.isChapterBased ?? false;
+
+  String _chapterFileName(int surah) =>
+      'c${surah.toString().padLeft(3, '0')}.mp3';
+
   Future<File> _ayahFile(int reciterId, int surah, int ayah) async {
     final dir = await reciterDir(reciterId);
+    if (_isChapterReciter(reciterId)) {
+      return File(p.join(dir.path, _chapterFileName(surah)));
+    }
     return File(p.join(dir.path, '${_verseKey(surah, ayah)}.mp3'));
   }
 
@@ -127,6 +145,12 @@ class RecitationService {
     if (_sampleUrlCache[reciterId] != null) {
       return _sampleUrlCache[reciterId]!;
     }
+    final reciter = _reciterFor(reciterId);
+    final chapterUrl = reciter?.chapterUrlFor(1);
+    if (chapterUrl != null) {
+      _sampleUrlCache[reciterId] = chapterUrl;
+      return chapterUrl;
+    }
     final folder = _everyayahFolderFor(reciterId);
     if (folder != null) {
       final url = _everyayahUrl(folder, 1, 1);
@@ -153,6 +177,18 @@ class RecitationService {
   }
 
   Future<List<_AyahFile>> _fetchAllUrls(int reciterId) async {
+    final reciter = _reciterFor(reciterId);
+    if (reciter?.isChapterBased == true) {
+      final list = <_AyahFile>[];
+      for (var s = 1; s <= 114; s++) {
+        list.add(_AyahFile(
+          surah: s,
+          ayah: 1,
+          url: reciter!.chapterUrlFor(s)!,
+        ));
+      }
+      return list;
+    }
     final folder = _everyayahFolderFor(reciterId);
     if (folder != null) {
       final list = <_AyahFile>[];
@@ -230,10 +266,13 @@ class RecitationService {
       final dir = await reciterDir(reciterId);
       final allFiles = await _fetchAllUrls(reciterId);
       total = allFiles.length;
+      final isChapter = _isChapterReciter(reciterId);
 
       final pending = <_AyahFile>[];
       for (final f in allFiles) {
-        final local = File(p.join(dir.path, '${_verseKey(f.surah, f.ayah)}.mp3'));
+        final local = isChapter
+            ? File(p.join(dir.path, _chapterFileName(f.surah)))
+            : File(p.join(dir.path, '${_verseKey(f.surah, f.ayah)}.mp3'));
         if (await local.exists() && await local.length() > 0) {
           done++;
         } else {
@@ -247,7 +286,9 @@ class RecitationService {
         maxConcurrent: _maxConcurrentDownloads,
         task: (item) async {
           if (_cancelRequests.contains(reciterId)) return;
-          final file = File(p.join(dir.path, '${_verseKey(item.surah, item.ayah)}.mp3'));
+          final file = isChapter
+              ? File(p.join(dir.path, _chapterFileName(item.surah)))
+              : File(p.join(dir.path, '${_verseKey(item.surah, item.ayah)}.mp3'));
           await _downloadOne(client, item.url, file);
           done++;
           emit();
@@ -278,9 +319,13 @@ class RecitationService {
   Future<File> downloadSingleAyah(int reciterId, int surah, int ayah) async {
     final cached = await cachedFile(reciterId, surah, ayah);
     if (cached != null) return cached;
+    final reciter = _reciterFor(reciterId);
+    final chapterUrl = reciter?.chapterUrlFor(surah);
     final folder = _everyayahFolderFor(reciterId);
     final String url;
-    if (folder != null) {
+    if (chapterUrl != null) {
+      url = chapterUrl;
+    } else if (folder != null) {
       url = _everyayahUrl(folder, surah, ayah);
     } else {
       final res = await http
@@ -323,6 +368,10 @@ class RecitationService {
   Future<bool> isSurahReady(
       int reciterId, int surahNumber, int ayahCount) async {
     final dir = await reciterDir(reciterId);
+    if (_isChapterReciter(reciterId)) {
+      final f = File(p.join(dir.path, _chapterFileName(surahNumber)));
+      return await f.exists() && await f.length() > 0;
+    }
     for (var a = 1; a <= ayahCount; a++) {
       final f = File(p.join(dir.path, '${_verseKey(surahNumber, a)}.mp3'));
       if (!await f.exists() || await f.length() == 0) return false;
@@ -357,35 +406,55 @@ class RecitationService {
 
     try {
       final dir = await reciterDir(reciterId);
-      final res = await client
-          .get(
-            Uri.parse(
-                'https://api.quran.com/api/v4/quran/recitations/$reciterId?chapter_number=$surahNumber'),
-            headers: const {'User-Agent': 'MyPrayers/1.0'},
-          )
-          .timeout(const Duration(seconds: 30));
-      if (res.statusCode != 200) {
-        throw Exception('catalog ${res.statusCode}');
+      final reciter = _reciterFor(reciterId);
+      final List<_AyahFile> allFiles;
+      final chapterUrl = reciter?.chapterUrlFor(surahNumber);
+      if (chapterUrl != null) {
+        allFiles = [_AyahFile(surah: surahNumber, ayah: 1, url: chapterUrl)];
+      } else if (reciter?.everyayahFolder != null) {
+        final count = _ayahCountsBySurah[surahNumber - 1];
+        allFiles = [
+          for (var a = 1; a <= count; a++)
+            _AyahFile(
+              surah: surahNumber,
+              ayah: a,
+              url: _everyayahUrl(reciter!.everyayahFolder!, surahNumber, a),
+            ),
+        ];
+      } else {
+        final res = await client
+            .get(
+              Uri.parse(
+                  'https://api.quran.com/api/v4/quran/recitations/$reciterId?chapter_number=$surahNumber'),
+              headers: const {'User-Agent': 'MyPrayers/1.0'},
+            )
+            .timeout(const Duration(seconds: 30));
+        if (res.statusCode != 200) {
+          throw Exception('catalog ${res.statusCode}');
+        }
+        final body =
+            jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
+        final files =
+            (body['audio_files'] as List).cast<Map<String, dynamic>>();
+        allFiles = files.map((f) {
+          final key = f['verse_key'] as String;
+          final parts = key.split(':');
+          return _AyahFile(
+            surah: int.parse(parts[0]),
+            ayah: int.parse(parts[1]),
+            url: resolveAudioUrl(f['url'] as String),
+          );
+        }).toList();
       }
-      final body =
-          jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
-      final files = (body['audio_files'] as List).cast<Map<String, dynamic>>();
-      final allFiles = files.map((f) {
-        final key = f['verse_key'] as String;
-        final parts = key.split(':');
-        return _AyahFile(
-          surah: int.parse(parts[0]),
-          ayah: int.parse(parts[1]),
-          url: resolveAudioUrl(f['url'] as String),
-        );
-      }).toList();
       total = allFiles.length;
       emit();
 
+      final isChapter = reciter?.isChapterBased == true;
       final pending = <_AyahFile>[];
       for (final f in allFiles) {
-        final local =
-            File(p.join(dir.path, '${_verseKey(f.surah, f.ayah)}.mp3'));
+        final local = isChapter
+            ? File(p.join(dir.path, _chapterFileName(f.surah)))
+            : File(p.join(dir.path, '${_verseKey(f.surah, f.ayah)}.mp3'));
         if (await local.exists() && await local.length() > 0) {
           done++;
         } else {
@@ -398,8 +467,10 @@ class RecitationService {
         items: pending,
         maxConcurrent: _maxConcurrentDownloads,
         task: (item) async {
-          final file = File(
-              p.join(dir.path, '${_verseKey(item.surah, item.ayah)}.mp3'));
+          final file = isChapter
+              ? File(p.join(dir.path, _chapterFileName(item.surah)))
+              : File(
+                  p.join(dir.path, '${_verseKey(item.surah, item.ayah)}.mp3'));
           await _downloadOne(client, item.url, file);
           done++;
           emit();

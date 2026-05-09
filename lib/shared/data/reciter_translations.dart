@@ -251,6 +251,12 @@ const Map<int, Map<String, String>> _reciterNames = {
     'ckb': 'مەحمود عەلی بەنا',
     'ckb_Badini': 'مەحمود عەلی بەنا',
   },
+  1100: {
+    'en': "Sa'ad al-Ghamidi (with Kurdish translation)",
+    'ar': 'سعد الغامدي (مع الترجمة الكردية)',
+    'ckb': 'سەعد غامدی (لەگەڵ وەرگێڕانی کوردی)',
+    'ckb_Badini': 'سەعد غامدی (دگەل وەرگێڕانا کوردی)',
+  },
 };
 
 const Map<String, Map<String, String>> _reciterStyles = {
@@ -271,6 +277,12 @@ const Map<String, Map<String, String>> _reciterStyles = {
     'ar': 'معلّم',
     'ckb': 'موعەللیم',
     'ckb_Badini': 'موعەللیم',
+  },
+  'translation': {
+    'en': 'With Kurdish translation',
+    'ar': 'مع ترجمة كردية',
+    'ckb': 'لەگەڵ وەرگێڕانی کوردی',
+    'ckb_Badini': 'دگەل وەرگێڕانا کوردی',
   },
 };
 

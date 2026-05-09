@@ -211,4 +211,12 @@ const List<Reciter> extraReciters = [
     translatedName: 'Mahmoud al-Banna',
     everyayahFolder: 'mahmoud_ali_al_banna_32kbps',
   ),
+  Reciter(
+    id: 1100,
+    name: "Sa'ad al-Ghamidi (Kurdish translation)",
+    style: 'Translation',
+    translatedName: "Sa'ad al-Ghamidi with Kurdish translation",
+    chapterUrlPattern:
+        'https://archive.org/download/quraninkurdish/Saad_Al_Ghamedi_with_Kurdish_Translation_{s}.mp3',
+  ),
 ];

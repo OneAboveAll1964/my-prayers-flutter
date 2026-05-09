@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/widgets.dart';
 
+import '../../shared/data/reciter_catalog.dart';
 import 'recitation_service.dart';
 
 class AyahAudioState {
@@ -75,7 +76,9 @@ class AyahAudioController {
   static final AyahAudioController _ensured = (() {
     final c = instance;
     c._completeSub ??= c._player.onPlayerComplete.listen((_) {
-      if (c._queueActive &&
+      final isChapter = _isChapterReciter(c._queueReciter);
+      if (!isChapter &&
+          c._queueActive &&
           c._state.surah == c._queueSurah &&
           c._state.ayah != null &&
           c._queueEndAyah != null) {
@@ -185,6 +188,16 @@ class AyahAudioController {
       ));
     }
   }
+}
+
+bool _isChapterReciter(int? reciterId) {
+  if (reciterId == null) return false;
+  final cached = ReciterCatalog.cachedAll();
+  if (cached == null) return false;
+  for (final r in cached) {
+    if (r.id == reciterId) return r.isChapterBased;
+  }
+  return false;
 }
 
 class _AudioLifecycleObserver with WidgetsBindingObserver {

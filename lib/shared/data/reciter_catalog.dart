@@ -11,6 +11,7 @@ class Reciter {
     required this.style,
     required this.translatedName,
     this.everyayahFolder,
+    this.chapterUrlPattern,
   });
 
   final int id;
@@ -18,6 +19,16 @@ class Reciter {
   final String? style;
   final String translatedName;
   final String? everyayahFolder;
+  final String? chapterUrlPattern;
+
+  bool get isChapterBased => chapterUrlPattern != null;
+
+  String? chapterUrlFor(int surah) {
+    final pattern = chapterUrlPattern;
+    if (pattern == null) return null;
+    final s = surah.toString().padLeft(3, '0');
+    return pattern.replaceAll('{s}', s);
+  }
 
   String get displayName => name;
 

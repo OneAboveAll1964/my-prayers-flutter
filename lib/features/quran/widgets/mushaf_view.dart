@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ionicons/ionicons.dart';
@@ -54,9 +55,9 @@ class _MushafViewState extends ConsumerState<MushafView> {
         ? widget.surah.ayahs.first
         : widget.surah.ayahs.firstWhere(
             (a) => a.numberInSurah == widget.initialAyah,
-            orElse: () => widget.surah.ayahs.first);
+        orElse: () => widget.surah.ayahs.first);
     final initialIdx =
-        (initialAyah.page - _firstPage).clamp(0, _lastPage - _firstPage);
+    (initialAyah.page - _firstPage).clamp(0, _lastPage - _firstPage);
     _pageController = PageController(initialPage: initialIdx);
     _ayahByKey = {
       for (final a in widget.surah.ayahs)
@@ -69,6 +70,13 @@ class _MushafViewState extends ConsumerState<MushafView> {
     final pageCount = _lastPage - _firstPage + 1;
     _scheduleSettledPreload(initialIdx, pageCount,
         delay: const Duration(milliseconds: 400));
+    final audioState = AyahAudioController.instance.state;
+    if (audioState.surah == widget.surah.number && audioState.ayah != null) {
+      if (audioState.playing || audioState.loading) {
+        _playingKey = '${audioState.surah}:${audioState.ayah}';
+      }
+      _lastQueueAyah = audioState.ayah;
+    }
     _audioSub = AyahAudioController.instance.stream.listen(_onAudio);
   }
 
@@ -76,7 +84,7 @@ class _MushafViewState extends ConsumerState<MushafView> {
     if (!mounted) return;
     final isThisSurah = s.surah == widget.surah.number && s.ayah != null;
     final newKey =
-        isThisSurah && (s.playing || s.loading) ? '${s.surah}:${s.ayah}' : null;
+    isThisSurah && (s.playing || s.loading) ? '${s.surah}:${s.ayah}' : null;
     if (newKey != _playingKey) {
       setState(() => _playingKey = newKey);
     }
@@ -86,11 +94,11 @@ class _MushafViewState extends ConsumerState<MushafView> {
     if (s.ayah == _lastQueueAyah) return;
     _lastQueueAyah = s.ayah;
     final ayah = widget.surah.ayahs.firstWhere(
-      (a) => a.numberInSurah == s.ayah,
+          (a) => a.numberInSurah == s.ayah,
       orElse: () => widget.surah.ayahs.first,
     );
     final targetIdx =
-        (ayah.page - _firstPage).clamp(0, _lastPage - _firstPage);
+    (ayah.page - _firstPage).clamp(0, _lastPage - _firstPage);
     if (!_pageController.hasClients) return;
     final current = _pageController.page?.round() ?? 0;
     if (current == targetIdx) return;
@@ -102,10 +110,10 @@ class _MushafViewState extends ConsumerState<MushafView> {
   }
 
   void _scheduleSettledPreload(
-    int idx,
-    int pageCount, {
-    Duration delay = const Duration(milliseconds: 400),
-  }) {
+      int idx,
+      int pageCount, {
+        Duration delay = const Duration(milliseconds: 400),
+      }) {
     _preloadTimer?.cancel();
     _preloadTimer = Timer(delay, () {
       if (!mounted) return;
@@ -323,12 +331,12 @@ class _MushafPageViewState extends State<_MushafPageView> {
           Expanded(
             child: _bundle != null
                 ? _MushafPageContent(
-                    bundle: _bundle!,
-                    ayahByKey: widget.ayahByKey,
-                    selectedKey: widget.selectedKey,
-                    onTapWord: widget.onTapWord,
-                    surahFilter: widget.surahNumber,
-                  )
+              bundle: _bundle!,
+              ayahByKey: widget.ayahByKey,
+              selectedKey: widget.selectedKey,
+              onTapWord: widget.onTapWord,
+              surahFilter: widget.surahNumber,
+            )
                 : FutureBuilder<_PageBundle>(
               future: _bundleFuture,
               builder: (ctx, snap) {
@@ -413,13 +421,13 @@ class _MushafPageViewState extends State<_MushafPageView> {
                   SizedBox(
                     width: 40,
                     child: widget.pageIndex == 0 &&
-                            widget.surahNumber > 1 &&
-                            widget.onSwitchSurah != null
+                        widget.surahNumber > 1 &&
+                        widget.onSwitchSurah != null
                         ? _SurahNavButton(
-                            icon: Ionicons.chevron_forward,
-                            onTap: () => widget
-                                .onSwitchSurah!(widget.surahNumber - 1),
-                          )
+                      icon: Ionicons.chevron_forward,
+                      onTap: () => widget
+                          .onSwitchSurah!(widget.surahNumber - 1),
+                    )
                         : null,
                   ),
                   Expanded(
@@ -438,13 +446,13 @@ class _MushafPageViewState extends State<_MushafPageView> {
                   SizedBox(
                     width: 40,
                     child: widget.pageIndex == widget.totalPages - 1 &&
-                            widget.surahNumber < 114 &&
-                            widget.onSwitchSurah != null
+                        widget.surahNumber < 114 &&
+                        widget.onSwitchSurah != null
                         ? _SurahNavButton(
-                            icon: Ionicons.chevron_back,
-                            onTap: () => widget
-                                .onSwitchSurah!(widget.surahNumber + 1),
-                          )
+                      icon: Ionicons.chevron_back,
+                      onTap: () => widget
+                          .onSwitchSurah!(widget.surahNumber + 1),
+                    )
                         : null,
                   ),
                 ],
@@ -491,10 +499,10 @@ class _MushafPageContent extends StatelessWidget {
     final lines = surahFilter == null
         ? bundle.data.lines
         : bundle.data.lines.where((line) {
-            if (line.words.isEmpty) return false;
-            final prefix = '$surahFilter:';
-            return line.words.any((w) => w.verseKey.startsWith(prefix));
-          }).toList();
+      if (line.words.isEmpty) return false;
+      final prefix = '$surahFilter:';
+      return line.words.any((w) => w.verseKey.startsWith(prefix));
+    }).toList();
     return LayoutBuilder(builder: (ctx, c) {
       const padH = 24.0;
       const padV = 12.0;
@@ -537,7 +545,7 @@ class _MushafPageContent extends StatelessWidget {
   }
 }
 
-class _LineWidget extends StatelessWidget {
+class _LineWidget extends StatefulWidget {
   const _LineWidget({
     required this.line,
     required this.fontFamily,
@@ -557,38 +565,76 @@ class _LineWidget extends StatelessWidget {
   final AppPalette palette;
 
   @override
-  Widget build(BuildContext context) {
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          for (final w in line.words) _wordWidget(w),
-        ],
-      ),
-    );
+  State<_LineWidget> createState() => _LineWidgetState();
+}
+
+class _LineWidgetState extends State<_LineWidget> {
+  final List<TapGestureRecognizer> _recognizers = [];
+
+  @override
+  void dispose() {
+    for (final r in _recognizers) {
+      r.dispose();
+    }
+    _recognizers.clear();
+    super.dispose();
   }
 
-  Widget _wordWidget(MushafLineWord w) {
-    final ayah = ayahByKey[w.verseKey];
-    final isSelected = selectedKey == w.verseKey;
-    Widget child = Text(
-      w.code,
-      style: TextStyle(
-        fontFamily: fontFamily,
-        fontSize: fontSize,
-        color: w.isAyahEnd ? palette.accent : null,
-        height: 1.4,
-      ),
-    );
-    if (isSelected) {
-      child = ColoredBox(color: palette.accentSoft, child: child);
+  @override
+  Widget build(BuildContext context) {
+    for (final r in _recognizers) {
+      r.dispose();
     }
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: () => onTapWord(w.verseKey, ayah),
-      child: child,
+    _recognizers.clear();
+
+    final words = widget.line.words;
+    final spans = <InlineSpan>[];
+    final selectedKey = widget.selectedKey;
+    final accent = widget.palette.accent;
+    final accentSoftPaint = Paint()..color = widget.palette.accentSoft;
+
+    for (var i = 0; i < words.length; i++) {
+      final w = words[i];
+      final isSelected = selectedKey == w.verseKey;
+      final recognizer = TapGestureRecognizer()
+        ..onTap = () {
+          final ayah = widget.ayahByKey[w.verseKey];
+          widget.onTapWord(w.verseKey, ayah);
+        };
+      _recognizers.add(recognizer);
+      spans.add(TextSpan(
+        text: w.code,
+        recognizer: recognizer,
+        style: w.isAyahEnd || isSelected
+            ? TextStyle(
+                color: w.isAyahEnd ? accent : null,
+                background: isSelected ? accentSoftPaint : null,
+              )
+            : null,
+      ));
+      if (i < words.length - 1) {
+        spans.add(TextSpan(
+          text: ' ',
+          style: TextStyle(fontSize: widget.fontSize * 0.5),
+        ));
+      }
+    }
+
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Text.rich(
+        TextSpan(
+          style: TextStyle(
+            fontFamily: widget.fontFamily,
+            fontSize: widget.fontSize,
+            height: 1.4,
+          ),
+          children: spans,
+        ),
+        textAlign: TextAlign.center,
+        softWrap: false,
+        maxLines: 1,
+      ),
     );
   }
 }

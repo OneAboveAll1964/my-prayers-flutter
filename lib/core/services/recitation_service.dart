@@ -493,7 +493,7 @@ class RecitationService {
         final res = await client
             .get(Uri.parse(url),
                 headers: const {'User-Agent': 'MyPrayers/1.0'})
-            .timeout(const Duration(seconds: 30));
+            .timeout(const Duration(seconds: 120));
         if (res.statusCode != 200 || res.bodyBytes.isEmpty) {
           throw Exception('${res.statusCode}');
         }
@@ -501,7 +501,7 @@ class RecitationService {
         return;
       } catch (e) {
         if (attempt == 2) rethrow;
-        await Future.delayed(Duration(milliseconds: 250 * (attempt + 1)));
+        await Future.delayed(Duration(milliseconds: 500 * (attempt + 1)));
       }
     }
   }

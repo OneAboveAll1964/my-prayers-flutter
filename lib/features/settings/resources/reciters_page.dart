@@ -227,6 +227,7 @@ class _RecitersPageState extends ConsumerState<RecitersPage> {
       body: SafeArea(
         bottom: false,
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             PageHeader(
               title: l10n.t('resources.reciters'),

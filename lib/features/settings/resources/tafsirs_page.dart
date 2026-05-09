@@ -268,6 +268,7 @@ class _TafsirsPageState extends ConsumerState<TafsirsPage> {
       body: SafeArea(
         bottom: false,
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             PageHeader(
               title: l10n.t('resources.tafsirs'),

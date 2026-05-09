@@ -230,6 +230,7 @@ class _InstallProgressBodyState extends State<_InstallProgressBody> {
   SurahInfoProgress? _progress;
   bool _failed = false;
   String? _error;
+  bool _popped = false;
 
   @override
   void initState() {
@@ -250,7 +251,7 @@ class _InstallProgressBodyState extends State<_InstallProgressBody> {
     });
     _sub?.cancel();
     _sub = SurahInfoService.instance.install(widget.lang).listen((p) {
-      if (!mounted) return;
+      if (!mounted || _popped) return;
       setState(() {
         _progress = p;
         if (p.failed) {
@@ -258,7 +259,9 @@ class _InstallProgressBodyState extends State<_InstallProgressBody> {
           _error = p.errorMessage;
         }
       });
-      if (p.isComplete) {
+      if (p.isComplete && !_popped) {
+        _popped = true;
+        _sub?.cancel();
         Navigator.of(context).pop(true);
       }
     });

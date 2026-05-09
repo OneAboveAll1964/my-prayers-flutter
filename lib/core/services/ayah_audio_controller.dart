@@ -149,7 +149,10 @@ class AyahAudioController {
     required int ayah,
   }) async {
     _ensured;
-    if (_state.isFor(surah, ayah) &&
+    final isChapter = _isChapterReciter(reciterId);
+    final stateAyah = isChapter ? null : ayah;
+    if (_state.surah == surah &&
+        _state.ayah == stateAyah &&
         _state.playing &&
         _state.reciterId == reciterId) {
       await stop();
@@ -162,7 +165,7 @@ class AyahAudioController {
     );
     _emit(AyahAudioState(
       surah: surah,
-      ayah: ayah,
+      ayah: stateAyah,
       reciterId: reciterId,
       loading: cached == null,
       playing: false,
@@ -188,6 +191,32 @@ class AyahAudioController {
       ));
     }
   }
+
+  Future<void> seek(Duration position) async {
+    _ensured;
+    await _player.seek(position);
+  }
+
+  Future<void> seekRelative(Duration delta) async {
+    _ensured;
+    final pos = await _player.getCurrentPosition() ?? Duration.zero;
+    final next = pos + delta;
+    await _player.seek(next < Duration.zero ? Duration.zero : next);
+  }
+
+  Future<void> pauseOrResume() async {
+    _ensured;
+    if (_state.playing) {
+      await _player.pause();
+      _emit(_state.copyWith(playing: false));
+    } else if (_state.surah != null) {
+      await _player.resume();
+      _emit(_state.copyWith(playing: true));
+    }
+  }
+
+  Stream<Duration> get positionStream => _player.onPositionChanged;
+  Stream<Duration> get durationStream => _player.onDurationChanged;
 }
 
 bool _isChapterReciter(int? reciterId) {

@@ -133,10 +133,31 @@ class _SurahPageState extends ConsumerState<SurahPage> {
     }
   }
 
+  bool _loadScheduled = false;
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_pageMap == null) _load();
+    if (_pageMap == null && !_loadScheduled) {
+      _loadScheduled = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        final route = ModalRoute.of(context);
+        final anim = route?.animation;
+        if (anim == null || anim.isCompleted) {
+          _load();
+        } else {
+          void onStatus(AnimationStatus s) {
+            if (s == AnimationStatus.completed ||
+                s == AnimationStatus.dismissed) {
+              anim.removeStatusListener(onStatus);
+              if (mounted) _load();
+            }
+          }
+          anim.addStatusListener(onStatus);
+        }
+      });
+    }
   }
 
   bool get _scrollMode =>
@@ -1016,6 +1037,7 @@ class _SurahDownloadBodyState extends State<_SurahDownloadBody> {
   RecitationProgress? _progress;
   bool _failed = false;
   String? _error;
+  bool _popped = false;
 
   @override
   void initState() {
@@ -1033,6 +1055,7 @@ class _SurahDownloadBodyState extends State<_SurahDownloadBody> {
     setState(() {
       _failed = false;
       _error = null;
+      _popped = false;
     });
     _sub?.cancel();
     _sub = RecitationService.instance
@@ -1041,7 +1064,7 @@ class _SurahDownloadBodyState extends State<_SurahDownloadBody> {
       surahNumber: widget.surahNumber,
     )
         .listen((p) {
-      if (!mounted) return;
+      if (!mounted || _popped) return;
       setState(() {
         _progress = p;
         if (p.failed) {
@@ -1049,7 +1072,9 @@ class _SurahDownloadBodyState extends State<_SurahDownloadBody> {
           _error = p.errorMessage;
         }
       });
-      if (p.isComplete) {
+      if (p.isComplete && !_popped) {
+        _popped = true;
+        _sub?.cancel();
         Navigator.of(context).pop(true);
       }
     });

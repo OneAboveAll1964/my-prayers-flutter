@@ -66,6 +66,7 @@ class _SurahPageState extends ConsumerState<SurahPage> {
   StreamSubscription<AyahAudioState>? _audioSub;
   AyahAudioState _audio = AyahAudioController.instance.state;
   bool _lastQueueActiveHere = false;
+  bool _lastAudioLoadingHere = false;
 
   Widget? _cachedMushaf;
   SurahPageMap? _cachedMushafFor;
@@ -118,8 +119,11 @@ class _SurahPageState extends ConsumerState<SurahPage> {
     final ctrl = AyahAudioController.instance;
     final queueActiveHere =
         ctrl.isQueueActive && ctrl.queueSurah == _surahNumber;
-    if (queueActiveHere != _lastQueueActiveHere) {
+    final audioLoadingHere = s.surah == _surahNumber && s.loading;
+    if (queueActiveHere != _lastQueueActiveHere ||
+        audioLoadingHere != _lastAudioLoadingHere) {
       _lastQueueActiveHere = queueActiveHere;
+      _lastAudioLoadingHere = audioLoadingHere;
       setState(() {});
     }
     if (!ctrl.isQueueActive) return;
@@ -350,6 +354,7 @@ class _SurahPageState extends ConsumerState<SurahPage> {
 
   Future<void> _switchToSurah(int newNumber) async {
     if (newNumber < 1 || newNumber > 114) return;
+    await AyahAudioController.instance.stop();
     final nextMap =
         await QuranRepository.instance.getSurahPageMap(newNumber);
     if (!mounted || nextMap == null) return;
@@ -586,6 +591,8 @@ class _SurahPageState extends ConsumerState<SurahPage> {
     final queueActiveHere =
         AyahAudioController.instance.isQueueActive &&
             AyahAudioController.instance.queueSurah == activeSurahNumber;
+    final audioLoadingHere = _audio.surah == activeSurahNumber &&
+        (_audio.loading || _startingSurahPlay);
     final isEn = l10n.locale.languageCode == 'en';
     final titleWidget = isEn
         ? null
@@ -624,16 +631,29 @@ class _SurahPageState extends ConsumerState<SurahPage> {
                         ? null
                         : () => _toggleMode(isMushaf),
                   ),
-                  AppIconButton(
-                    icon: queueActiveHere
-                        ? Ionicons.stop_circle
-                        : Ionicons.play_circle,
-                    semanticLabel: l10n.t('quran.playSurah'),
-                    color: queueActiveHere ? palette.accent : null,
-                    onPressed: _startingSurahPlay
-                        ? null
-                        : _onPlaySurahTap,
-                  ),
+                  audioLoadingHere
+                      ? SizedBox(
+                          width: 40,
+                          height: 40,
+                          child: Center(
+                            child: SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.2,
+                                color: palette.accent,
+                              ),
+                            ),
+                          ),
+                        )
+                      : AppIconButton(
+                          icon: queueActiveHere
+                              ? Ionicons.stop_circle
+                              : Ionicons.play_circle,
+                          semanticLabel: l10n.t('quran.playSurah'),
+                          color: queueActiveHere ? palette.accent : null,
+                          onPressed: _onPlaySurahTap,
+                        ),
                   AppIconButton(
                     icon: Ionicons.ellipsis_horizontal,
                     semanticLabel: l10n.t('quran.moreActions'),

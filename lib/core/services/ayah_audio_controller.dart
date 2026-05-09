@@ -168,10 +168,6 @@ class AyahAudioController {
       surah,
       ayah,
     );
-    // For chapter reciters the MP3 is multi-MB and Android MediaPlayer's
-    // prepare phase takes a couple of seconds even on a cached file —
-    // surface a loading state so the player bar shows a spinner instead
-    // of looking dead.
     _emit(AyahAudioState(
       surah: surah,
       ayah: stateAyah,

@@ -16,17 +16,24 @@ class RecitationProgress {
   const RecitationProgress({
     required this.filesDone,
     required this.totalFiles,
+    this.bytesDone = 0,
+    this.totalBytes = 0,
     this.failed = false,
     this.errorMessage,
   });
 
   final int filesDone;
   final int totalFiles;
+  final int bytesDone;
+  final int totalBytes;
   final bool failed;
   final String? errorMessage;
 
-  double get fraction =>
-      totalFiles == 0 ? 0 : filesDone / totalFiles;
+  double get fraction {
+    if (totalBytes > 0) return (bytesDone / totalBytes).clamp(0.0, 1.0);
+    if (totalFiles == 0) return 0;
+    return filesDone / totalFiles;
+  }
 
   bool get isComplete =>
       !failed && totalFiles > 0 && filesDone >= totalFiles;
@@ -408,12 +415,16 @@ class RecitationService {
     final client = http.Client();
     var done = 0;
     var total = 0;
+    var bytesDone = 0;
+    var totalBytes = 0;
 
     void emit({bool failed = false, String? error}) {
       if (controller.isClosed) return;
       controller.add(RecitationProgress(
         filesDone: done,
         totalFiles: total,
+        bytesDone: bytesDone,
+        totalBytes: totalBytes,
         failed: failed,
         errorMessage: error,
       ));
@@ -478,17 +489,48 @@ class RecitationService {
       }
       emit();
 
+      DateTime lastEmit = DateTime.fromMillisecondsSinceEpoch(0);
+      void maybeEmit({bool force = false}) {
+        final now = DateTime.now();
+        if (!force && now.difference(lastEmit).inMilliseconds < 200) return;
+        lastEmit = now;
+        emit();
+      }
+
       await _runConcurrent(
         items: pending,
-        maxConcurrent: _maxConcurrentDownloads,
+        maxConcurrent: isChapter ? 1 : _maxConcurrentDownloads,
         task: (item) async {
           final file = isChapter
               ? File(p.join(dir.path, _chapterFileName(item.surah)))
               : File(
                   p.join(dir.path, '${_verseKey(item.surah, item.ayah)}.mp3'));
-          await _downloadOne(client, item.url, file);
+          var fileBytes = 0;
+          var fileTotal = 0;
+          await _downloadOne(
+            client,
+            item.url,
+            file,
+            onProgress: isChapter
+                ? (bytes, total) {
+                    if (total != null && total > 0 && fileTotal == 0) {
+                      fileTotal = total;
+                      totalBytes += total;
+                    }
+                    final delta = bytes - fileBytes;
+                    fileBytes = bytes;
+                    bytesDone += delta;
+                    maybeEmit();
+                  }
+                : null,
+          );
           done++;
-          emit();
+          if (isChapter && fileTotal == 0) {
+            final size = await file.length();
+            totalBytes += size;
+            bytesDone += size;
+          }
+          maybeEmit(force: true);
         },
       );
 
@@ -502,17 +544,44 @@ class RecitationService {
     }
   }
 
-  Future<void> _downloadOne(http.Client client, String url, File dest) async {
+  Future<void> _downloadOne(
+    http.Client client,
+    String url,
+    File dest, {
+    void Function(int bytes, int? total)? onProgress,
+  }) async {
     for (var attempt = 0; attempt < 3; attempt++) {
       try {
+        final req = http.Request('GET', Uri.parse(url));
+        req.headers['User-Agent'] = 'MyPrayers/1.0';
         final res = await client
-            .get(Uri.parse(url),
-                headers: const {'User-Agent': 'MyPrayers/1.0'})
-            .timeout(const Duration(seconds: 120));
-        if (res.statusCode != 200 || res.bodyBytes.isEmpty) {
+            .send(req)
+            .timeout(const Duration(seconds: 60));
+        if (res.statusCode != 200) {
           throw Exception('${res.statusCode}');
         }
-        await dest.writeAsBytes(res.bodyBytes, flush: true);
+        final contentLength = res.contentLength;
+        final tmp = File('${dest.path}.part');
+        if (await tmp.exists()) await tmp.delete();
+        final sink = tmp.openWrite();
+        var bytes = 0;
+        try {
+          await for (final chunk in res.stream
+              .timeout(const Duration(seconds: 30))) {
+            sink.add(chunk);
+            bytes += chunk.length;
+            if (onProgress != null) onProgress(bytes, contentLength);
+          }
+          await sink.flush();
+        } finally {
+          await sink.close();
+        }
+        if (bytes == 0) {
+          if (await tmp.exists()) await tmp.delete();
+          throw Exception('empty');
+        }
+        if (await dest.exists()) await dest.delete();
+        await tmp.rename(dest.path);
         return;
       } catch (e) {
         if (attempt == 2) rethrow;

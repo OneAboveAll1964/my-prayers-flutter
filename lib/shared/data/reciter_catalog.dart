@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'extra_reciters.dart';
 
@@ -54,6 +55,7 @@ class Reciter {
 
 class ReciterCatalog {
   ReciterCatalog._();
+  static const _prefsKey = 'mp.reciters.cache.v1';
   static List<Reciter>? _cached;
   static Future<List<Reciter>>? _inflight;
 
@@ -63,6 +65,31 @@ class ReciterCatalog {
   }
 
   static List<Reciter>? cachedAll() => _cached;
+
+  static Future<List<Map<String, dynamic>>?> _readPersistedRaw() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString(_prefsKey);
+      if (raw == null) return null;
+      final list = jsonDecode(raw) as List;
+      return list.cast<Map<String, dynamic>>();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static Future<void> _persistRaw(List<Map<String, dynamic>> raw) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_prefsKey, jsonEncode(raw));
+    } catch (_) {}
+  }
+
+  static List<Reciter> _buildList(List<Map<String, dynamic>> raw) {
+    final fromApi = raw.map(Reciter.fromJson).toList();
+    return <Reciter>[...fromApi, ...extraReciters]
+      ..sort((a, b) => a.name.compareTo(b.name));
+  }
 
   static Future<List<Reciter>> _fetch() async {
     try {
@@ -78,13 +105,26 @@ class ReciterCatalog {
       final body =
           jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
       final raw = (body['recitations'] as List).cast<Map<String, dynamic>>();
-      final fromApi = raw.map(Reciter.fromJson).toList();
-      final list = <Reciter>[...fromApi, ...extraReciters]
-        ..sort((a, b) => a.name.compareTo(b.name));
+      await _persistRaw(raw);
+      final list = _buildList(raw);
       _cached = list;
       _inflight = null;
       return list;
     } catch (e) {
+      final persisted = await _readPersistedRaw();
+      if (persisted != null && persisted.isNotEmpty) {
+        final list = _buildList(persisted);
+        _cached = list;
+        _inflight = null;
+        return list;
+      }
+      final fallback = <Reciter>[...extraReciters]
+        ..sort((a, b) => a.name.compareTo(b.name));
+      if (fallback.isNotEmpty) {
+        _cached = fallback;
+        _inflight = null;
+        return fallback;
+      }
       _inflight = null;
       rethrow;
     }

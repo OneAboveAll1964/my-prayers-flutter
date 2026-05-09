@@ -16,6 +16,7 @@ import '../../shared/widgets/app_button.dart';
 import '../../shared/widgets/app_sheet.dart';
 import '../../shared/widgets/app_spinner.dart';
 import '../../shared/widgets/app_toast.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 import '../../shared/widgets/page_scaffold.dart';
 import '../../core/services/mushaf_asset_service.dart';
 import '../../core/services/surah_name_font_service.dart';
@@ -110,6 +111,7 @@ class _SurahPageState extends ConsumerState<SurahPage> {
     _controller = ScrollController()..addListener(_onScroll);
     _currentAyah = widget.initialAyah ?? 1;
     _audioSub = AyahAudioController.instance.stream.listen(_onAudioState);
+    WakelockPlus.enable();
   }
 
   void _onAudioState(AyahAudioState s) {
@@ -434,6 +436,7 @@ class _SurahPageState extends ConsumerState<SurahPage> {
 
   @override
   void dispose() {
+    WakelockPlus.disable();
     _audioSub?.cancel();
     AyahAudioController.instance.stop();
     _scrollDebounce?.cancel();
@@ -963,6 +966,14 @@ class _PlayerIconButton extends StatelessWidget {
   }
 }
 
+String _formatMb(int bytes) {
+  if (bytes <= 0) return '0 MB';
+  final mb = bytes / (1024 * 1024);
+  if (mb >= 100) return '${mb.toStringAsFixed(0)} MB';
+  if (mb >= 10) return '${mb.toStringAsFixed(1)} MB';
+  return '${mb.toStringAsFixed(2)} MB';
+}
+
 bool _isChapterReciterId(int? reciterId) {
   if (reciterId == null) return false;
   final cached = ReciterCatalog.cachedAll();
@@ -1358,6 +1369,11 @@ class _SurahDownloadBodyState extends State<_SurahDownloadBody> {
     final fraction = p?.fraction ?? 0.0;
     final done = p?.filesDone ?? 0;
     final total = p?.totalFiles ?? 0;
+    final bytesDone = p?.bytesDone ?? 0;
+    final totalBytes = p?.totalBytes ?? 0;
+    final progressLabel = totalBytes > 0
+        ? '${_formatMb(bytesDone)} / ${_formatMb(totalBytes)}'
+        : (total == 0 ? '' : '$done / $total');
 
     if (_failed) {
       return Column(
@@ -1417,7 +1433,7 @@ class _SurahDownloadBodyState extends State<_SurahDownloadBody> {
         ),
         const SizedBox(height: 10),
         Text(
-          total == 0 ? '' : '$done / $total',
+          progressLabel,
           textAlign: TextAlign.center,
           style: TextStyle(
             color: palette.textMuted,

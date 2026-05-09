@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Tafsir {
   const Tafsir({
@@ -40,6 +41,7 @@ class Tafsir {
 
 class TafsirCatalog {
   TafsirCatalog._();
+  static const _prefsKey = 'mp.tafsirs.cache.v1';
   static List<Tafsir>? _cached;
   static Future<List<Tafsir>>? _inflight;
 
@@ -49,6 +51,34 @@ class TafsirCatalog {
   }
 
   static List<Tafsir>? cachedAll() => _cached;
+
+  static Future<List<Map<String, dynamic>>?> _readPersistedRaw() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString(_prefsKey);
+      if (raw == null) return null;
+      final list = jsonDecode(raw) as List;
+      return list.cast<Map<String, dynamic>>();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static Future<void> _persistRaw(List<Map<String, dynamic>> raw) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_prefsKey, jsonEncode(raw));
+    } catch (_) {}
+  }
+
+  static List<Tafsir> _buildList(List<Map<String, dynamic>> raw) {
+    return raw.map(Tafsir.fromJson).toList()
+      ..sort((a, b) {
+        final byLang = a.languageName.compareTo(b.languageName);
+        if (byLang != 0) return byLang;
+        return a.name.compareTo(b.name);
+      });
+  }
 
   static Future<List<Tafsir>> _fetch() async {
     try {
@@ -64,16 +94,19 @@ class TafsirCatalog {
       final body =
           jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
       final raw = (body['tafsirs'] as List).cast<Map<String, dynamic>>();
-      final list = raw.map(Tafsir.fromJson).toList()
-        ..sort((a, b) {
-          final byLang = a.languageName.compareTo(b.languageName);
-          if (byLang != 0) return byLang;
-          return a.name.compareTo(b.name);
-        });
+      await _persistRaw(raw);
+      final list = _buildList(raw);
       _cached = list;
       _inflight = null;
       return list;
     } catch (e) {
+      final persisted = await _readPersistedRaw();
+      if (persisted != null && persisted.isNotEmpty) {
+        final list = _buildList(persisted);
+        _cached = list;
+        _inflight = null;
+        return list;
+      }
       _inflight = null;
       rethrow;
     }

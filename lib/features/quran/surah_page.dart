@@ -11,6 +11,7 @@ import '../../shared/data/reciter_catalog.dart';
 import '../../shared/models/quran.dart';
 import '../../shared/state/favorites_provider.dart';
 import '../../shared/state/settings_provider.dart';
+import '../../shared/util/format_bytes.dart';
 import '../../shared/widgets/animated_toggle_icon.dart';
 import '../../shared/widgets/app_button.dart';
 import '../../shared/widgets/app_sheet.dart';
@@ -966,14 +967,6 @@ class _PlayerIconButton extends StatelessWidget {
   }
 }
 
-String _formatMb(int bytes) {
-  if (bytes <= 0) return '0 MB';
-  final mb = bytes / (1024 * 1024);
-  if (mb >= 100) return '${mb.toStringAsFixed(0)} MB';
-  if (mb >= 10) return '${mb.toStringAsFixed(1)} MB';
-  return '${mb.toStringAsFixed(2)} MB';
-}
-
 bool _isChapterReciterId(int? reciterId) {
   if (reciterId == null) return false;
   final cached = ReciterCatalog.cachedAll();
@@ -1372,7 +1365,7 @@ class _SurahDownloadBodyState extends State<_SurahDownloadBody> {
     final bytesDone = p?.bytesDone ?? 0;
     final totalBytes = p?.totalBytes ?? 0;
     final progressLabel = totalBytes > 0
-        ? '${_formatMb(bytesDone)} / ${_formatMb(totalBytes)}'
+        ? '${formatMb(bytesDone)} / ${formatMb(totalBytes)}'
         : (total == 0 ? '' : '$done / $total');
 
     if (_failed) {

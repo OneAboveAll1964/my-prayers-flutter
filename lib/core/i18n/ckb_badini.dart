@@ -129,6 +129,7 @@ const ckbBadiniBundle = <String, String>{
   'reciters.uninstall': 'ڕاکرن',
   'reciters.installing': 'دائینانا تلاڤێ',
   'reciters.installingBody': '٦٢٣٦ فایلێ دەنگی یێت ئایەتان داتێنە ئینان. دێ شێی ئەپێ بکار بینی.',
+  'reciters.installingBodyChapters': '١١٤ فایلێ دەنگی یێت سورەتان داتێنە ئینان. دێ شێی ئەپێ بکار بینی.',
   'reciters.installComplete': 'تلاڤە ئامادەیە',
   'reciters.installFailed': 'دائینان سەرکەفتی نەبوو',
   'reciters.approxSize': 'پێدڤیە {n} میگابایت دائینین',

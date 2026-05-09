@@ -30,6 +30,7 @@ class RecitationProgress {
   final String? errorMessage;
 
   double get fraction {
+    if (totalFiles > 1) return filesDone / totalFiles;
     if (totalBytes > 0) return (bytesDone / totalBytes).clamp(0.0, 1.0);
     if (totalFiles == 0) return 0;
     return filesDone / totalFiles;
@@ -267,6 +268,8 @@ class RecitationService {
     final client = http.Client();
     var done = 0;
     var total = _totalAyahs;
+    var bytesDone = 0;
+    var totalBytes = 0;
     var emitted = false;
 
     void emit({bool failed = false, String? error}) {
@@ -274,10 +277,20 @@ class RecitationService {
       controller.add(RecitationProgress(
         filesDone: done,
         totalFiles: total,
+        bytesDone: bytesDone,
+        totalBytes: totalBytes,
         failed: failed,
         errorMessage: error,
       ));
       emitted = true;
+    }
+
+    DateTime lastEmit = DateTime.fromMillisecondsSinceEpoch(0);
+    void maybeEmit({bool force = false}) {
+      final now = DateTime.now();
+      if (!force && now.difference(lastEmit).inMilliseconds < 200) return;
+      lastEmit = now;
+      emit();
     }
 
     try {
@@ -294,6 +307,9 @@ class RecitationService {
             : File(p.join(dir.path, '${_verseKey(f.surah, f.ayah)}.mp3'));
         if (await local.exists() && await local.length() > 0) {
           done++;
+          final size = await local.length();
+          bytesDone += size;
+          totalBytes += size;
         } else {
           pending.add(f);
         }
@@ -302,15 +318,36 @@ class RecitationService {
 
       await _runConcurrent(
         items: pending,
-        maxConcurrent: _maxConcurrentDownloads,
+        maxConcurrent: isChapter ? 1 : _maxConcurrentDownloads,
         task: (item) async {
           if (_cancelRequests.contains(reciterId)) return;
           final file = isChapter
               ? File(p.join(dir.path, _chapterFileName(item.surah)))
               : File(p.join(dir.path, '${_verseKey(item.surah, item.ayah)}.mp3'));
-          await _downloadOne(client, item.url, file);
+          var fileBytes = 0;
+          var fileTotalReported = 0;
+          await _downloadOne(
+            client,
+            item.url,
+            file,
+            onProgress: (bytes, total) {
+              if (total != null && total > 0 && fileTotalReported == 0) {
+                fileTotalReported = total;
+                totalBytes += total;
+              }
+              final delta = bytes - fileBytes;
+              fileBytes = bytes;
+              bytesDone += delta;
+              maybeEmit();
+            },
+          );
           done++;
-          emit();
+          if (fileTotalReported == 0) {
+            final size = await file.length();
+            totalBytes += size;
+            bytesDone += size - fileBytes;
+          }
+          maybeEmit(force: true);
         },
       );
 

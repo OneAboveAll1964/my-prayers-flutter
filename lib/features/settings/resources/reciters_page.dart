@@ -12,6 +12,7 @@ import '../../../shared/data/reciter_catalog.dart';
 import '../../../shared/data/reciter_translations.dart';
 import '../../../shared/state/recitation_provider.dart';
 import '../../../shared/state/settings_provider.dart';
+import '../../../shared/util/format_bytes.dart';
 import '../../../shared/util/search.dart';
 import '../../../shared/widgets/app_button.dart';
 import '../../../shared/widgets/app_field.dart';
@@ -690,7 +691,18 @@ class _InstallProgressBodyState extends ConsumerState<_InstallProgressBody> {
     final p = _progress;
     final fraction = p?.fraction ?? 0.0;
     final done = p?.filesDone ?? 0;
-    final total = p?.totalFiles ?? 6236;
+    final isChapter = widget.reciter.isChapterBased;
+    final total = p?.totalFiles ?? (isChapter ? 114 : 6236);
+    final bytesDone = p?.bytesDone ?? 0;
+    final totalBytes = p?.totalBytes ?? 0;
+    final progressLabel = bytesDone > 0
+        ? (totalBytes > 0
+            ? '$done / $total · ${formatMb(bytesDone)} / ${formatMb(totalBytes)}'
+            : '$done / $total · ${formatMb(bytesDone)}')
+        : '$done / $total';
+    final bodyKey = isChapter
+        ? 'reciters.installingBodyChapters'
+        : 'reciters.installingBody';
 
     if (_failed) {
       return Column(
@@ -756,7 +768,7 @@ class _InstallProgressBodyState extends ConsumerState<_InstallProgressBody> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          l10n.t('reciters.installingBody'),
+          l10n.t(bodyKey),
           textAlign: TextAlign.center,
           style: TextStyle(color: palette.text, fontSize: 14),
         ),
@@ -772,7 +784,7 @@ class _InstallProgressBodyState extends ConsumerState<_InstallProgressBody> {
         ),
         const SizedBox(height: 10),
         Text(
-          '$done / $total',
+          progressLabel,
           textAlign: TextAlign.center,
           style: TextStyle(
             color: palette.textMuted,

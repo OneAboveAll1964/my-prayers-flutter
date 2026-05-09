@@ -129,6 +129,7 @@ const enBundle = <String, String>{
   'reciters.uninstall': 'Remove',
   'reciters.installing': 'Downloading recitation',
   'reciters.installingBody': 'Downloading 6,236 ayah audio files. You can keep using the app — this continues in the background.',
+  'reciters.installingBodyChapters': 'Downloading 114 surah audio files. You can keep using the app — this continues in the background.',
   'reciters.installComplete': 'Recitation ready',
   'reciters.installFailed': 'Download failed',
   'reciters.approxSize': '{n} MB needs to download',

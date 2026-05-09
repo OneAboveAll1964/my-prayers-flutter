@@ -129,6 +129,7 @@ const ckbBundle = <String, String>{
   'reciters.uninstall': 'سڕینەوە',
   'reciters.installing': 'دابەزاندنی تلاوە',
   'reciters.installingBody': '٦٢٣٦ فایلی دەنگی ئایەت دادەبەزێت. دەتوانیت بەکارهێنانی ئەپ بەردەوام بکەیت.',
+  'reciters.installingBodyChapters': '١١٤ فایلی دەنگی سورە دادەبەزێت. دەتوانیت بەکارهێنانی ئەپ بەردەوام بکەیت.',
   'reciters.installComplete': 'تلاوە ئامادەیە',
   'reciters.installFailed': 'دابەزاندن سەرکەوتوو نەبوو',
   'reciters.approxSize': 'پێویستە {n} میگابایت دابەزێت',

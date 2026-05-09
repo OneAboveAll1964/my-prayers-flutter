@@ -129,6 +129,7 @@ const arBundle = <String, String>{
   'reciters.uninstall': 'حذف',
   'reciters.installing': 'جارٍ تنزيل التلاوة',
   'reciters.installingBody': 'يجري تنزيل ٦٬٢٣٦ ملف تلاوة. يمكنك متابعة استخدام التطبيق وسيستمر التنزيل في الخلفية.',
+  'reciters.installingBodyChapters': 'يجري تنزيل ١١٤ ملف تلاوة (سورة كاملة). يمكنك متابعة استخدام التطبيق وسيستمر التنزيل في الخلفية.',
   'reciters.installComplete': 'التلاوة جاهزة',
   'reciters.installFailed': 'فشل التنزيل',
   'reciters.approxSize': 'يلزم تنزيل {n} ميغابايت',

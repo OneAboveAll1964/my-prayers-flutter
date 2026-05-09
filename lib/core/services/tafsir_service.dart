@@ -14,12 +14,14 @@ class TafsirProgress {
   const TafsirProgress({
     required this.filesDone,
     required this.totalFiles,
+    this.bytesDone = 0,
     this.failed = false,
     this.errorMessage,
   });
 
   final int filesDone;
   final int totalFiles;
+  final int bytesDone;
   final bool failed;
   final String? errorMessage;
 
@@ -130,15 +132,25 @@ class TafsirService {
     final client = http.Client();
     var done = 0;
     final total = _totalAyahs;
+    var bytesDone = 0;
 
     void emit({bool failed = false, String? error}) {
       if (controller.isClosed) return;
       controller.add(TafsirProgress(
         filesDone: done,
         totalFiles: total,
+        bytesDone: bytesDone,
         failed: failed,
         errorMessage: error,
       ));
+    }
+
+    DateTime lastEmit = DateTime.fromMillisecondsSinceEpoch(0);
+    void maybeEmit({bool force = false}) {
+      final now = DateTime.now();
+      if (!force && now.difference(lastEmit).inMilliseconds < 200) return;
+      lastEmit = now;
+      emit();
     }
 
     try {
@@ -151,6 +163,7 @@ class TafsirService {
           final f = File(p.join(dir.path, _verseFileName(s, a)));
           if (await f.exists() && await f.length() > 0) {
             done++;
+            bytesDone += await f.length();
           } else {
             pending.add((s, a));
           }
@@ -180,9 +193,11 @@ class TafsirService {
           final f = File(p.join(dir.path, _verseFileName(s, a)));
           await f.writeAsString(text, flush: true);
           done++;
-          emit();
+          bytesDone += text.length;
+          maybeEmit();
         },
       );
+      maybeEmit(force: true);
 
       if (_cancelRequests.contains(tafsirId)) {
         emit(failed: true, error: 'Cancelled');

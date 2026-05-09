@@ -64,6 +64,7 @@ class _SurahPageState extends ConsumerState<SurahPage> {
   DateTime? _suppressScrollSaveUntil;
   StreamSubscription<AyahAudioState>? _audioSub;
   AyahAudioState _audio = AyahAudioController.instance.state;
+  bool _lastQueueActiveHere = false;
 
   // Cached mushaf widget — only rebuilt when its real inputs change
   // (surah / language). Keeps unrelated SurahPage rebuilds (audio
@@ -106,8 +107,18 @@ class _SurahPageState extends ConsumerState<SurahPage> {
     if (!mounted) return;
     final wasFor = _audio.surah;
     final wasAyah = _audio.ayah;
-    setState(() => _audio = s);
-    if (!AyahAudioController.instance.isQueueActive) return;
+    _audio = s;
+    // Only rebuild SurahPage when something the visible header cares about
+    // actually flipped (queue active for *this* surah). Audio progress
+    // ticks during playback don't need to repaint the page.
+    final ctrl = AyahAudioController.instance;
+    final queueActiveHere =
+        ctrl.isQueueActive && ctrl.queueSurah == _surahNumber;
+    if (queueActiveHere != _lastQueueActiveHere) {
+      _lastQueueActiveHere = queueActiveHere;
+      setState(() {});
+    }
+    if (!ctrl.isQueueActive) return;
     if (s.surah != _surahNumber) return;
     if (s.ayah == null) return;
     if (wasFor == s.surah && wasAyah == s.ayah) return;
@@ -530,14 +541,15 @@ class _SurahPageState extends ConsumerState<SurahPage> {
   Widget build(BuildContext context) {
     final palette = context.palette;
     final l10n = AppL10n.of(context);
-    final settings = ref.watch(settingsProvider);
-    final fav = ref.watch(favoritesProvider);
-    final fontFamily = arabicFontFamilies[settings.arabicFont] ?? 'UthmanicHafs';
-    final arScale = settings.arabicFontScale;
-    final trScale = settings.translationFontScale;
-    final marked = fav.surahs.contains(_surahNumber);
+    // Narrow Riverpod watches: per-row styling (font/scale/bold) is read
+    // inside _AyahRow itself, and lastSurah updates leave bookmark state
+    // unchanged — neither path rebuilds SurahPage during mushaf swipes.
+    final quranReadMode =
+        ref.watch(settingsProvider.select((s) => s.quranReadMode));
+    final marked = ref.watch(
+        favoritesProvider.select((f) => f.surahs.contains(_surahNumber)));
 
-    final isMushaf = settings.quranReadMode == 'mushaf';
+    final isMushaf = quranReadMode == 'mushaf';
     final activeSurahNumber = _surahNumber;
     if (!isMushaf && _pageMap != null && _surah == null && !_surahLoading) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -655,11 +667,6 @@ class _SurahPageState extends ConsumerState<SurahPage> {
                                 key: _ayahKeys[a.numberInSurah],
                                 ayah: a,
                                 surah: _surah!,
-                                fontFamily: fontFamily,
-                                arScale: arScale,
-                                trScale: trScale,
-                                arabicBold: settings.quranBold,
-                                translationBold: settings.translationBold,
                               );
                             },
                           ),
@@ -677,20 +684,10 @@ class _AyahRow extends ConsumerStatefulWidget {
     super.key,
     required this.ayah,
     required this.surah,
-    required this.fontFamily,
-    required this.arScale,
-    required this.trScale,
-    required this.arabicBold,
-    required this.translationBold,
   });
 
   final Ayah ayah;
   final Surah surah;
-  final String fontFamily;
-  final double arScale;
-  final double trScale;
-  final bool arabicBold;
-  final bool translationBold;
 
   @override
   ConsumerState<_AyahRow> createState() => _AyahRowState();
@@ -735,9 +732,21 @@ class _AyahRowState extends ConsumerState<_AyahRow> {
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
-    final fav = ref.watch(favoritesProvider);
-    final marked = fav.ayahs.any((a) =>
-    a.surah == widget.surah.number && a.ayah == widget.ayah.numberInSurah);
+    final marked = ref.watch(favoritesProvider.select((f) => f.ayahs.any(
+        (a) =>
+            a.surah == widget.surah.number &&
+            a.ayah == widget.ayah.numberInSurah)));
+    final arabicFont =
+        ref.watch(settingsProvider.select((s) => s.arabicFont));
+    final arScale =
+        ref.watch(settingsProvider.select((s) => s.arabicFontScale));
+    final trScale =
+        ref.watch(settingsProvider.select((s) => s.translationFontScale));
+    final arabicBold =
+        ref.watch(settingsProvider.select((s) => s.quranBold));
+    final translationBold =
+        ref.watch(settingsProvider.select((s) => s.translationBold));
+    final fontFamily = arabicFontFamilies[arabicFont] ?? 'UthmanicHafs';
     final ayah = widget.ayah;
     final surah = widget.surah;
     final isAudioForThis =
@@ -898,11 +907,11 @@ class _AyahRowState extends ConsumerState<_AyahRow> {
                 textAlign: TextAlign.right,
                 style: TextStyle(
                   color: palette.text,
-                  fontFamily: widget.fontFamily,
-                  fontSize: 26.0 * widget.arScale,
+                  fontFamily: fontFamily,
+                  fontSize: 26.0 * arScale,
                   height: 2.4,
                   fontWeight:
-                  widget.arabicBold ? FontWeight.w700 : FontWeight.normal,
+                  arabicBold ? FontWeight.w700 : FontWeight.normal,
                 ),
               ),
             ),
@@ -914,9 +923,9 @@ class _AyahRowState extends ConsumerState<_AyahRow> {
               textAlign: TextAlign.start,
               style: TextStyle(
                 color: palette.text,
-                fontSize: 15 * widget.trScale,
+                fontSize: 15 * trScale,
                 height: 1.7,
-                fontWeight: widget.translationBold
+                fontWeight: translationBold
                     ? FontWeight.w700
                     : FontWeight.normal,
               ),

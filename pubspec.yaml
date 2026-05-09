@@ -41,7 +41,6 @@ flutter:
   generate: false
   assets:
     - assets/db/
-    - assets/quran/
     - assets/audio/
     - assets/widget/
   fonts:

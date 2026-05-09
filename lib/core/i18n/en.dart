@@ -175,7 +175,7 @@ const enBundle = <String, String>{
   'surahInfo.empty': 'No description is available for this surah.',
   'surahInfo.installTitle': 'Install surah info',
   'surahInfo.installingBody': 'Downloading description for all 114 surahs in this language.',
-  'surahInfo.description': 'Pick a language to download all 114 surah descriptions for offline reading. Without installing, descriptions are fetched on demand.',
+  'surahInfo.description': 'Pick a language to download all 114 surah descriptions for offline reading. Surah info is only available from Quran.com in English, Urdu, Tamil, Malayalam and Italian — Arabic isn\'t supported by the upstream source.',
   'quran.moreActions': 'More',
   'popular.title': 'Daily ayahs',
   'popular.description': 'A curated list of frequently recited ayahs and surahs with reported benefits.',

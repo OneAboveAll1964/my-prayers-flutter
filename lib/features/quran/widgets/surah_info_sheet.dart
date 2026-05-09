@@ -13,26 +13,17 @@ import '../../../shared/widgets/app_spinner.dart';
 
 const _supportedSurahInfoLanguages = <String>[
   'english',
-  'arabic',
   'urdu',
-  'bengali',
-  'indonesian',
-  'russian',
-  'turkish',
-  'persian',
-  'french',
-  'german',
-  'spanish',
-  'portuguese',
-  'chinese',
-  'malay',
+  'tamil',
+  'malayalam',
+  'italian',
 ];
 
 const Map<String, String> _appLangToInfoLang = {
   'en': 'english',
-  'ar': 'arabic',
-  'ckb': 'arabic',
-  'ckb_Badini': 'arabic',
+  'ar': 'english',
+  'ckb': 'english',
+  'ckb_Badini': 'english',
 };
 
 String surahInfoLanguageFor(AppL10n l10n, {String? override}) {
@@ -41,6 +32,11 @@ String surahInfoLanguageFor(AppL10n l10n, {String? override}) {
 }
 
 List<String> supportedSurahInfoLanguages() => _supportedSurahInfoLanguages;
+
+const _rtlInfoLanguages = <String>{'arabic', 'urdu'};
+
+TextDirection _directionFor(String lang) =>
+    _rtlInfoLanguages.contains(lang) ? TextDirection.rtl : TextDirection.ltr;
 
 Future<void> showSurahInfoSheet({
   required BuildContext context,
@@ -161,7 +157,7 @@ class _SurahInfoBodyState extends ConsumerState<_SurahInfoBody> {
       );
     }
 
-    final isArabic = lang == 'arabic';
+    final dir = _directionFor(lang);
     final text = _text ?? '';
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -174,8 +170,7 @@ class _SurahInfoBodyState extends ConsumerState<_SurahInfoBody> {
             border: Border.all(color: palette.line),
           ),
           child: Directionality(
-            textDirection:
-                isArabic ? TextDirection.rtl : Directionality.of(context),
+            textDirection: dir,
             child: SelectableText(
               text.isEmpty ? l10n.t('surahInfo.empty') : text,
               style: TextStyle(

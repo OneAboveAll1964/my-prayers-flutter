@@ -59,32 +59,38 @@ class _QiblaPageState extends ConsumerState<QiblaPage> {
     final loc = settings.location;
 
     if (loc == null) {
-      return Column(
-        children: [
-          PageHeader(title: l10n.t('qibla.title')),
-          Expanded(
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      l10n.t('home.noLocation'),
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: palette.textMuted),
+      return Scaffold(
+        backgroundColor: palette.bg,
+        body: SafeArea(
+          bottom: false,
+          child: Column(
+            children: [
+              PageHeader(title: l10n.t('qibla.title'), back: true),
+              Expanded(
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          l10n.t('home.noLocation'),
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: palette.textMuted),
+                        ),
+                        const SizedBox(height: 16),
+                        AppButton(
+                          label: l10n.t('home.searchCity'),
+                          onPressed: () => context.push('/settings/location'),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 16),
-                    AppButton(
-                      label: l10n.t('home.searchCity'),
-                      onPressed: () => context.push('/settings/location'),
-                    ),
-                  ],
+                  ),
                 ),
               ),
-            ),
+            ],
           ),
-        ],
+        ),
       );
     }
 
@@ -93,56 +99,65 @@ class _QiblaPageState extends ConsumerState<QiblaPage> {
     final delta = (((bearing - _heading) + 540) % 360) - 180;
     final aligned = _hasCompass && delta.abs() < 4;
 
-    return Column(
-      children: [
-        PageHeader(title: l10n.t('qibla.title')),
-        Expanded(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(18, 8, 18, 24),
-            physics: const AlwaysScrollableScrollPhysics(),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const SizedBox(height: 14),
-                Center(
-                  child: _Compass(
-                    bearing: bearing,
-                    heading: _heading,
-                    hasCompass: _hasCompass,
-                    aligned: aligned,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                _StatList(
-                  hasCompass: _hasCompass,
-                  heading: _heading,
-                  bearing: bearing,
-                  distance: distance,
-                ),
-                const SizedBox(height: 24),
-                if (_streamMissing)
-                  Text(
-                    l10n.t('qibla.noCompass'),
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: palette.textMuted, fontSize: 13),
-                  )
-                else
-                  Text(
-                    aligned ? l10n.t('common.done') : l10n.t('qibla.calibrate'),
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: aligned ? palette.accent : palette.textMuted,
-                      fontSize: 13,
-                      fontWeight:
-                          aligned ? FontWeight.w600 : FontWeight.w500,
+    return Scaffold(
+      backgroundColor: palette.bg,
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
+            PageHeader(title: l10n.t('qibla.title'), back: true),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(18, 8, 18, 24),
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SizedBox(height: 14),
+                    Center(
+                      child: _Compass(
+                        bearing: bearing,
+                        heading: _heading,
+                        hasCompass: _hasCompass,
+                        aligned: aligned,
+                      ),
                     ),
-                  ),
-                const SizedBox(height: 12),
-              ],
+                    const SizedBox(height: 24),
+                    _StatList(
+                      hasCompass: _hasCompass,
+                      heading: _heading,
+                      bearing: bearing,
+                      distance: distance,
+                    ),
+                    const SizedBox(height: 24),
+                    if (_streamMissing)
+                      Text(
+                        l10n.t('qibla.noCompass'),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                            color: palette.textMuted, fontSize: 13),
+                      )
+                    else
+                      Text(
+                        aligned
+                            ? l10n.t('common.done')
+                            : l10n.t('qibla.calibrate'),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: aligned ? palette.accent : palette.textMuted,
+                          fontSize: 13,
+                          fontWeight:
+                              aligned ? FontWeight.w600 : FontWeight.w500,
+                        ),
+                      ),
+                    const SizedBox(height: 12),
+                  ],
+                ),
+              ),
             ),
-          ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }

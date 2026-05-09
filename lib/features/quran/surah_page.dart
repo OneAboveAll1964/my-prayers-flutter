@@ -15,6 +15,7 @@ import '../../shared/widgets/animated_toggle_icon.dart';
 import '../../shared/widgets/app_button.dart';
 import '../../shared/widgets/app_sheet.dart';
 import '../../shared/widgets/app_spinner.dart';
+import '../../shared/widgets/app_toast.dart';
 import '../../shared/widgets/page_scaffold.dart';
 import '../../core/services/mushaf_asset_service.dart';
 import '../../core/services/surah_name_font_service.dart';
@@ -1016,13 +1017,7 @@ class _AyahRowState extends ConsumerState<_AyahRow> {
       return;
     }
     if (_isChapterReciterId(reciterId)) {
-      final l10n = AppL10n.of(context);
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(
-          content: Text(l10n.t('reciters.chapterOnly')),
-          duration: const Duration(seconds: 2),
-        ));
+      showAppToast(context, AppL10n.of(context).t('reciters.chapterOnly'));
       return;
     }
     await AyahAudioController.instance.playAyah(

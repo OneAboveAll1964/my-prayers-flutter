@@ -66,6 +66,7 @@ class MyPrayersApp extends ConsumerWidget {
         return MediaQuery(
           data: MediaQuery.of(ctx).copyWith(
             textScaler: TextScaler.noScaling,
+            boldText: false,
           ),
           child: Directionality(
             textDirection: isRtl ? TextDirection.rtl : TextDirection.ltr,

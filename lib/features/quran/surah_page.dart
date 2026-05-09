@@ -242,35 +242,21 @@ class _SurahPageState extends ConsumerState<SurahPage> {
     final next = await QuranRepository.instance
         .getSurah(newNumber, langKey(l10n.locale));
     if (!mounted || next == null) return;
-    final goingBack = newNumber < (_surah?.number ?? widget.number);
-    final targetAyah = goingBack && next.ayahs.isNotEmpty
-        ? next.ayahs.last.numberInSurah
-        : 1;
     setState(() {
       _surah = next;
-      _currentAyah = targetAyah;
-      _visibleAyah = targetAyah;
+      _currentAyah = 1;
+      _visibleAyah = 1;
       _ayahKeys
         ..clear()
         ..addEntries(next.ayahs.map(
                 (a) => MapEntry(a.numberInSurah, GlobalKey())));
     });
-    _saveLastRead(targetAyah);
-  }
-
-  int? get _activePlayingAyah {
-    final activeNumber = _surah?.number ?? widget.number;
-    if (_audio.surah != activeNumber) return null;
-    if (_audio.ayah == null) return null;
-    if (!(_audio.playing || _audio.loading)) return null;
-    return _audio.ayah;
+    _saveLastRead(1);
   }
 
   Future<void> _toggleMode(bool isMushaf) async {
-    final playingAyah = _activePlayingAyah;
     if (isMushaf) {
-      final target = playingAyah ?? _currentAyah;
-      _currentAyah = target;
+      final target = _currentAyah;
       _suppressScrollSaveUntil =
           DateTime.now().add(const Duration(seconds: 4));
       ref.read(settingsProvider.notifier).setQuranReadMode('scroll');
@@ -285,9 +271,6 @@ class _SurahPageState extends ConsumerState<SurahPage> {
             DateTime.now().add(const Duration(milliseconds: 250));
       });
       return;
-    }
-    if (playingAyah != null) {
-      _currentAyah = playingAyah;
     }
     final installed = await MushafAssetService.instance.isInstalled();
     if (installed) {

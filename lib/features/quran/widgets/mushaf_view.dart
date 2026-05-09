@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ionicons/ionicons.dart';
@@ -70,13 +69,6 @@ class _MushafViewState extends ConsumerState<MushafView> {
     final pageCount = _lastPage - _firstPage + 1;
     _scheduleSettledPreload(initialIdx, pageCount,
         delay: const Duration(milliseconds: 400));
-    final audioState = AyahAudioController.instance.state;
-    if (audioState.surah == widget.surah.number && audioState.ayah != null) {
-      if (audioState.playing || audioState.loading) {
-        _playingKey = '${audioState.surah}:${audioState.ayah}';
-      }
-      _lastQueueAyah = audioState.ayah;
-    }
     _audioSub = AyahAudioController.instance.stream.listen(_onAudio);
   }
 
@@ -545,7 +537,7 @@ class _MushafPageContent extends StatelessWidget {
   }
 }
 
-class _LineWidget extends StatefulWidget {
+class _LineWidget extends StatelessWidget {
   const _LineWidget({
     required this.line,
     required this.fontFamily,
@@ -565,76 +557,38 @@ class _LineWidget extends StatefulWidget {
   final AppPalette palette;
 
   @override
-  State<_LineWidget> createState() => _LineWidgetState();
-}
-
-class _LineWidgetState extends State<_LineWidget> {
-  final List<TapGestureRecognizer> _recognizers = [];
-
-  @override
-  void dispose() {
-    for (final r in _recognizers) {
-      r.dispose();
-    }
-    _recognizers.clear();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    for (final r in _recognizers) {
-      r.dispose();
-    }
-    _recognizers.clear();
-
-    final words = widget.line.words;
-    final spans = <InlineSpan>[];
-    final selectedKey = widget.selectedKey;
-    final accent = widget.palette.accent;
-    final accentSoftPaint = Paint()..color = widget.palette.accentSoft;
-
-    for (var i = 0; i < words.length; i++) {
-      final w = words[i];
-      final isSelected = selectedKey == w.verseKey;
-      final recognizer = TapGestureRecognizer()
-        ..onTap = () {
-          final ayah = widget.ayahByKey[w.verseKey];
-          widget.onTapWord(w.verseKey, ayah);
-        };
-      _recognizers.add(recognizer);
-      spans.add(TextSpan(
-        text: w.code,
-        recognizer: recognizer,
-        style: w.isAyahEnd || isSelected
-            ? TextStyle(
-                color: w.isAyahEnd ? accent : null,
-                background: isSelected ? accentSoftPaint : null,
-              )
-            : null,
-      ));
-      if (i < words.length - 1) {
-        spans.add(TextSpan(
-          text: ' ',
-          style: TextStyle(fontSize: widget.fontSize * 0.5),
-        ));
-      }
-    }
-
     return Directionality(
       textDirection: TextDirection.rtl,
-      child: Text.rich(
-        TextSpan(
-          style: TextStyle(
-            fontFamily: widget.fontFamily,
-            fontSize: widget.fontSize,
-            height: 1.4,
-          ),
-          children: spans,
-        ),
-        textAlign: TextAlign.center,
-        softWrap: false,
-        maxLines: 1,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          for (final w in line.words) _wordWidget(w),
+        ],
       ),
+    );
+  }
+
+  Widget _wordWidget(MushafLineWord w) {
+    final ayah = ayahByKey[w.verseKey];
+    final isSelected = selectedKey == w.verseKey;
+    Widget child = Text(
+      w.code,
+      style: TextStyle(
+        fontFamily: fontFamily,
+        fontSize: fontSize,
+        color: w.isAyahEnd ? palette.accent : null,
+        height: 1.4,
+      ),
+    );
+    if (isSelected) {
+      child = ColoredBox(color: palette.accentSoft, child: child);
+    }
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => onTapWord(w.verseKey, ayah),
+      child: child,
     );
   }
 }

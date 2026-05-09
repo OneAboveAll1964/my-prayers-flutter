@@ -226,9 +226,9 @@ const Map<int, Map<String, String>> _tafsirAuthors = {
   },
   804: {
     'en': 'Rebar',
-    'ar': 'ريبار',
-    'ckb': 'ڕێبار',
-    'ckb_Badini': 'ڕێبار',
+    'ar': 'ريبەر',
+    'ckb': 'ڕێبەر',
+    'ckb_Badini': 'ڕێبەر',
   },
   817: {
     'en': 'Wahiduddin Khan',

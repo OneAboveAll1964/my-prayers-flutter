@@ -254,6 +254,14 @@ class _SurahPageState extends ConsumerState<SurahPage> {
     _saveLastRead(1);
   }
 
+  int? get _activePlayingAyah {
+    final activeNumber = _surah?.number ?? widget.number;
+    if (_audio.surah != activeNumber) return null;
+    if (_audio.ayah == null) return null;
+    if (!(_audio.playing || _audio.loading)) return null;
+    return _audio.ayah;
+  }
+
   Future<void> _toggleMode(bool isMushaf) async {
     if (isMushaf) {
       final target = _currentAyah;
@@ -271,6 +279,10 @@ class _SurahPageState extends ConsumerState<SurahPage> {
             DateTime.now().add(const Duration(milliseconds: 250));
       });
       return;
+    }
+    final playingAyah = _activePlayingAyah;
+    if (playingAyah != null) {
+      _currentAyah = playingAyah;
     }
     final installed = await MushafAssetService.instance.isInstalled();
     if (installed) {

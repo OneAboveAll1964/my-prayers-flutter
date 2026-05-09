@@ -69,6 +69,13 @@ class _MushafViewState extends ConsumerState<MushafView> {
     final pageCount = _lastPage - _firstPage + 1;
     _scheduleSettledPreload(initialIdx, pageCount,
         delay: const Duration(milliseconds: 400));
+    final audioState = AyahAudioController.instance.state;
+    if (audioState.surah == widget.surah.number && audioState.ayah != null) {
+      if (audioState.playing || audioState.loading) {
+        _playingKey = '${audioState.surah}:${audioState.ayah}';
+      }
+      _lastQueueAyah = audioState.ayah;
+    }
     _audioSub = AyahAudioController.instance.stream.listen(_onAudio);
   }
 
@@ -558,14 +565,21 @@ class _LineWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final words = line.words;
+    final gap = fontSize * 0.15;
+    final children = <Widget>[];
+    for (var i = 0; i < words.length; i++) {
+      children.add(_wordWidget(words[i]));
+      if (i < words.length - 1) {
+        children.add(SizedBox(width: gap));
+      }
+    }
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          for (final w in line.words) _wordWidget(w),
-        ],
+        children: children,
       ),
     );
   }

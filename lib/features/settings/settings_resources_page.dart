@@ -8,7 +8,9 @@ import '../../core/services/mushaf_asset_service.dart';
 import '../../core/theme/tokens.dart';
 import '../../features/quran/widgets/mushaf_install_sheet.dart';
 import '../../shared/data/reciter_catalog.dart';
+import '../../shared/data/reciter_translations.dart';
 import '../../shared/data/tafsir_catalog.dart';
+import '../../shared/data/tafsir_translations.dart';
 import '../../shared/state/settings_provider.dart';
 import '../../shared/widgets/app_button.dart';
 import '../../shared/widgets/app_sheet.dart';
@@ -94,25 +96,26 @@ class _SettingsResourcesPageState
     await showMushafInstallSheet(context);
   }
 
-  String? _activeReciterName(int? id) {
+  String? _activeReciterName(int? id, String langCode) {
     if (id == null) return null;
     final list = _reciters;
     if (list == null) return null;
     for (final r in list) {
       if (r.id == id) {
-        final style = r.style ?? '';
-        return style.isEmpty ? r.name : '${r.name} · $style';
+        final name = localizedReciterName(r.id, r.name, langCode);
+        final style = localizedReciterStyle(r.style, langCode);
+        return style.isEmpty ? name : '$name · $style';
       }
     }
     return null;
   }
 
-  String? _activeTafsirName(int? id) {
+  String? _activeTafsirName(int? id, String langCode) {
     if (id == null) return null;
     final list = _tafsirs;
     if (list == null) return null;
     for (final t in list) {
-      if (t.id == id) return t.name;
+      if (t.id == id) return localizedTafsirName(t.id, t.name, langCode);
     }
     return null;
   }
@@ -127,8 +130,9 @@ class _SettingsResourcesPageState
         ref.watch(settingsProvider.select((s) => s.selectedTafsirId));
     final activeSurahInfoLang = ref
         .watch(settingsProvider.select((s) => s.selectedSurahInfoLanguage));
-    final reciterLabel = _activeReciterName(activeReciterId) ?? '';
-    final tafsirLabel = _activeTafsirName(activeTafsirId) ?? '';
+    final lang = langKey(l10n.locale);
+    final reciterLabel = _activeReciterName(activeReciterId, lang) ?? '';
+    final tafsirLabel = _activeTafsirName(activeTafsirId, lang) ?? '';
     final surahInfoLabel = activeSurahInfoLang == null
         ? ''
         : localizedLanguageName(l10n, activeSurahInfoLang);

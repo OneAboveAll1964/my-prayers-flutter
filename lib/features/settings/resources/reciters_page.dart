@@ -35,6 +35,7 @@ class _RecitersPageState extends ConsumerState<RecitersPage> {
   bool _loading = true;
   AudioPlayer? _samplePlayer;
   int? _samplePlaying;
+  int? _sampleLoading;
 
   @override
   void initState() {
@@ -74,15 +75,23 @@ class _RecitersPageState extends ConsumerState<RecitersPage> {
   }
 
   Future<void> _toggleSample(Reciter reciter) async {
-    if (_samplePlaying == reciter.id) {
+    if (_samplePlaying == reciter.id || _sampleLoading == reciter.id) {
       await _samplePlayer?.stop();
-      if (mounted) setState(() => _samplePlaying = null);
+      if (mounted) {
+        setState(() {
+          _samplePlaying = null;
+          _sampleLoading = null;
+        });
+      }
       return;
     }
-    setState(() => _samplePlaying = null);
+    setState(() {
+      _samplePlaying = null;
+      _sampleLoading = reciter.id;
+    });
     try {
       final url = await RecitationService.instance.sampleUrl(reciter.id);
-      if (!mounted) return;
+      if (!mounted || _sampleLoading != reciter.id) return;
       _samplePlayer ??= AudioPlayer();
       await _samplePlayer!.stop();
       await _samplePlayer!.play(UrlSource(url));
@@ -93,16 +102,27 @@ class _RecitersPageState extends ConsumerState<RecitersPage> {
         }
       });
       if (!mounted) return;
-      setState(() => _samplePlaying = reciter.id);
+      setState(() {
+        _samplePlaying = reciter.id;
+        _sampleLoading = null;
+      });
     } catch (_) {
       if (!mounted) return;
-      setState(() => _samplePlaying = null);
+      setState(() {
+        _samplePlaying = null;
+        _sampleLoading = null;
+      });
     }
   }
 
   Future<void> _stopSample() async {
     await _samplePlayer?.stop();
-    if (mounted) setState(() => _samplePlaying = null);
+    if (mounted) {
+      setState(() {
+        _samplePlaying = null;
+        _sampleLoading = null;
+      });
+    }
   }
 
   Future<void> _install(Reciter reciter) async {
@@ -247,6 +267,7 @@ class _RecitersPageState extends ConsumerState<RecitersPage> {
                             installed: installed.contains(filtered[i].id),
                             isActive: activeId == filtered[i].id,
                             isPlaying: _samplePlaying == filtered[i].id,
+                            isLoadingSample: _sampleLoading == filtered[i].id,
                             onSampleTap: () => _toggleSample(filtered[i]),
                             onInstallTap: () => _install(filtered[i]),
                             onUninstallTap: () => _uninstall(filtered[i]),
@@ -336,6 +357,7 @@ class _ReciterTile extends StatelessWidget {
     required this.installed,
     required this.isActive,
     required this.isPlaying,
+    required this.isLoadingSample,
     required this.onSampleTap,
     required this.onInstallTap,
     required this.onUninstallTap,
@@ -346,6 +368,7 @@ class _ReciterTile extends StatelessWidget {
   final bool installed;
   final bool isActive;
   final bool isPlaying;
+  final bool isLoadingSample;
   final VoidCallback onSampleTap;
   final VoidCallback onInstallTap;
   final VoidCallback onUninstallTap;
@@ -380,16 +403,29 @@ class _ReciterTile extends StatelessWidget {
                 height: 40,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: isPlaying ? palette.accent : palette.surface2,
+                  color: (isPlaying || isLoadingSample)
+                      ? palette.accent
+                      : palette.surface2,
                   borderRadius: BorderRadius.circular(999),
                   border: Border.all(
-                      color: isPlaying ? palette.accent : palette.line),
+                      color: (isPlaying || isLoadingSample)
+                          ? palette.accent
+                          : palette.line),
                 ),
-                child: Icon(
-                  isPlaying ? Ionicons.stop : Ionicons.play,
-                  size: 16,
-                  color: isPlaying ? palette.accentOn : palette.text,
-                ),
+                child: isLoadingSample
+                    ? SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: palette.accentOn,
+                        ),
+                      )
+                    : Icon(
+                        isPlaying ? Ionicons.stop : Ionicons.play,
+                        size: 16,
+                        color: isPlaying ? palette.accentOn : palette.text,
+                      ),
               ),
             ),
             const SizedBox(width: 12),

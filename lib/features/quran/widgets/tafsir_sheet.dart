@@ -8,6 +8,7 @@ import '../../../core/services/surah_name_font_service.dart';
 import '../../../core/services/tafsir_service.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../shared/data/tafsir_catalog.dart';
+import '../../../shared/data/tafsir_translations.dart';
 import '../../../shared/models/quran.dart';
 import '../../../shared/state/settings_provider.dart';
 import '../../../shared/widgets/app_button.dart';
@@ -226,11 +227,14 @@ class _TafsirBodyState extends ConsumerState<_TafsirBody> {
     final activeTafsir = _tafsir;
     String activeSubtitle = '';
     if (activeTafsir != null) {
+      final lang = langKey(l10n.locale);
       final localizedLanguage =
           localizedLanguageName(l10n, activeTafsir.languageName);
+      final localizedAuthor = localizedTafsirAuthor(
+          activeTafsir.id, activeTafsir.authorName, lang);
       final parts = <String>[
         if (localizedLanguage.isNotEmpty) localizedLanguage,
-        if (activeTafsir.authorName.isNotEmpty) activeTafsir.authorName,
+        if (localizedAuthor.isNotEmpty) localizedAuthor,
       ];
       activeSubtitle = parts.join(' · ');
     }

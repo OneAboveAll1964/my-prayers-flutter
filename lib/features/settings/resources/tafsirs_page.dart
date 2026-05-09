@@ -419,9 +419,11 @@ class _TafsirTile extends StatelessWidget {
         localizedTafsirName(tafsir.id, tafsir.name, lang);
     final localizedLanguage =
         localizedLanguageName(l10n, tafsir.languageName);
+    final localizedAuthor =
+        localizedTafsirAuthor(tafsir.id, tafsir.authorName, lang);
     final subtitleParts = <String>[
       if (localizedLanguage.isNotEmpty) localizedLanguage,
-      if (tafsir.authorName.isNotEmpty) tafsir.authorName,
+      if (localizedAuthor.isNotEmpty) localizedAuthor,
     ];
     final subtitle = subtitleParts.join(' · ');
     return GestureDetector(

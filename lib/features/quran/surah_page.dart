@@ -320,7 +320,12 @@ class _SurahPageState extends ConsumerState<SurahPage> {
 
   void _onMushafPageAyah(int firstAyahNumberInSurah) {
     _currentAyah = firstAyahNumberInSurah;
-    _saveLastRead(_currentAyah);
+    _scrollDebounce?.cancel();
+    _scrollDebounce = Timer(const Duration(milliseconds: 500), () {
+      if (mounted) {
+        _saveLastRead(_currentAyah);
+      }
+    });
   }
 
   Future<void> _switchToSurah(int newNumber) async {

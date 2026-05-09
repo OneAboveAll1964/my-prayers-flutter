@@ -21,12 +21,14 @@ class MushafView extends ConsumerStatefulWidget {
     this.initialAyah,
     this.onPageAyahChanged,
     this.onSwitchSurah,
+    this.rangeFiltered = false,
   });
 
   final Surah surah;
   final int? initialAyah;
   final void Function(Ayah firstAyahOfPage)? onPageAyahChanged;
   final void Function(int newSurahNumber)? onSwitchSurah;
+  final bool rangeFiltered;
 
   @override
   ConsumerState<MushafView> createState() => _MushafViewState();
@@ -220,6 +222,7 @@ class _MushafViewState extends ConsumerState<MushafView> {
             pageIndex: idx,
             totalPages: pageCount,
             onSwitchSurah: widget.onSwitchSurah,
+            rangeFiltered: widget.rangeFiltered,
           ),
         );
       },
@@ -249,6 +252,7 @@ class _MushafPageView extends StatefulWidget {
     required this.pageIndex,
     required this.totalPages,
     required this.onSwitchSurah,
+    required this.rangeFiltered,
   });
 
   final int pageNumber;
@@ -259,6 +263,7 @@ class _MushafPageView extends StatefulWidget {
   final int pageIndex;
   final int totalPages;
   final void Function(int newSurahNumber)? onSwitchSurah;
+  final bool rangeFiltered;
 
   @override
   State<_MushafPageView> createState() => _MushafPageViewState();
@@ -335,6 +340,7 @@ class _MushafPageViewState extends State<_MushafPageView> {
               selectedKey: widget.selectedKey,
               onTapWord: widget.onTapWord,
               surahFilter: widget.surahNumber,
+              rangeFiltered: widget.rangeFiltered,
             )
                 : FutureBuilder<_PageBundle>(
               future: _bundleFuture,
@@ -402,6 +408,7 @@ class _MushafPageViewState extends State<_MushafPageView> {
                   selectedKey: widget.selectedKey,
                   onTapWord: widget.onTapWord,
                   surahFilter: widget.surahNumber,
+                  rangeFiltered: widget.rangeFiltered,
                 );
               },
             ),
@@ -484,6 +491,7 @@ class _MushafPageContent extends StatelessWidget {
     required this.selectedKey,
     required this.onTapWord,
     this.surahFilter,
+    this.rangeFiltered = false,
   });
 
   final _PageBundle bundle;
@@ -491,13 +499,19 @@ class _MushafPageContent extends StatelessWidget {
   final String? selectedKey;
   final void Function(String verseKey, Ayah? ayah) onTapWord;
   final int? surahFilter;
+  final bool rangeFiltered;
 
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
     final lines = bundle.data.lines.where((line) {
       if (line.words.isEmpty) return false;
-      return line.words.any((w) => ayahByKey.containsKey(w.verseKey));
+      if (rangeFiltered) {
+        return line.words.any((w) => ayahByKey.containsKey(w.verseKey));
+      }
+      if (surahFilter == null) return true;
+      final prefix = '$surahFilter:';
+      return line.words.any((w) => w.verseKey.startsWith(prefix));
     }).toList();
     return LayoutBuilder(builder: (ctx, c) {
       const padH = 24.0;
@@ -530,6 +544,7 @@ class _MushafPageContent extends StatelessWidget {
                       selectedKey: selectedKey,
                       onTapWord: onTapWord,
                       palette: palette,
+                      rangeFiltered: rangeFiltered,
                     ),
                   ),
                 ),
@@ -550,6 +565,7 @@ class _LineWidget extends StatelessWidget {
     required this.selectedKey,
     required this.onTapWord,
     required this.palette,
+    this.rangeFiltered = false,
   });
 
   final MushafLine line;
@@ -559,21 +575,27 @@ class _LineWidget extends StatelessWidget {
   final String? selectedKey;
   final void Function(String verseKey, Ayah? ayah) onTapWord;
   final AppPalette palette;
+  final bool rangeFiltered;
 
   @override
   Widget build(BuildContext context) {
-    final visibleWords = <MushafLineWord>[];
-    for (final w in line.words) {
-      if (ayahByKey.containsKey(w.verseKey)) visibleWords.add(w);
+    final List<MushafLineWord> shownWords;
+    if (rangeFiltered) {
+      shownWords = [
+        for (final w in line.words)
+          if (ayahByKey.containsKey(w.verseKey)) w,
+      ];
+    } else {
+      shownWords = line.words;
     }
     final gap = fontSize * 0.15;
     final children = <Widget>[];
-    for (var i = 0; i < visibleWords.length; i++) {
-      children.add(_wordWidget(visibleWords[i]));
-      if (i < visibleWords.length - 1) {
+    for (var i = 0; i < shownWords.length; i++) {
+      children.add(_wordWidget(shownWords[i]));
+      if (i < shownWords.length - 1) {
         final bridge = selectedKey != null &&
-            visibleWords[i].verseKey == selectedKey &&
-            visibleWords[i + 1].verseKey == selectedKey;
+            shownWords[i].verseKey == selectedKey &&
+            shownWords[i + 1].verseKey == selectedKey;
         children.add(Container(
           width: gap,
           height: fontSize * 1.4,

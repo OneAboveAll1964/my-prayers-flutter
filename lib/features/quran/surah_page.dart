@@ -579,6 +579,7 @@ class _SurahPageState extends ConsumerState<SurahPage> {
                     onPageAyahChanged: _onMushafPageAyah,
                     onSwitchSurah:
                     widget.lockSurah ? null : _switchToSurah,
+                    rangeFiltered: widget.endAyah != null,
                   ),
                 )
                     : ListView.separated(

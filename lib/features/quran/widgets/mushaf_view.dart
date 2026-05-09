@@ -562,15 +562,18 @@ class _LineWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final words = line.words;
+    final visibleWords = <MushafLineWord>[];
+    for (final w in line.words) {
+      if (ayahByKey.containsKey(w.verseKey)) visibleWords.add(w);
+    }
     final gap = fontSize * 0.15;
     final children = <Widget>[];
-    for (var i = 0; i < words.length; i++) {
-      children.add(_wordWidget(words[i]));
-      if (i < words.length - 1) {
+    for (var i = 0; i < visibleWords.length; i++) {
+      children.add(_wordWidget(visibleWords[i]));
+      if (i < visibleWords.length - 1) {
         final bridge = selectedKey != null &&
-            words[i].verseKey == selectedKey &&
-            words[i + 1].verseKey == selectedKey;
+            visibleWords[i].verseKey == selectedKey &&
+            visibleWords[i + 1].verseKey == selectedKey;
         children.add(Container(
           width: gap,
           height: fontSize * 1.4,

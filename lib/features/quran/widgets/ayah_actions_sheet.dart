@@ -9,6 +9,7 @@ import '../../../core/i18n/app_l10n.dart';
 import '../../../core/services/ayah_audio_controller.dart';
 import '../../../core/services/surah_name_font_service.dart';
 import '../../../core/theme/tokens.dart';
+import '../../../shared/data/reciter_catalog.dart';
 import '../../../shared/models/quran.dart';
 import '../../../shared/state/favorites_provider.dart';
 import '../../../shared/state/settings_provider.dart';
@@ -96,12 +97,31 @@ class _AyahActionsBodyState extends ConsumerState<_AyahActionsBody> {
     super.dispose();
   }
 
+  bool _isChapterReciterSelected(int reciterId) {
+    final cached = ReciterCatalog.cachedAll();
+    if (cached == null) return false;
+    for (final r in cached) {
+      if (r.id == reciterId) return r.isChapterBased;
+    }
+    return false;
+  }
+
   Future<void> _playOrPick() async {
     final settings = ref.read(settingsProvider);
     final reciterId = settings.selectedReciterId;
     if (reciterId == null) {
       Navigator.of(context).pop();
       context.push('/settings/resources/reciters');
+      return;
+    }
+    if (_isChapterReciterSelected(reciterId)) {
+      final l10n = AppL10n.of(context);
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(
+          content: Text(l10n.t('reciters.chapterOnly')),
+          duration: const Duration(seconds: 2),
+        ));
       return;
     }
     await AyahAudioController.instance.playAyah(

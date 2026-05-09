@@ -133,6 +133,8 @@ const ckbBundle = <String, String>{
   'reciters.installFailed': 'دابەزاندن سەرکەوتوو نەبوو',
   'reciters.approxSize': 'پێویستە {n} میگابایت دابەزێت',
   'reciters.installNote': 'دەنگ تەنیا پاش دابەزاندنی قاری دەبیترێت.',
+  'reciters.chapterOnly':
+      'ئەم قاریە تەنیا سورە تەواوەکان دەخوێنێتەوە. دوگمەی لێدانی سورە بەکاربهێنە.',
   'reciters.uninstallTitle': 'سڕینەوەی تلاوە',
   'reciters.uninstallBody': 'بۆشاییەکەی {name} ئازاد دەبێتەوە. دەتوانیت دواتر دیسان دایبەزێنیت.',
   'reciters.notInstalled': 'هیچ قاریەک نییە',

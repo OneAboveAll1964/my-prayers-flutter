@@ -57,6 +57,7 @@ class AyahAudioController {
       StreamController<AyahAudioState>.broadcast();
   AyahAudioState _state = const AyahAudioState();
   StreamSubscription<void>? _completeSub;
+  String? _lastFilePath;
 
   bool _queueActive = false;
   int? _queueSurah;
@@ -184,6 +185,7 @@ class AyahAudioController {
           );
       await _player.stop();
       await _player.play(DeviceFileSource(file.path));
+      _lastFilePath = file.path;
       _emit(_state.copyWith(loading: false, playing: true));
     } catch (e) {
       _emit(AyahAudioState(
@@ -199,6 +201,14 @@ class AyahAudioController {
 
   Future<void> seek(Duration position) async {
     _ensured;
+    final path = _lastFilePath;
+    if (path != null && _player.state == PlayerState.completed) {
+      await _player.play(DeviceFileSource(path));
+      await _player.pause();
+      await _player.seek(position);
+      _emit(_state.copyWith(playing: false));
+      return;
+    }
     await _player.seek(position);
   }
 
@@ -206,7 +216,7 @@ class AyahAudioController {
     _ensured;
     final pos = await _player.getCurrentPosition() ?? Duration.zero;
     final next = pos + delta;
-    await _player.seek(next < Duration.zero ? Duration.zero : next);
+    await seek(next < Duration.zero ? Duration.zero : next);
   }
 
   Future<void> pauseOrResume() async {
@@ -214,10 +224,32 @@ class AyahAudioController {
     if (_state.playing) {
       await _player.pause();
       _emit(_state.copyWith(playing: false));
-    } else if (_state.surah != null) {
+      return;
+    }
+    if (_state.surah == null) return;
+    final path = _lastFilePath;
+    if (path == null) {
       await _player.resume();
       _emit(_state.copyWith(playing: true));
+      return;
     }
+    Duration pos = Duration.zero;
+    try {
+      pos = await _player.getCurrentPosition() ?? Duration.zero;
+    } catch (_) {}
+    Duration dur = Duration.zero;
+    try {
+      dur = await _player.getDuration() ?? Duration.zero;
+    } catch (_) {}
+    final atEnd = dur > Duration.zero &&
+        pos >= dur - const Duration(milliseconds: 500);
+    if (_player.state == PlayerState.completed || atEnd) {
+      await _player.play(DeviceFileSource(path));
+      _emit(_state.copyWith(playing: true));
+      return;
+    }
+    await _player.resume();
+    _emit(_state.copyWith(playing: true));
   }
 
   Stream<Duration> get positionStream => _player.onPositionChanged;

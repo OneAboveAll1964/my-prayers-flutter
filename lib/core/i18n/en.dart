@@ -133,6 +133,8 @@ const enBundle = <String, String>{
   'reciters.installFailed': 'Download failed',
   'reciters.approxSize': '{n} MB needs to download',
   'reciters.installNote': 'Audio plays only after a reciter is installed.',
+  'reciters.chapterOnly':
+      'This reciter only plays full surahs. Use the play-surah button.',
   'reciters.uninstallTitle': 'Remove recitation',
   'reciters.uninstallBody': 'This frees the disk space used by {name}. You can install it again later.',
   'reciters.notInstalled': 'No reciter installed',

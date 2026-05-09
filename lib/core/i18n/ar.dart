@@ -133,6 +133,8 @@ const arBundle = <String, String>{
   'reciters.installFailed': 'فشل التنزيل',
   'reciters.approxSize': 'يلزم تنزيل {n} ميغابايت',
   'reciters.installNote': 'لا يمكن تشغيل الصوت إلا بعد تنزيل القارئ.',
+  'reciters.chapterOnly':
+      'هذا القارئ يُشغّل السور كاملةً فقط. استخدم زر تشغيل السورة.',
   'reciters.uninstallTitle': 'إزالة التلاوة',
   'reciters.uninstallBody': 'سيتم تحرير المساحة التي تستخدمها {name}. يمكنك إعادة تنزيلها لاحقًا.',
   'reciters.notInstalled': 'لا يوجد قارئ مثبَّت',

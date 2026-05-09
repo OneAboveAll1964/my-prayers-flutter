@@ -510,25 +510,27 @@ class _SurahPageState extends ConsumerState<SurahPage> {
       context.push('/settings/resources/reciters');
       return;
     }
-    final ayahCount = meta.ayahCount;
-    final ready = await RecitationService.instance
-        .isSurahReady(reciterId, surahNumber, ayahCount);
-    if (!ready) {
-      if (!mounted) return;
-      final ok = await showAppSheet<bool>(
-        context: context,
-        title: l10n.t('quran.downloadSurahTitle'),
-        dismissible: false,
-        builder: (ctx) => _SurahDownloadBody(
-          reciterId: reciterId,
-          surahNumber: surahNumber,
-        ),
-      );
-      if (ok != true) return;
-    }
-    if (!mounted) return;
     setState(() => _startingSurahPlay = true);
     try {
+      final ayahCount = meta.ayahCount;
+      final ready = await RecitationService.instance
+          .isSurahReady(reciterId, surahNumber, ayahCount);
+      if (!mounted) return;
+      if (!ready) {
+        setState(() => _startingSurahPlay = false);
+        final ok = await showAppSheet<bool>(
+          context: context,
+          title: l10n.t('quran.downloadSurahTitle'),
+          dismissible: false,
+          builder: (ctx) => _SurahDownloadBody(
+            reciterId: reciterId,
+            surahNumber: surahNumber,
+          ),
+        );
+        if (ok != true) return;
+        if (!mounted) return;
+        setState(() => _startingSurahPlay = true);
+      }
       await ctrl.playSurah(
         reciterId: reciterId,
         surah: surahNumber,
@@ -960,6 +962,16 @@ class _PlayerIconButton extends StatelessWidget {
   }
 }
 
+bool _isChapterReciterId(int? reciterId) {
+  if (reciterId == null) return false;
+  final cached = ReciterCatalog.cachedAll();
+  if (cached == null) return false;
+  for (final r in cached) {
+    if (r.id == reciterId) return r.isChapterBased;
+  }
+  return false;
+}
+
 class _AyahRow extends ConsumerStatefulWidget {
   const _AyahRow({
     super.key,
@@ -1001,6 +1013,16 @@ class _AyahRowState extends ConsumerState<_AyahRow> {
     final reciterId = settings.selectedReciterId;
     if (reciterId == null) {
       context.push('/settings/resources/reciters');
+      return;
+    }
+    if (_isChapterReciterId(reciterId)) {
+      final l10n = AppL10n.of(context);
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(
+          content: Text(l10n.t('reciters.chapterOnly')),
+          duration: const Duration(seconds: 2),
+        ));
       return;
     }
     await AyahAudioController.instance.playAyah(

@@ -133,6 +133,8 @@ const ckbBadiniBundle = <String, String>{
   'reciters.installFailed': 'دائینان سەرکەفتی نەبوو',
   'reciters.approxSize': 'پێدڤیە {n} میگابایت دائینین',
   'reciters.installNote': 'دەنگ تنێ پشتی دائینانا قاری دێ هێتە لێدان.',
+  'reciters.chapterOnly':
+      'ئەڤ قاریە تنێ سورەتێن تەمام دێ خوینیت. دوگمەیا لێدانا سورەتێ بکار بینە.',
   'reciters.uninstallTitle': 'ڕاکرنا تلاڤێ',
   'reciters.uninstallBody': 'دێ جهێ {name} ڤالا کرێتەڤە. دێ شێی پاشی دیسا دائینی.',
   'reciters.notInstalled': 'چ قاری نەهاتیە دائینان',

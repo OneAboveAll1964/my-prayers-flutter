@@ -354,16 +354,16 @@ class _SurahPageState extends ConsumerState<SurahPage> {
   }
 
   Future<void> _toggleMode(bool isMushaf) async {
+    _invalidateMushafCache();
     if (isMushaf) {
       final target = _currentAyah;
       _suppressScrollSaveUntil =
-          DateTime.now().add(const Duration(seconds: 4));
+          DateTime.now().add(const Duration(seconds: 6));
       ref.read(settingsProvider.notifier).setQuranReadMode('scroll');
-      // Ensure full surah is loaded for scroll mode rendering.
       await _ensureFullSurah();
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         if (!mounted) return;
-        await Future.delayed(const Duration(milliseconds: 180));
+        await Future.delayed(const Duration(milliseconds: 360));
         if (!mounted) return;
         if (target > 1) {
           await _scrollToAyah(target);
@@ -549,9 +549,6 @@ class _SurahPageState extends ConsumerState<SurahPage> {
   Widget build(BuildContext context) {
     final palette = context.palette;
     final l10n = AppL10n.of(context);
-    // Narrow Riverpod watches: per-row styling (font/scale/bold) is read
-    // inside _AyahRow itself, and lastSurah updates leave bookmark state
-    // unchanged — neither path rebuilds SurahPage during mushaf swipes.
     final quranReadMode =
         ref.watch(settingsProvider.select((s) => s.quranReadMode));
     final marked = ref.watch(

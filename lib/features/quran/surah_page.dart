@@ -50,7 +50,9 @@ class SurahPage extends ConsumerStatefulWidget {
 
 class _SurahPageState extends ConsumerState<SurahPage> {
   Surah? _surah;
+  SurahPageMap? _pageMap;
   bool _loading = true;
+  bool _surahLoading = false;
   late final ScrollController _controller;
   final Map<int, GlobalKey> _ayahKeys = {};
   int _visibleAyah = 1;
@@ -62,6 +64,9 @@ class _SurahPageState extends ConsumerState<SurahPage> {
   DateTime? _suppressScrollSaveUntil;
   StreamSubscription<AyahAudioState>? _audioSub;
   AyahAudioState _audio = AyahAudioController.instance.state;
+
+  SurahMeta? get _meta => _pageMap?.meta;
+  int get _surahNumber => _pageMap?.meta.number ?? widget.number;
 
   @override
   void initState() {
@@ -77,8 +82,7 @@ class _SurahPageState extends ConsumerState<SurahPage> {
     final wasAyah = _audio.ayah;
     setState(() => _audio = s);
     if (!AyahAudioController.instance.isQueueActive) return;
-    final activeNumber = _surah?.number ?? widget.number;
-    if (s.surah != activeNumber) return;
+    if (s.surah != _surahNumber) return;
     if (s.ayah == null) return;
     if (wasFor == s.surah && wasAyah == s.ayah) return;
     final settings = ref.read(settingsProvider);
@@ -92,14 +96,38 @@ class _SurahPageState extends ConsumerState<SurahPage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_surah == null) _load();
+    if (_pageMap == null) _load();
   }
 
+  bool get _scrollMode =>
+      ref.read(settingsProvider).quranReadMode != 'mushaf';
+
   Future<void> _load() async {
+    final pageMap =
+        await QuranRepository.instance.getSurahPageMap(widget.number);
+    if (!mounted) return;
+    setState(() {
+      _pageMap = pageMap;
+      _loading = false;
+    });
+    if (pageMap != null) {
+      _saveLastRead(widget.initialAyah ?? 1);
+      if (_scrollMode) {
+        await _ensureFullSurah();
+      }
+    }
+  }
+
+  Future<void> _ensureFullSurah() async {
+    if (_surah != null || _surahLoading) return;
+    _surahLoading = true;
     final l10n = AppL10n.of(context);
     var surah = await QuranRepository.instance
         .getSurah(widget.number, langKey(l10n.locale));
-    if (!mounted) return;
+    if (!mounted) {
+      _surahLoading = false;
+      return;
+    }
     if (surah != null && widget.endAyah != null) {
       final start = widget.initialAyah ?? 1;
       final end = widget.endAyah!;
@@ -119,7 +147,7 @@ class _SurahPageState extends ConsumerState<SurahPage> {
     }
     setState(() {
       _surah = surah;
-      _loading = false;
+      _surahLoading = false;
       if (surah != null) {
         for (final a in surah.ayahs) {
           _ayahKeys[a.numberInSurah] = GlobalKey();
@@ -127,21 +155,19 @@ class _SurahPageState extends ConsumerState<SurahPage> {
       }
     });
 
-    if (surah != null) {
-      _saveLastRead(widget.initialAyah ?? 1);
-      if (!_initialScrollScheduled &&
-          widget.initialAyah != null &&
-          widget.initialAyah! > 1) {
-        _initialScrollScheduled = true;
+    if (surah != null &&
+        !_initialScrollScheduled &&
+        widget.initialAyah != null &&
+        widget.initialAyah! > 1) {
+      _initialScrollScheduled = true;
+      _suppressScrollSaveUntil =
+          DateTime.now().add(const Duration(seconds: 3));
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        if (!mounted) return;
+        await _scrollToAyah(widget.initialAyah!);
         _suppressScrollSaveUntil =
-            DateTime.now().add(const Duration(seconds: 3));
-        WidgetsBinding.instance.addPostFrameCallback((_) async {
-          if (!mounted) return;
-          await _scrollToAyah(widget.initialAyah!);
-          _suppressScrollSaveUntil =
-              DateTime.now().add(const Duration(milliseconds: 250));
-        });
-      }
+            DateTime.now().add(const Duration(milliseconds: 250));
+      });
     }
   }
 
@@ -250,36 +276,33 @@ class _SurahPageState extends ConsumerState<SurahPage> {
     }
   }
 
-  void _onMushafPageAyah(Ayah firstAyahOfPage) {
-    _currentAyah = firstAyahOfPage.numberInSurah;
+  void _onMushafPageAyah(int firstAyahNumberInSurah) {
+    _currentAyah = firstAyahNumberInSurah;
     _saveLastRead(_currentAyah);
   }
 
   Future<void> _switchToSurah(int newNumber) async {
     if (newNumber < 1 || newNumber > 114) return;
-    final l10n = AppL10n.of(context);
-    final next = await QuranRepository.instance
-        .getSurah(newNumber, langKey(l10n.locale));
-    if (!mounted || next == null) return;
-    final goingBack = newNumber < (_surah?.number ?? widget.number);
-    final targetAyah = goingBack && next.ayahs.isNotEmpty
-        ? next.ayahs.last.numberInSurah
-        : 1;
+    final nextMap =
+        await QuranRepository.instance.getSurahPageMap(newNumber);
+    if (!mounted || nextMap == null) return;
+    final goingBack = newNumber < _surahNumber;
+    final targetAyah = goingBack ? nextMap.meta.ayahCount : 1;
     setState(() {
-      _surah = next;
+      _pageMap = nextMap;
+      _surah = null;
       _currentAyah = targetAyah;
       _visibleAyah = targetAyah;
-      _ayahKeys
-        ..clear()
-        ..addEntries(next.ayahs.map(
-                (a) => MapEntry(a.numberInSurah, GlobalKey())));
+      _ayahKeys.clear();
     });
     _saveLastRead(targetAyah);
+    if (_scrollMode) {
+      _ensureFullSurah();
+    }
   }
 
   int? get _activePlayingAyah {
-    final activeNumber = _surah?.number ?? widget.number;
-    if (_audio.surah != activeNumber) return null;
+    if (_audio.surah != _surahNumber) return null;
     if (_audio.ayah == null) return null;
     if (!(_audio.playing || _audio.loading)) return null;
     return _audio.ayah;
@@ -291,6 +314,8 @@ class _SurahPageState extends ConsumerState<SurahPage> {
       _suppressScrollSaveUntil =
           DateTime.now().add(const Duration(seconds: 4));
       ref.read(settingsProvider.notifier).setQuranReadMode('scroll');
+      // Ensure full surah is loaded for scroll mode rendering.
+      await _ensureFullSurah();
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         if (!mounted) return;
         await Future.delayed(const Duration(milliseconds: 180));
@@ -323,14 +348,15 @@ class _SurahPageState extends ConsumerState<SurahPage> {
   }
 
   void _saveLastRead(int ayah) {
-    if (_surah == null) return;
+    final meta = _meta;
+    if (meta == null) return;
     ref.read(favoritesProvider.notifier).setLastSurah(LastReadEntry(
-      number: _surah!.number,
-      englishName: _surah!.englishName,
-      name: _surah!.name,
-      ayahCount: _surah!.ayahs.length,
-      lastAyah: ayah,
-    ));
+          number: meta.number,
+          englishName: meta.englishName,
+          name: meta.name,
+          ayahCount: meta.ayahCount,
+          lastAyah: ayah,
+        ));
   }
 
   @override
@@ -361,7 +387,7 @@ class _SurahPageState extends ConsumerState<SurahPage> {
             onTap: () {
               ref
                   .read(favoritesProvider.notifier)
-                  .toggleBookmarkSurah(_surah?.number ?? widget.number);
+                  .toggleBookmarkSurah(_surahNumber);
               Navigator.of(sheetCtx).pop();
             },
           ),
@@ -372,7 +398,7 @@ class _SurahPageState extends ConsumerState<SurahPage> {
               Navigator.of(sheetCtx).pop();
               showSurahInfoSheet(
                 context: context,
-                surahNumber: _surah?.number ?? widget.number,
+                surahNumber: _surahNumber,
                 displayName: _displayTitle,
               );
             },
@@ -396,9 +422,10 @@ class _SurahPageState extends ConsumerState<SurahPage> {
   }
 
   Future<void> _onPlaySurahTap() async {
-    if (_surah == null) return;
+    final meta = _meta;
+    if (meta == null) return;
     final ctrl = AyahAudioController.instance;
-    final surahNumber = _surah!.number;
+    final surahNumber = meta.number;
     if (ctrl.isQueueActive && ctrl.queueSurah == surahNumber) {
       await ctrl.stop();
       return;
@@ -411,7 +438,7 @@ class _SurahPageState extends ConsumerState<SurahPage> {
       context.push('/settings/resources/reciters');
       return;
     }
-    final ayahCount = _surah!.ayahs.length;
+    final ayahCount = meta.ayahCount;
     final ready = await RecitationService.instance
         .isSurahReady(reciterId, surahNumber, ayahCount);
     if (!ready) {
@@ -445,8 +472,9 @@ class _SurahPageState extends ConsumerState<SurahPage> {
     final l10n = AppL10n.of(context);
     final lang = l10n.locale.languageCode;
     final preferArabic = lang != 'en';
-    if (_surah != null) {
-      return preferArabic ? _surah!.name : _surah!.englishName;
+    final meta = _meta;
+    if (meta != null) {
+      return preferArabic ? meta.name : meta.englishName;
     }
     if (preferArabic &&
         widget.arabicName != null &&
@@ -462,7 +490,7 @@ class _SurahPageState extends ConsumerState<SurahPage> {
   String? get _displaySubtitle {
     final l10n = AppL10n.of(context);
     final isEn = l10n.locale.languageCode == 'en';
-    final raw = _surah?.ayahs.length ?? widget.ayahCount;
+    final raw = _meta?.ayahCount ?? widget.ayahCount;
     if (raw == null) return null;
     final count = isEn ? raw.toString() : _arabicNum(raw);
     return '$count ${l10n.t('quran.ayahs')}';
@@ -481,10 +509,15 @@ class _SurahPageState extends ConsumerState<SurahPage> {
     final fontFamily = arabicFontFamilies[settings.arabicFont] ?? 'UthmanicHafs';
     final arScale = settings.arabicFontScale;
     final trScale = settings.translationFontScale;
-    final marked = fav.surahs.contains(_surah?.number ?? widget.number);
+    final marked = fav.surahs.contains(_surahNumber);
 
     final isMushaf = settings.quranReadMode == 'mushaf';
-    final activeSurahNumber = _surah?.number ?? widget.number;
+    final activeSurahNumber = _surahNumber;
+    if (!isMushaf && _pageMap != null && _surah == null && !_surahLoading) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _ensureFullSurah();
+      });
+    }
     final queueActiveHere =
         AyahAudioController.instance.isQueueActive &&
             AyahAudioController.instance.queueSurah == activeSurahNumber;
@@ -547,7 +580,7 @@ class _SurahPageState extends ConsumerState<SurahPage> {
             Expanded(
               child: _loading
                   ? const PageLoader()
-                  : _surah == null
+                  : _pageMap == null
                   ? Padding(
                 padding: const EdgeInsets.all(24),
                 child: Text(
@@ -572,39 +605,49 @@ class _SurahPageState extends ConsumerState<SurahPage> {
                 },
                 child: isMushaf
                     ? KeyedSubtree(
-                  key: ValueKey('mushaf-${_surah!.number}'),
+                  key: ValueKey('mushaf-$activeSurahNumber'),
                   child: MushafView(
-                    surah: _surah!,
+                    pageMap: _pageMap!,
+                    langCode: langKey(l10n.locale),
                     initialAyah: _currentAyah,
+                    startAyah: widget.endAyah != null
+                        ? widget.initialAyah
+                        : null,
+                    endAyah: widget.endAyah,
                     onPageAyahChanged: _onMushafPageAyah,
                     onSwitchSurah:
                     widget.lockSurah ? null : _switchToSurah,
                     rangeFiltered: widget.endAyah != null,
                   ),
                 )
-                    : ListView.separated(
-                  key: ValueKey('scroll-${_surah!.number}'),
-                  controller: _controller,
-                  physics: const ClampingScrollPhysics(),
-                  padding: const EdgeInsets.fromLTRB(
-                      18, 4, 18, 32),
-                  itemCount: _surah!.ayahs.length,
-                  separatorBuilder: (ctx, i) =>
-                  const SizedBox(height: 12),
-                  itemBuilder: (ctx, i) {
-                    final a = _surah!.ayahs[i];
-                    return _AyahRow(
-                      key: _ayahKeys[a.numberInSurah],
-                      ayah: a,
-                      surah: _surah!,
-                      fontFamily: fontFamily,
-                      arScale: arScale,
-                      trScale: trScale,
-                      arabicBold: settings.quranBold,
-                      translationBold: settings.translationBold,
-                    );
-                  },
-                ),
+                    : _surah == null
+                        ? const KeyedSubtree(
+                            key: ValueKey('scroll-loading'),
+                            child: PageLoader(),
+                          )
+                        : ListView.separated(
+                            key: ValueKey('scroll-$activeSurahNumber'),
+                            controller: _controller,
+                            physics: const ClampingScrollPhysics(),
+                            padding: const EdgeInsets.fromLTRB(
+                                18, 4, 18, 32),
+                            itemCount: _surah!.ayahs.length,
+                            separatorBuilder: (ctx, i) =>
+                                const SizedBox(height: 12),
+                            itemBuilder: (ctx, i) {
+                              final a = _surah!.ayahs[i];
+                              return _AyahRow(
+                                key: _ayahKeys[a.numberInSurah],
+                                ayah: a,
+                                surah: _surah!,
+                                fontFamily: fontFamily,
+                                arScale: arScale,
+                                trScale: trScale,
+                                arabicBold: settings.quranBold,
+                                translationBold: settings.translationBold,
+                              );
+                            },
+                          ),
               ),
             ),
           ],

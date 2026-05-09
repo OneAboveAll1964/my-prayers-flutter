@@ -17,18 +17,24 @@ const _linesPerPage = 15;
 class MushafView extends ConsumerStatefulWidget {
   const MushafView({
     super.key,
-    required this.surah,
+    required this.pageMap,
+    required this.langCode,
     this.initialAyah,
     this.onPageAyahChanged,
     this.onSwitchSurah,
     this.rangeFiltered = false,
+    this.startAyah,
+    this.endAyah,
   });
 
-  final Surah surah;
+  final SurahPageMap pageMap;
+  final String langCode;
   final int? initialAyah;
-  final void Function(Ayah firstAyahOfPage)? onPageAyahChanged;
+  final void Function(int firstAyahNumberInSurah)? onPageAyahChanged;
   final void Function(int newSurahNumber)? onSwitchSurah;
   final bool rangeFiltered;
+  final int? startAyah;
+  final int? endAyah;
 
   @override
   ConsumerState<MushafView> createState() => _MushafViewState();
@@ -40,39 +46,30 @@ class _MushafViewState extends ConsumerState<MushafView> {
   late PageController _pageController;
   String? _selectedKey;
   String? _playingKey;
-  late Map<String, Ayah> _ayahByKey;
-  late Map<int, Ayah> _firstAyahByPage;
   Timer? _preloadTimer;
   StreamSubscription<AyahAudioState>? _audioSub;
   int? _lastQueueAyah;
 
+  int get _surahNumber => widget.pageMap.meta.number;
+
   @override
   void initState() {
     super.initState();
-    final pages = widget.surah.ayahs.map((a) => a.page).toList()..sort();
-    _firstPage = pages.first;
-    _lastPage = pages.last;
-    final initialAyah = widget.initialAyah == null
-        ? widget.surah.ayahs.first
-        : widget.surah.ayahs.firstWhere(
-            (a) => a.numberInSurah == widget.initialAyah,
-        orElse: () => widget.surah.ayahs.first);
+    _firstPage = widget.pageMap.firstPage;
+    _lastPage = widget.pageMap.lastPage;
+    final initialAyahNum = widget.initialAyah ??
+        widget.pageMap.firstAyahByPage[widget.pageMap.firstPage] ??
+        1;
+    final initialPage = widget.pageMap.ayahToPage[initialAyahNum] ??
+        widget.pageMap.firstPage;
     final initialIdx =
-    (initialAyah.page - _firstPage).clamp(0, _lastPage - _firstPage);
+        (initialPage - _firstPage).clamp(0, _lastPage - _firstPage);
     _pageController = PageController(initialPage: initialIdx);
-    _ayahByKey = {
-      for (final a in widget.surah.ayahs)
-        '${widget.surah.number}:${a.numberInSurah}': a,
-    };
-    _firstAyahByPage = <int, Ayah>{};
-    for (final a in widget.surah.ayahs) {
-      _firstAyahByPage.putIfAbsent(a.page, () => a);
-    }
     final pageCount = _lastPage - _firstPage + 1;
     _scheduleSettledPreload(initialIdx, pageCount,
         delay: const Duration(milliseconds: 400));
     final audioState = AyahAudioController.instance.state;
-    if (audioState.surah == widget.surah.number && audioState.ayah != null) {
+    if (audioState.surah == _surahNumber && audioState.ayah != null) {
       if (audioState.playing || audioState.loading) {
         _playingKey = '${audioState.surah}:${audioState.ayah}';
       }
@@ -83,9 +80,9 @@ class _MushafViewState extends ConsumerState<MushafView> {
 
   void _onAudio(AyahAudioState s) {
     if (!mounted) return;
-    final isThisSurah = s.surah == widget.surah.number && s.ayah != null;
+    final isThisSurah = s.surah == _surahNumber && s.ayah != null;
     final newKey =
-    isThisSurah && (s.playing || s.loading) ? '${s.surah}:${s.ayah}' : null;
+        isThisSurah && (s.playing || s.loading) ? '${s.surah}:${s.ayah}' : null;
     if (newKey != _playingKey) {
       setState(() => _playingKey = newKey);
     }
@@ -94,12 +91,8 @@ class _MushafViewState extends ConsumerState<MushafView> {
     if (!isThisSurah) return;
     if (s.ayah == _lastQueueAyah) return;
     _lastQueueAyah = s.ayah;
-    final ayah = widget.surah.ayahs.firstWhere(
-          (a) => a.numberInSurah == s.ayah,
-      orElse: () => widget.surah.ayahs.first,
-    );
-    final targetIdx =
-    (ayah.page - _firstPage).clamp(0, _lastPage - _firstPage);
+    final page = widget.pageMap.ayahToPage[s.ayah!] ?? widget.pageMap.firstPage;
+    final targetIdx = (page - _firstPage).clamp(0, _lastPage - _firstPage);
     if (!_pageController.hasClients) return;
     final current = _pageController.page?.round() ?? 0;
     if (current == targetIdx) return;
@@ -149,22 +142,29 @@ class _MushafViewState extends ConsumerState<MushafView> {
     final tappedAyah = int.tryParse(parts[1]) ?? 1;
     if (tappedSurah == null) return;
 
-    Surah surah = widget.surah;
-    Ayah? resolved = ayah;
-
-    if (tappedSurah != widget.surah.number) {
-      final lang = AppL10n.of(context).locale;
-      final loaded = await QuranRepository.instance
-          .getSurah(tappedSurah, langKey(lang));
-      if (!mounted || loaded == null) return;
-      surah = loaded;
-      resolved = _closestAyah(loaded.ayahs, tappedAyah);
-    } else if (resolved == null) {
-      resolved = _closestAyah(widget.surah.ayahs, tappedAyah);
+    final repo = QuranRepository.instance;
+    SurahMeta meta;
+    if (tappedSurah == _surahNumber) {
+      meta = widget.pageMap.meta;
+    } else {
+      final otherMap = await repo.getSurahPageMap(tappedSurah);
+      if (!mounted || otherMap == null) return;
+      meta = otherMap.meta;
     }
-    if (resolved == null) return;
+    final resolved =
+        ayah ?? await repo.getAyah(tappedSurah, tappedAyah, widget.langCode);
+    if (!mounted || resolved == null) return;
 
-    final keyToSelect = '${surah.number}:${resolved.numberInSurah}';
+    final liteSurah = Surah(
+      number: meta.number,
+      name: meta.name,
+      englishName: meta.englishName,
+      englishNameTranslation: meta.englishNameTranslation,
+      revelationType: meta.revelationType,
+      ayahs: const [],
+    );
+
+    final keyToSelect = '${meta.number}:${resolved.numberInSurah}';
     setState(() => _selectedKey = keyToSelect);
     final settings = ref.read(settingsProvider);
     final fontFamily =
@@ -172,7 +172,7 @@ class _MushafViewState extends ConsumerState<MushafView> {
     if (!mounted) return;
     await showAyahActionsSheet(
       context: context,
-      surah: surah,
+      surah: liteSurah,
       ayah: resolved,
       ref: ref,
       fontFamily: fontFamily,
@@ -180,19 +180,6 @@ class _MushafViewState extends ConsumerState<MushafView> {
     );
     if (!mounted) return;
     setState(() => _selectedKey = null);
-  }
-
-  Ayah? _closestAyah(List<Ayah> ayahs, int target) {
-    Ayah? best;
-    var bestDiff = 1 << 30;
-    for (final a in ayahs) {
-      final diff = (a.numberInSurah - target).abs();
-      if (diff < bestDiff) {
-        bestDiff = diff;
-        best = a;
-      }
-    }
-    return best;
   }
 
   @override
@@ -206,9 +193,8 @@ class _MushafViewState extends ConsumerState<MushafView> {
       reverse: isLtr,
       onPageChanged: (idx) {
         final pageNumber = _firstPage + idx;
-        final firstAyah =
-            _firstAyahByPage[pageNumber] ?? widget.surah.ayahs.first;
-        widget.onPageAyahChanged?.call(firstAyah);
+        final firstAyahNum = widget.pageMap.firstAyahByPage[pageNumber] ?? 1;
+        widget.onPageAyahChanged?.call(firstAyahNum);
         _scheduleSettledPreload(idx, pageCount);
       },
       itemBuilder: (ctx, idx) {
@@ -217,14 +203,16 @@ class _MushafViewState extends ConsumerState<MushafView> {
           child: _MushafPageView(
             key: ValueKey<int>(pageNumber),
             pageNumber: pageNumber,
-            surahNumber: widget.surah.number,
-            ayahByKey: _ayahByKey,
+            surahNumber: _surahNumber,
+            langCode: widget.langCode,
             selectedKey: _selectedKey ?? _playingKey,
             onTapWord: _handleTapWord,
             pageIndex: idx,
             totalPages: pageCount,
             onSwitchSurah: widget.onSwitchSurah,
             rangeFiltered: widget.rangeFiltered,
+            startAyah: widget.startAyah,
+            endAyah: widget.endAyah,
           ),
         );
       },
@@ -248,62 +236,92 @@ class _MushafPageView extends StatefulWidget {
     super.key,
     required this.pageNumber,
     required this.surahNumber,
-    required this.ayahByKey,
+    required this.langCode,
     required this.selectedKey,
     required this.onTapWord,
     required this.pageIndex,
     required this.totalPages,
     required this.onSwitchSurah,
     required this.rangeFiltered,
+    this.startAyah,
+    this.endAyah,
   });
 
   final int pageNumber;
   final int surahNumber;
-  final Map<String, Ayah> ayahByKey;
+  final String langCode;
   final String? selectedKey;
   final void Function(String verseKey, Ayah? ayah) onTapWord;
   final int pageIndex;
   final int totalPages;
   final void Function(int newSurahNumber)? onSwitchSurah;
   final bool rangeFiltered;
+  final int? startAyah;
+  final int? endAyah;
 
   @override
   State<_MushafPageView> createState() => _MushafPageViewState();
 }
 
 class _MushafPageViewState extends State<_MushafPageView> {
-  Future<_PageBundle>? _bundleFuture;
-  _PageBundle? _bundle;
+  Future<_PageData>? _dataFuture;
+  _PageData? _data;
 
   @override
   void initState() {
     super.initState();
-    final svc = MushafAssetService.instance;
-    final cachedData = svc.cachedPageData(widget.pageNumber);
-    final cachedFont = svc.cachedFontFamily(widget.pageNumber);
-    if (cachedData != null && cachedFont != null) {
-      _bundle = _PageBundle(data: cachedData, fontFamily: cachedFont);
-    } else {
-      _bundleFuture = _loadBundle(widget.pageNumber);
-    }
+    _dataFuture = _loadAll(widget.pageNumber);
   }
 
-  Future<_PageBundle> _loadBundle(int pageNumber) async {
+  Future<_PageData> _loadAll(int pageNumber) async {
     final service = MushafAssetService.instance;
     final results = await Future.wait([
       service.getPageData(pageNumber),
       service.loadFontForPage(pageNumber),
+      QuranRepository.instance
+          .getAyahsByKeyForPage(pageNumber, widget.langCode),
     ]);
-    return _PageBundle(
-      data: results[0] as MushafPageData,
-      fontFamily: results[1] as String,
+    final ayahByKey = (results[2] as Map<String, Ayah>);
+    final filtered = _applyRangeFilter(ayahByKey);
+    final data = _PageData(
+      bundle: _PageBundle(
+        data: results[0] as MushafPageData,
+        fontFamily: results[1] as String,
+      ),
+      ayahByKey: filtered,
     );
+    if (mounted) setState(() => _data = data);
+    return data;
+  }
+
+  Map<String, Ayah> _applyRangeFilter(Map<String, Ayah> source) {
+    if (!widget.rangeFiltered) return source;
+    final start = widget.startAyah ?? 1;
+    final end = widget.endAyah ?? 1 << 30;
+    final prefix = '${widget.surahNumber}:';
+    return <String, Ayah>{
+      for (final entry in source.entries)
+        if (entry.key.startsWith(prefix) &&
+            entry.value.numberInSurah >= start &&
+            entry.value.numberInSurah <= end)
+          entry.key: entry.value,
+    };
+  }
+
+  int _juzForData(_PageData data) {
+    for (final a in data.ayahByKey.values) {
+      return a.juz;
+    }
+    return 1;
   }
 
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
     final l10n = AppL10n.of(context);
+    final juzText = _data == null
+        ? ''
+        : '${l10n.t('quran.juz')} ${_localeNumber(_juzForData(_data!), context)}';
 
     return SafeArea(
       bottom: false,
@@ -315,7 +333,7 @@ class _MushafPageViewState extends State<_MushafPageView> {
             child: Row(
               children: [
                 Text(
-                  '${l10n.t('quran.juz')} ${_localeNumber(_juzForPage(widget.pageNumber, widget.ayahByKey), context)}',
+                  juzText,
                   style: TextStyle(
                     color: palette.textSubtle,
                     fontSize: 12,
@@ -335,85 +353,86 @@ class _MushafPageViewState extends State<_MushafPageView> {
             ),
           ),
           Expanded(
-            child: _bundle != null
+            child: _data != null
                 ? _MushafPageContent(
-              bundle: _bundle!,
-              ayahByKey: widget.ayahByKey,
-              selectedKey: widget.selectedKey,
-              onTapWord: widget.onTapWord,
-              surahFilter: widget.surahNumber,
-              rangeFiltered: widget.rangeFiltered,
-            )
-                : FutureBuilder<_PageBundle>(
-              future: _bundleFuture,
-              builder: (ctx, snap) {
-                if (snap.hasError) {
-                  return Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Ionicons.alert_circle_outline,
-                              size: 32, color: palette.textMuted),
-                          const SizedBox(height: 8),
-                          Text(
-                            l10n.t('common.error'),
-                            style: TextStyle(
-                                color: palette.textMuted, fontSize: 13),
-                          ),
-                          const SizedBox(height: 12),
-                          GestureDetector(
-                            behavior: HitTestBehavior.opaque,
-                            onTap: () => setState(() {
-                              _bundleFuture = _loadBundle(widget.pageNumber);
-                            }),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 10),
-                              decoration: BoxDecoration(
-                                color: palette.surface2,
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(color: palette.line),
-                              ),
-                              child: Text(
-                                l10n.t('common.retry'),
-                                style: TextStyle(
-                                  color: palette.text,
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
+                    bundle: _data!.bundle,
+                    ayahByKey: _data!.ayahByKey,
+                    selectedKey: widget.selectedKey,
+                    onTapWord: widget.onTapWord,
+                    surahFilter: widget.surahNumber,
+                    rangeFiltered: widget.rangeFiltered,
+                  )
+                : FutureBuilder<_PageData>(
+                    future: _dataFuture,
+                    builder: (ctx, snap) {
+                      if (snap.hasError) {
+                        return Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(20),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Ionicons.alert_circle_outline,
+                                    size: 32, color: palette.textMuted),
+                                const SizedBox(height: 8),
+                                Text(
+                                  l10n.t('common.error'),
+                                  style: TextStyle(
+                                      color: palette.textMuted, fontSize: 13),
                                 ),
-                              ),
+                                const SizedBox(height: 12),
+                                GestureDetector(
+                                  behavior: HitTestBehavior.opaque,
+                                  onTap: () => setState(() {
+                                    _dataFuture = _loadAll(widget.pageNumber);
+                                  }),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 16, vertical: 10),
+                                    decoration: BoxDecoration(
+                                      color: palette.surface2,
+                                      borderRadius: BorderRadius.circular(10),
+                                      border:
+                                          Border.all(color: palette.line),
+                                    ),
+                                    child: Text(
+                                      l10n.t('common.retry'),
+                                      style: TextStyle(
+                                        color: palette.text,
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ],
-                      ),
-                    ),
-                  );
-                }
-                if (!snap.hasData) {
-                  return Center(
-                    child: SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2.4,
-                        color: palette.accent,
-                      ),
-                    ),
-                  );
-                }
-                final bundle = snap.data!;
-                return _MushafPageContent(
-                  bundle: bundle,
-                  ayahByKey: widget.ayahByKey,
-                  selectedKey: widget.selectedKey,
-                  onTapWord: widget.onTapWord,
-                  surahFilter: widget.surahNumber,
-                  rangeFiltered: widget.rangeFiltered,
-                );
-              },
-            ),
+                        );
+                      }
+                      if (!snap.hasData) {
+                        return Center(
+                          child: SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.4,
+                              color: palette.accent,
+                            ),
+                          ),
+                        );
+                      }
+                      final data = snap.data!;
+                      return _MushafPageContent(
+                        bundle: data.bundle,
+                        ayahByKey: data.ayahByKey,
+                        selectedKey: widget.selectedKey,
+                        onTapWord: widget.onTapWord,
+                        surahFilter: widget.surahNumber,
+                        rangeFiltered: widget.rangeFiltered,
+                      );
+                    },
+                  ),
           ),
           Padding(
             padding: EdgeInsets.fromLTRB(
@@ -473,11 +492,10 @@ class _MushafPageViewState extends State<_MushafPageView> {
   }
 }
 
-int _juzForPage(int page, Map<String, Ayah> map) {
-  for (final a in map.values) {
-    if (a.page == page) return a.juz;
-  }
-  return 1;
+class _PageData {
+  _PageData({required this.bundle, required this.ayahByKey});
+  final _PageBundle bundle;
+  final Map<String, Ayah> ayahByKey;
 }
 
 class _PageBundle {

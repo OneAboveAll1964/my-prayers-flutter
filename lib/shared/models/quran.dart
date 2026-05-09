@@ -91,3 +91,22 @@ class Surah {
     );
   }
 }
+
+/// Lightweight bounds for the mushaf — just meta + ayah↔page mapping, no
+/// Quran text. Loaded on entry so mushaf can render without pulling the
+/// full surah body.
+class SurahPageMap {
+  const SurahPageMap({
+    required this.meta,
+    required this.firstPage,
+    required this.lastPage,
+    required this.ayahToPage,
+    required this.firstAyahByPage,
+  });
+
+  final SurahMeta meta;
+  final int firstPage;
+  final int lastPage;
+  final Map<int, int> ayahToPage; // numberInSurah → page
+  final Map<int, int> firstAyahByPage; // page → first numberInSurah on it
+}

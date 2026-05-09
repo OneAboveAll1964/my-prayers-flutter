@@ -63,9 +63,14 @@ class MyPrayersApp extends ConsumerWidget {
       builder: (ctx, child) {
         final activeLocale = Localizations.localeOf(ctx);
         final isRtl = isRtlLang(langKey(activeLocale));
-        return Directionality(
-          textDirection: isRtl ? TextDirection.rtl : TextDirection.ltr,
-          child: SplashOverlay(child: child ?? const SizedBox()),
+        return MediaQuery(
+          data: MediaQuery.of(ctx).copyWith(
+            textScaler: TextScaler.noScaling,
+          ),
+          child: Directionality(
+            textDirection: isRtl ? TextDirection.rtl : TextDirection.ltr,
+            child: SplashOverlay(child: child ?? const SizedBox()),
+          ),
         );
       },
     );

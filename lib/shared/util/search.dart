@@ -17,6 +17,16 @@ String normalizeForSearch(String s) {
   out = out.replaceAll(RegExp(r'[آأإٱ]'), 'ا');
   out = out.replaceAll('ة', 'ه');
   out = out.replaceAll('ى', 'ي');
+  // Persian / Kurdish letter variants → closest Arabic equivalents
+  out = out.replaceAll('ک', 'ك'); // U+06A9 keheh → kaf
+  out = out.replaceAll('ی', 'ي'); // U+06CC farsi yeh → yeh
+  out = out.replaceAll('ێ', 'ي'); // U+06CE yeh-with-small-v
+  out = out.replaceAll('ە', 'ه'); // U+06D5 sorani ae → heh
+  out = out.replaceAll('ھ', 'ه'); // U+06BE heh-doachashmee → heh
+  out = out.replaceAll('ۆ', 'و'); // U+06C6 oe → waw
+  out = out.replaceAll('ڕ', 'ر'); // U+0695 reh-with-small-v
+  out = out.replaceAll('ڵ', 'ل'); // U+06B5 lam-with-small-v
+  out = out.replaceAll('ۋ', 'و'); // U+06CB ve → waw
 
   out = _foldLatin(out);
 

@@ -50,11 +50,6 @@ final appRouter = GoRouter(
               _instant(context, state, const AzkarsPage()),
         ),
         GoRoute(
-          path: '/qibla',
-          pageBuilder: (context, state) =>
-              _instant(context, state, const QiblaPage()),
-        ),
-        GoRoute(
           path: '/popular',
           pageBuilder: (context, state) =>
               _instant(context, state, const PopularAyahsPage()),
@@ -92,6 +87,7 @@ final appRouter = GoRouter(
         lockSurah: state.uri.queryParameters['lock'] == '1',
       ),
     ),
+    GoRoute(path: '/qibla', builder: (context, state) => const QiblaPage()),
     GoRoute(path: '/calendar', builder: (context, state) => const CalendarPage()),
     GoRoute(path: '/names', builder: (context, state) => const NamesPage()),
     GoRoute(path: '/tasbih', builder: (context, state) => const TasbihPage()),

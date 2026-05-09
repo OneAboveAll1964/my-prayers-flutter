@@ -487,16 +487,303 @@ class _TafsirTile extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 8),
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: onSampleTap,
+              child: Container(
+                width: 36,
+                height: 36,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: palette.surface2,
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(color: palette.line),
+                ),
+                child: Icon(Ionicons.eye_outline,
+                    size: 16, color: palette.text),
+              ),
+            ),
+            const SizedBox(width: 8),
             AppButton(
-              label: l10n.t('tafsirs.sample'),
+              label: isInstalled
+                  ? l10n.t('reciters.uninstall')
+                  : l10n.t('reciters.install'),
               size: AppButtonSize.sm,
-              variant: AppButtonVariant.outline,
-              onPressed: onSampleTap,
+              variant: isInstalled
+                  ? AppButtonVariant.outline
+                  : AppButtonVariant.solid,
+              onPressed: isInstalled ? onUninstallTap : onInstallTap,
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _InstallConfirmBody extends StatelessWidget {
+  const _InstallConfirmBody({
+    required this.languageLabel,
+    required this.onConfirm,
+    required this.onCancel,
+  });
+  final String languageLabel;
+  final VoidCallback onConfirm;
+  final VoidCallback onCancel;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppL10n.of(context);
+    final palette = context.palette;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: palette.surface2,
+            borderRadius: BorderRadius.circular(AppTokens.radius),
+            border: Border.all(color: palette.line),
+          ),
+          child: Row(
+            children: [
+              Icon(Ionicons.cloud_download_outline,
+                  size: 22, color: palette.textMuted),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  l10n.t('tafsirs.installNote'),
+                  style: TextStyle(color: palette.text, fontSize: 13.5),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        AppButton(
+          label: l10n.t('reciters.install'),
+          variant: AppButtonVariant.solid,
+          expand: true,
+          onPressed: onConfirm,
+        ),
+        const SizedBox(height: 8),
+        AppButton(
+          label: l10n.t('common.cancel'),
+          variant: AppButtonVariant.outline,
+          expand: true,
+          onPressed: onCancel,
+        ),
+      ],
+    );
+  }
+}
+
+class _UninstallConfirmBody extends StatelessWidget {
+  const _UninstallConfirmBody({
+    required this.name,
+    required this.onConfirm,
+    required this.onCancel,
+  });
+  final String name;
+  final VoidCallback onConfirm;
+  final VoidCallback onCancel;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppL10n.of(context);
+    final palette = context.palette;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+          child: Text(
+            l10n.t('reciters.uninstallBody').replaceAll('{name}', name),
+            textAlign: TextAlign.center,
+            style: TextStyle(
+                color: palette.textMuted, fontSize: 14, height: 1.5),
+          ),
+        ),
+        const SizedBox(height: 16),
+        AppButton(
+          label: l10n.t('reciters.uninstall'),
+          variant: AppButtonVariant.danger,
+          expand: true,
+          onPressed: onConfirm,
+        ),
+        const SizedBox(height: 8),
+        AppButton(
+          label: l10n.t('common.cancel'),
+          variant: AppButtonVariant.outline,
+          expand: true,
+          onPressed: onCancel,
+        ),
+      ],
+    );
+  }
+}
+
+class _InstallProgressBody extends StatefulWidget {
+  const _InstallProgressBody({required this.tafsir});
+  final Tafsir tafsir;
+
+  @override
+  State<_InstallProgressBody> createState() => _InstallProgressBodyState();
+}
+
+class _InstallProgressBodyState extends State<_InstallProgressBody> {
+  StreamSubscription<TafsirProgress>? _sub;
+  TafsirProgress? _progress;
+  bool _failed = false;
+  String? _error;
+  bool _done = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _start();
+  }
+
+  @override
+  void dispose() {
+    _sub?.cancel();
+    super.dispose();
+  }
+
+  void _start() {
+    setState(() {
+      _failed = false;
+      _error = null;
+      _done = false;
+    });
+    _sub?.cancel();
+    _sub = TafsirService.instance.install(widget.tafsir.id).listen((p) {
+      if (!mounted) return;
+      setState(() {
+        _progress = p;
+        if (p.failed) {
+          _failed = true;
+          _error = p.errorMessage;
+        } else if (p.isComplete) {
+          _done = true;
+        }
+      });
+    });
+  }
+
+  Future<void> _cancel() async {
+    await TafsirService.instance.cancelInstall(widget.tafsir.id);
+    if (mounted) Navigator.of(context).pop(false);
+  }
+
+  void _close() => Navigator.of(context).pop(true);
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppL10n.of(context);
+    final palette = context.palette;
+    final p = _progress;
+    final fraction = p?.fraction ?? 0.0;
+    final done = p?.filesDone ?? 0;
+    final total = p?.totalFiles ?? 6236;
+
+    if (_failed) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Icon(Ionicons.alert_circle_outline,
+              size: 28, color: palette.textMuted),
+          const SizedBox(height: 8),
+          Text(
+            l10n.t('reciters.installFailed'),
+            textAlign: TextAlign.center,
+            style: TextStyle(color: palette.text, fontSize: 14),
+          ),
+          if (_error != null) ...[
+            const SizedBox(height: 6),
+            Text(
+              _error!,
+              textAlign: TextAlign.center,
+              style: TextStyle(color: palette.textMuted, fontSize: 12),
+            ),
+          ],
+          const SizedBox(height: 16),
+          AppButton(
+            label: l10n.t('mushaf.installRetry'),
+            variant: AppButtonVariant.solid,
+            expand: true,
+            onPressed: _start,
+          ),
+          const SizedBox(height: 8),
+          AppButton(
+            label: l10n.t('common.cancel'),
+            variant: AppButtonVariant.outline,
+            expand: true,
+            onPressed: () => Navigator.of(context).pop(false),
+          ),
+        ],
+      );
+    }
+
+    if (_done) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Icon(Ionicons.checkmark_circle, size: 28, color: palette.accent),
+          const SizedBox(height: 12),
+          Text(
+            l10n.t('reciters.installComplete'),
+            textAlign: TextAlign.center,
+            style: TextStyle(color: palette.text, fontSize: 14),
+          ),
+          const SizedBox(height: 16),
+          AppButton(
+            label: l10n.t('common.done'),
+            variant: AppButtonVariant.solid,
+            expand: true,
+            onPressed: _close,
+          ),
+        ],
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          l10n.t('tafsirs.installingBody'),
+          textAlign: TextAlign.center,
+          style: TextStyle(color: palette.text, fontSize: 14, height: 1.5),
+        ),
+        const SizedBox(height: 14),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(999),
+          child: LinearProgressIndicator(
+            value: fraction == 0 ? null : fraction,
+            minHeight: 8,
+            backgroundColor: palette.surface2,
+            valueColor: AlwaysStoppedAnimation<Color>(palette.accent),
+          ),
+        ),
+        const SizedBox(height: 10),
+        Text(
+          '$done / $total',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: palette.textMuted,
+            fontSize: 12.5,
+            fontFeatures: const [FontFeature.tabularFigures()],
+          ),
+        ),
+        const SizedBox(height: 18),
+        AppButton(
+          label: l10n.t('common.cancel'),
+          variant: AppButtonVariant.outline,
+          expand: true,
+          onPressed: _cancel,
+        ),
+      ],
     );
   }
 }

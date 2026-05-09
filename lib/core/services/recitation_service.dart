@@ -66,6 +66,14 @@ class RecitationService {
     return '$s$a';
   }
 
+  Future<void> _ensureCatalog() async {
+    if (ReciterCatalog.cachedAll() == null) {
+      try {
+        await ReciterCatalog.all();
+      } catch (_) {}
+    }
+  }
+
   Reciter? _reciterFor(int reciterId) {
     final cached = ReciterCatalog.cachedAll();
     if (cached == null) return null;
@@ -90,6 +98,7 @@ class RecitationService {
   }
 
   Future<File?> cachedFile(int reciterId, int surah, int ayah) async {
+    await _ensureCatalog();
     final f = await _ayahFile(reciterId, surah, ayah);
     if (await f.exists() && await f.length() > 0) return f;
     return null;
@@ -145,6 +154,7 @@ class RecitationService {
     if (_sampleUrlCache[reciterId] != null) {
       return _sampleUrlCache[reciterId]!;
     }
+    await _ensureCatalog();
     final reciter = _reciterFor(reciterId);
     final chapterUrl = reciter?.chapterUrlFor(1);
     if (chapterUrl != null) {
@@ -177,6 +187,7 @@ class RecitationService {
   }
 
   Future<List<_AyahFile>> _fetchAllUrls(int reciterId) async {
+    await _ensureCatalog();
     final reciter = _reciterFor(reciterId);
     if (reciter?.isChapterBased == true) {
       final list = <_AyahFile>[];
@@ -245,6 +256,7 @@ class RecitationService {
 
   Future<void> _runInstall(
       int reciterId, StreamController<RecitationProgress> controller) async {
+    await _ensureCatalog();
     final client = http.Client();
     var done = 0;
     var total = _totalAyahs;
@@ -319,6 +331,7 @@ class RecitationService {
   Future<File> downloadSingleAyah(int reciterId, int surah, int ayah) async {
     final cached = await cachedFile(reciterId, surah, ayah);
     if (cached != null) return cached;
+    await _ensureCatalog();
     final reciter = _reciterFor(reciterId);
     final chapterUrl = reciter?.chapterUrlFor(surah);
     final folder = _everyayahFolderFor(reciterId);
@@ -367,6 +380,7 @@ class RecitationService {
 
   Future<bool> isSurahReady(
       int reciterId, int surahNumber, int ayahCount) async {
+    await _ensureCatalog();
     final dir = await reciterDir(reciterId);
     if (_isChapterReciter(reciterId)) {
       final f = File(p.join(dir.path, _chapterFileName(surahNumber)));
@@ -390,6 +404,7 @@ class RecitationService {
 
   Future<void> _runDownloadSurah(int reciterId, int surahNumber,
       StreamController<RecitationProgress> controller) async {
+    await _ensureCatalog();
     final client = http.Client();
     var done = 0;
     var total = 0;

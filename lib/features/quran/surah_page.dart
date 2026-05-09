@@ -7,6 +7,7 @@ import '../../core/services/ayah_audio_controller.dart';
 import '../../core/services/recitation_service.dart';
 import '../../core/theme/tokens.dart';
 import '../../shared/data/quran_repository.dart';
+import '../../shared/data/reciter_catalog.dart';
 import '../../shared/models/quran.dart';
 import '../../shared/state/favorites_provider.dart';
 import '../../shared/state/settings_provider.dart';
@@ -700,8 +701,240 @@ class _SurahPageState extends ConsumerState<SurahPage> {
                           ),
               ),
             ),
+            const _ChapterPlayerBar(),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _ChapterPlayerBar extends StatefulWidget {
+  const _ChapterPlayerBar();
+
+  @override
+  State<_ChapterPlayerBar> createState() => _ChapterPlayerBarState();
+}
+
+class _ChapterPlayerBarState extends State<_ChapterPlayerBar> {
+  StreamSubscription<AyahAudioState>? _audioSub;
+  StreamSubscription<Duration>? _posSub;
+  StreamSubscription<Duration>? _durSub;
+  AyahAudioState _audio = AyahAudioController.instance.state;
+  Duration _position = Duration.zero;
+  Duration _duration = Duration.zero;
+  bool _seeking = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final ctrl = AyahAudioController.instance;
+    _audioSub = ctrl.stream.listen((s) {
+      if (!mounted) return;
+      setState(() => _audio = s);
+    });
+    _posSub = ctrl.positionStream.listen((d) {
+      if (!mounted || _seeking) return;
+      setState(() => _position = d);
+    });
+    _durSub = ctrl.durationStream.listen((d) {
+      if (!mounted) return;
+      setState(() => _duration = d);
+    });
+  }
+
+  @override
+  void dispose() {
+    _audioSub?.cancel();
+    _posSub?.cancel();
+    _durSub?.cancel();
+    super.dispose();
+  }
+
+  bool get _isChapter {
+    final id = _audio.reciterId;
+    if (id == null) return false;
+    final cached = ReciterCatalog.cachedAll();
+    if (cached == null) return false;
+    for (final r in cached) {
+      if (r.id == id) return r.isChapterBased;
+    }
+    return false;
+  }
+
+  String _fmt(Duration d) {
+    final m = d.inMinutes.remainder(60);
+    final s = d.inSeconds.remainder(60);
+    final h = d.inHours;
+    String two(int n) => n.toString().padLeft(2, '0');
+    if (h > 0) return '$h:${two(m)}:${two(s)}';
+    return '${two(m)}:${two(s)}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final showing = _isChapter && _audio.surah != null;
+    if (!showing) return const SizedBox.shrink();
+
+    final palette = context.palette;
+    final ctrl = AyahAudioController.instance;
+    final maxMs = _duration.inMilliseconds <= 0
+        ? 1.0
+        : _duration.inMilliseconds.toDouble();
+    final posMs = _position.inMilliseconds.toDouble().clamp(0.0, maxMs);
+    final isLoading = _audio.loading;
+    final isPlaying = _audio.playing;
+
+    return Directionality(
+      textDirection: TextDirection.ltr,
+      child: Container(
+      decoration: BoxDecoration(
+        color: palette.surface,
+        border: Border(top: BorderSide(color: palette.line)),
+      ),
+      padding: EdgeInsets.fromLTRB(
+        16,
+        10,
+        16,
+        10 + MediaQuery.of(context).padding.bottom,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SliderTheme(
+            data: SliderThemeData(
+              trackHeight: 3,
+              activeTrackColor: palette.accent,
+              inactiveTrackColor: palette.line,
+              thumbColor: palette.accent,
+              overlayColor: palette.accentSoft,
+              thumbShape:
+                  const RoundSliderThumbShape(enabledThumbRadius: 7),
+              overlayShape:
+                  const RoundSliderOverlayShape(overlayRadius: 14),
+            ),
+            child: Slider(
+              value: posMs.clamp(0.0, maxMs),
+              min: 0,
+              max: maxMs,
+              onChangeStart: (_) => _seeking = true,
+              onChanged: (v) {
+                setState(() => _position = Duration(milliseconds: v.toInt()));
+              },
+              onChangeEnd: (v) async {
+                await ctrl.seek(Duration(milliseconds: v.toInt()));
+                _seeking = false;
+              },
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Row(
+              children: [
+                Text(
+                  _fmt(_position),
+                  style: TextStyle(
+                    color: palette.textSubtle,
+                    fontSize: 11,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  _fmt(_duration),
+                  style: TextStyle(
+                    color: palette.textSubtle,
+                    fontSize: 11,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 4),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _PlayerIconButton(
+                icon: Ionicons.play_skip_back,
+                onTap: () =>
+                    ctrl.seekRelative(const Duration(seconds: -30)),
+                color: palette.text,
+              ),
+              _PlayerIconButton(
+                icon: Ionicons.play_back,
+                onTap: () =>
+                    ctrl.seekRelative(const Duration(seconds: -10)),
+                color: palette.text,
+              ),
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: ctrl.pauseOrResume,
+                child: Container(
+                  width: 56,
+                  height: 56,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: palette.accent,
+                    shape: BoxShape.circle,
+                  ),
+                  child: isLoading
+                      ? SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.4,
+                            color: palette.accentOn,
+                          ),
+                        )
+                      : Icon(
+                          isPlaying ? Ionicons.pause : Ionicons.play,
+                          color: palette.accentOn,
+                          size: 22,
+                        ),
+                ),
+              ),
+              _PlayerIconButton(
+                icon: Ionicons.play_forward,
+                onTap: () =>
+                    ctrl.seekRelative(const Duration(seconds: 10)),
+                color: palette.text,
+              ),
+              _PlayerIconButton(
+                icon: Ionicons.play_skip_forward,
+                onTap: () =>
+                    ctrl.seekRelative(const Duration(seconds: 30)),
+                color: palette.text,
+              ),
+            ],
+          ),
+        ],
+      ),
+    ),
+    );
+  }
+}
+
+class _PlayerIconButton extends StatelessWidget {
+  const _PlayerIconButton({
+    required this.icon,
+    required this.onTap,
+    required this.color,
+  });
+  final IconData icon;
+  final VoidCallback onTap;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Container(
+        width: 44,
+        height: 44,
+        alignment: Alignment.center,
+        child: Icon(icon, size: 22, color: color),
       ),
     );
   }

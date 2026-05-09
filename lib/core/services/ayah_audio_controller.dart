@@ -120,7 +120,7 @@ class AyahAudioController {
     try {
       await _player.stop();
     } catch (_) {}
-    _emit(_state.copyWith(playing: false));
+    _emit(const AyahAudioState());
   }
 
   Future<void> playSurah({
@@ -149,6 +149,11 @@ class AyahAudioController {
     required int ayah,
   }) async {
     _ensured;
+    if (ReciterCatalog.cachedAll() == null) {
+      try {
+        await ReciterCatalog.all();
+      } catch (_) {}
+    }
     final isChapter = _isChapterReciter(reciterId);
     final stateAyah = isChapter ? null : ayah;
     if (_state.surah == surah &&

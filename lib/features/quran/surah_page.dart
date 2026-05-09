@@ -81,15 +81,20 @@ class _SurahPageState extends ConsumerState<SurahPage> {
         _cachedMushafLang != langCode) {
       _cachedMushafFor = pageMap;
       _cachedMushafLang = langCode;
-      _cachedMushaf = MushafView(
-        pageMap: pageMap,
-        langCode: langCode,
-        initialAyah: _currentAyah,
-        startAyah: widget.endAyah != null ? widget.initialAyah : null,
-        endAyah: widget.endAyah,
-        onPageAyahChanged: _onMushafPageAyah,
-        onSwitchSurah: widget.lockSurah ? null : _switchToSurah,
-        rangeFiltered: widget.endAyah != null,
+      // Wrap in RepaintBoundary so the rasterized mushaf glyphs are
+      // cached on the GPU. Header / sibling repaints (audio buttons,
+      // bookmark icon, mode toggle) won't re-rasterize the mushaf.
+      _cachedMushaf = RepaintBoundary(
+        child: MushafView(
+          pageMap: pageMap,
+          langCode: langCode,
+          initialAyah: _currentAyah,
+          startAyah: widget.endAyah != null ? widget.initialAyah : null,
+          endAyah: widget.endAyah,
+          onPageAyahChanged: _onMushafPageAyah,
+          onSwitchSurah: widget.lockSurah ? null : _switchToSurah,
+          rangeFiltered: widget.endAyah != null,
+        ),
       );
     }
     return _cachedMushaf!;

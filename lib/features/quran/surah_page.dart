@@ -65,8 +65,34 @@ class _SurahPageState extends ConsumerState<SurahPage> {
   StreamSubscription<AyahAudioState>? _audioSub;
   AyahAudioState _audio = AyahAudioController.instance.state;
 
+  // Cached mushaf widget — only rebuilt when its real inputs change
+  // (surah / language). Keeps unrelated SurahPage rebuilds (audio
+  // state, settings, favorites) from cascading into MushafView.
+  Widget? _cachedMushaf;
+  SurahPageMap? _cachedMushafFor;
+  String? _cachedMushafLang;
+
   SurahMeta? get _meta => _pageMap?.meta;
   int get _surahNumber => _pageMap?.meta.number ?? widget.number;
+
+  Widget _buildMushaf(SurahPageMap pageMap, String langCode) {
+    if (!identical(_cachedMushafFor, pageMap) ||
+        _cachedMushafLang != langCode) {
+      _cachedMushafFor = pageMap;
+      _cachedMushafLang = langCode;
+      _cachedMushaf = MushafView(
+        pageMap: pageMap,
+        langCode: langCode,
+        initialAyah: _currentAyah,
+        startAyah: widget.endAyah != null ? widget.initialAyah : null,
+        endAyah: widget.endAyah,
+        onPageAyahChanged: _onMushafPageAyah,
+        onSwitchSurah: widget.lockSurah ? null : _switchToSurah,
+        rangeFiltered: widget.endAyah != null,
+      );
+    }
+    return _cachedMushaf!;
+  }
 
   @override
   void initState() {
@@ -605,21 +631,10 @@ class _SurahPageState extends ConsumerState<SurahPage> {
                 },
                 child: isMushaf
                     ? KeyedSubtree(
-                  key: ValueKey('mushaf-$activeSurahNumber'),
-                  child: MushafView(
-                    pageMap: _pageMap!,
-                    langCode: langKey(l10n.locale),
-                    initialAyah: _currentAyah,
-                    startAyah: widget.endAyah != null
-                        ? widget.initialAyah
-                        : null,
-                    endAyah: widget.endAyah,
-                    onPageAyahChanged: _onMushafPageAyah,
-                    onSwitchSurah:
-                    widget.lockSurah ? null : _switchToSurah,
-                    rangeFiltered: widget.endAyah != null,
-                  ),
-                )
+                        key: ValueKey('mushaf-$activeSurahNumber'),
+                        child: _buildMushaf(
+                            _pageMap!, langKey(l10n.locale)),
+                      )
                     : _surah == null
                         ? const KeyedSubtree(
                             key: ValueKey('scroll-loading'),

@@ -152,24 +152,25 @@ class AyahAudioController {
       await stop();
       return;
     }
+    final cached = await RecitationService.instance.cachedFile(
+      reciterId,
+      surah,
+      ayah,
+    );
     _emit(AyahAudioState(
       surah: surah,
       ayah: ayah,
       reciterId: reciterId,
-      loading: true,
+      loading: cached == null,
       playing: false,
     ));
     try {
-      var file = await RecitationService.instance.cachedFile(
-        reciterId,
-        surah,
-        ayah,
-      );
-      file ??= await RecitationService.instance.downloadSingleAyah(
-        reciterId,
-        surah,
-        ayah,
-      );
+      final file = cached ??
+          await RecitationService.instance.downloadSingleAyah(
+            reciterId,
+            surah,
+            ayah,
+          );
       await _player.stop();
       await _player.play(DeviceFileSource(file.path));
       _emit(_state.copyWith(loading: false, playing: true));

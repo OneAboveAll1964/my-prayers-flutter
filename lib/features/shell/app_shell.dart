@@ -48,41 +48,44 @@ class _BottomTabBar extends StatelessWidget {
     final l10n = AppL10n.of(context);
     final media = MediaQuery.of(context);
 
-    return Container(
-      decoration: BoxDecoration(
-        color: palette.surface,
-        border: Border(top: BorderSide(color: palette.line)),
-      ),
-      padding: EdgeInsets.only(bottom: media.padding.bottom),
-      child: SizedBox(
-        height: AppTokens.tabBarHeight,
-        child: Row(
-          children: [
-            ..._tabs.map((tab) {
-              final selected = _isActive(activePath, tab.path);
-              return Expanded(
+    return Directionality(
+      textDirection: TextDirection.ltr,
+      child: Container(
+        decoration: BoxDecoration(
+          color: palette.surface,
+          border: Border(top: BorderSide(color: palette.line)),
+        ),
+        padding: EdgeInsets.only(bottom: media.padding.bottom),
+        child: SizedBox(
+          height: AppTokens.tabBarHeight,
+          child: Row(
+            children: [
+              ..._tabs.map((tab) {
+                final selected = _isActive(activePath, tab.path);
+                return Expanded(
+                  child: _TabButton(
+                    tab: tab,
+                    selected: selected,
+                    label: l10n.t('nav.${tab.label}'),
+                    onTap: () => context.go(tab.path),
+                  ),
+                );
+              }),
+              Expanded(
                 child: _TabButton(
-                  tab: tab,
-                  selected: selected,
-                  label: l10n.t('nav.${tab.label}'),
-                  onTap: () => context.go(tab.path),
+                  tab: const _TabSpec(
+                    path: '__more__',
+                    label: 'more',
+                    icon: Ionicons.apps_outline,
+                    activeIcon: Ionicons.apps_outline,
+                  ),
+                  selected: false,
+                  label: l10n.t('nav.more'),
+                  onTap: () => _openMore(context),
                 ),
-              );
-            }),
-            Expanded(
-              child: _TabButton(
-                tab: const _TabSpec(
-                  path: '__more__',
-                  label: 'more',
-                  icon: Ionicons.apps_outline,
-                  activeIcon: Ionicons.apps_outline,
-                ),
-                selected: false,
-                label: l10n.t('nav.more'),
-                onTap: () => _openMore(context),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -201,7 +204,7 @@ class _MoreSheet extends StatelessWidget {
                   _MoreTile(item: it, label: l10n.t('nav.${it.label}')))
               .toList(),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 4),
         SizedBox(
           height: 60,
           child: _MoreTile(

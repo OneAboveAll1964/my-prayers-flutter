@@ -14,6 +14,41 @@ import '../../../shared/widgets/app_button.dart';
 import '../../../shared/widgets/app_sheet.dart';
 import '../../../shared/widgets/app_spinner.dart';
 
+const _rtlTafsirLanguages = <String>{
+  'arabic',
+  'urdu',
+  'persian',
+  'farsi',
+  'pashto',
+  'hebrew',
+  'kurdish',
+};
+
+bool _isRtlRune(int r) {
+  return (r >= 0x0590 && r <= 0x05FF) || // Hebrew
+      (r >= 0x0600 && r <= 0x06FF) || // Arabic
+      (r >= 0x0700 && r <= 0x074F) || // Syriac
+      (r >= 0x0780 && r <= 0x07BF) || // Thaana
+      (r >= 0x0840 && r <= 0x085F) || // Mandaic
+      (r >= 0xFB1D && r <= 0xFDFF) || // Hebrew/Arabic presentation
+      (r >= 0xFE70 && r <= 0xFEFF); // Arabic presentation forms
+}
+
+TextDirection tafsirTextDirection(String? languageName, [String? text]) {
+  final lang = (languageName ?? '').toLowerCase();
+  if (_rtlTafsirLanguages.contains(lang)) return TextDirection.rtl;
+  if (text != null) {
+    for (final r in text.runes) {
+      if (_isRtlRune(r)) return TextDirection.rtl;
+      if ((r >= 0x0041 && r <= 0x007A) ||
+          (r >= 0x00C0 && r <= 0x024F)) {
+        return TextDirection.ltr;
+      }
+    }
+  }
+  return TextDirection.ltr;
+}
+
 Future<void> showTafsirSheet({
   required BuildContext context,
   required Surah surah,
@@ -118,7 +153,8 @@ class _TafsirBodyState extends ConsumerState<_TafsirBody> {
         ref.watch(settingsProvider.select((s) => s.selectedTafsirId));
     final trScale =
         ref.watch(settingsProvider.select((s) => s.translationFontScale));
-    final bold = ref.watch(settingsProvider.select((s) => s.quranBold));
+    final bold =
+        ref.watch(settingsProvider.select((s) => s.translationBold));
 
     if (activeId == null) {
       return Column(
@@ -185,8 +221,8 @@ class _TafsirBodyState extends ConsumerState<_TafsirBody> {
         ],
       );
     }
-    final isArabic = (_tafsir?.languageName.toLowerCase() ?? '') == 'arabic';
     final text = _text ?? '';
+    final dir = tafsirTextDirection(_tafsir?.languageName, text);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -211,8 +247,7 @@ class _TafsirBodyState extends ConsumerState<_TafsirBody> {
             border: Border.all(color: palette.line),
           ),
           child: Directionality(
-            textDirection:
-                isArabic ? TextDirection.rtl : Directionality.of(context),
+            textDirection: dir,
             child: SelectableText(
               text.isEmpty ? l10n.t('tafsirs.empty') : text,
               style: TextStyle(

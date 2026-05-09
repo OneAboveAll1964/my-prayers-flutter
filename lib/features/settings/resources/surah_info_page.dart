@@ -10,6 +10,7 @@ import '../../../core/theme/tokens.dart';
 import '../../../shared/state/settings_provider.dart';
 import '../../../shared/widgets/app_button.dart';
 import '../../../shared/widgets/app_sheet.dart';
+import '../../../shared/widgets/app_spinner.dart';
 import '../../../shared/widgets/page_scaffold.dart';
 import '../../quran/widgets/surah_info_sheet.dart';
 
@@ -23,6 +24,7 @@ class SurahInfoLanguagesPage extends ConsumerStatefulWidget {
 class _SurahInfoLanguagesPageState
     extends ConsumerState<SurahInfoLanguagesPage> {
   final Set<String> _installed = <String>{};
+  bool _loading = true;
 
   @override
   void initState() {
@@ -42,6 +44,7 @@ class _SurahInfoLanguagesPageState
       _installed
         ..clear()
         ..addAll(found);
+      _loading = false;
     });
   }
 
@@ -106,7 +109,9 @@ class _SurahInfoLanguagesPageState
               ),
             ),
             Expanded(
-              child: ListView.separated(
+              child: _loading
+                  ? const PageLoader()
+                  : ListView.separated(
                 padding: const EdgeInsets.fromLTRB(18, 4, 18, 28),
                 itemCount: langs.length,
                 separatorBuilder: (_, _) => const SizedBox(height: 10),

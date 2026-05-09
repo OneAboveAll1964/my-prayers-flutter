@@ -207,7 +207,7 @@ class _PopularTileState extends State<_PopularTile> {
       onTapCancel: () => setState(() => _down = false),
       onTapUp: (_) => setState(() => _down = false),
       onTap: () => context.push(
-        '/quran/${entry.surah}?ayah=${entry.startAyah}&lock=1',
+        '/quran/${entry.surah}?ayah=${entry.startAyah}&end=${entry.endAyah}&lock=1',
       ),
       child: AnimatedContainer(
         duration: AppTokens.durationFast,

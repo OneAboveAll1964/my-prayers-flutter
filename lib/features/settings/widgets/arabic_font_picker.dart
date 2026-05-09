@@ -188,7 +188,7 @@ class ArabicFontPicker extends ConsumerWidget {
               children: [
                 Expanded(
                   child: Text(
-                    l10n.t('settings.boldText'),
+                    l10n.t('settings.boldArabic'),
                     style: TextStyle(
                       color: palette.text,
                       fontSize: 14,
@@ -201,6 +201,36 @@ class ArabicFontPicker extends ConsumerWidget {
                   onChanged: (v) => ref
                       .read(settingsProvider.notifier)
                       .setQuranBold(v),
+                  activeTrackColor: palette.accent,
+                ),
+              ],
+            ),
+          ),
+        ),
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => ref
+              .read(settingsProvider.notifier)
+              .setTranslationBold(!settings.translationBold),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    l10n.t('settings.boldTranslation'),
+                    style: TextStyle(
+                      color: palette.text,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                Switch.adaptive(
+                  value: settings.translationBold,
+                  onChanged: (v) => ref
+                      .read(settingsProvider.notifier)
+                      .setTranslationBold(v),
                   activeTrackColor: palette.accent,
                 ),
               ],

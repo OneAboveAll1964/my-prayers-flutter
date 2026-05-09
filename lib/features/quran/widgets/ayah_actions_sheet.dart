@@ -171,7 +171,7 @@ class _AyahActionsBodyState extends ConsumerState<_AyahActionsBody> {
                         .select((s) => s.translationFontScale)),
                     height: 1.55,
                     fontWeight: ref.watch(settingsProvider
-                            .select((s) => s.quranBold))
+                            .select((s) => s.translationBold))
                         ? FontWeight.w700
                         : FontWeight.normal,
                   ),

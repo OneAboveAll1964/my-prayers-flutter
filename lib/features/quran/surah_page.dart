@@ -29,6 +29,7 @@ class SurahPage extends ConsumerStatefulWidget {
     super.key,
     required this.number,
     this.initialAyah,
+    this.endAyah,
     this.englishName,
     this.arabicName,
     this.ayahCount,
@@ -37,6 +38,7 @@ class SurahPage extends ConsumerStatefulWidget {
 
   final int number;
   final int? initialAyah;
+  final int? endAyah;
   final String? englishName;
   final String? arabicName;
   final int? ayahCount;
@@ -95,9 +97,26 @@ class _SurahPageState extends ConsumerState<SurahPage> {
 
   Future<void> _load() async {
     final l10n = AppL10n.of(context);
-    final surah = await QuranRepository.instance
+    var surah = await QuranRepository.instance
         .getSurah(widget.number, langKey(l10n.locale));
     if (!mounted) return;
+    if (surah != null && widget.endAyah != null) {
+      final start = widget.initialAyah ?? 1;
+      final end = widget.endAyah!;
+      final filtered = surah.ayahs
+          .where((a) => a.numberInSurah >= start && a.numberInSurah <= end)
+          .toList();
+      if (filtered.isNotEmpty) {
+        surah = Surah(
+          number: surah.number,
+          name: surah.name,
+          englishName: surah.englishName,
+          englishNameTranslation: surah.englishNameTranslation,
+          revelationType: surah.revelationType,
+          ayahs: filtered,
+        );
+      }
+    }
     setState(() {
       _surah = surah;
       _loading = false;
@@ -242,16 +261,20 @@ class _SurahPageState extends ConsumerState<SurahPage> {
     final next = await QuranRepository.instance
         .getSurah(newNumber, langKey(l10n.locale));
     if (!mounted || next == null) return;
+    final goingBack = newNumber < (_surah?.number ?? widget.number);
+    final targetAyah = goingBack && next.ayahs.isNotEmpty
+        ? next.ayahs.last.numberInSurah
+        : 1;
     setState(() {
       _surah = next;
-      _currentAyah = 1;
-      _visibleAyah = 1;
+      _currentAyah = targetAyah;
+      _visibleAyah = targetAyah;
       _ayahKeys
         ..clear()
         ..addEntries(next.ayahs.map(
                 (a) => MapEntry(a.numberInSurah, GlobalKey())));
     });
-    _saveLastRead(1);
+    _saveLastRead(targetAyah);
   }
 
   int? get _activePlayingAyah {
@@ -576,7 +599,8 @@ class _SurahPageState extends ConsumerState<SurahPage> {
                       fontFamily: fontFamily,
                       arScale: arScale,
                       trScale: trScale,
-                      bold: settings.quranBold,
+                      arabicBold: settings.quranBold,
+                      translationBold: settings.translationBold,
                     );
                   },
                 ),
@@ -597,7 +621,8 @@ class _AyahRow extends ConsumerStatefulWidget {
     required this.fontFamily,
     required this.arScale,
     required this.trScale,
-    required this.bold,
+    required this.arabicBold,
+    required this.translationBold,
   });
 
   final Ayah ayah;
@@ -605,7 +630,8 @@ class _AyahRow extends ConsumerStatefulWidget {
   final String fontFamily;
   final double arScale;
   final double trScale;
-  final bool bold;
+  final bool arabicBold;
+  final bool translationBold;
 
   @override
   ConsumerState<_AyahRow> createState() => _AyahRowState();
@@ -817,7 +843,7 @@ class _AyahRowState extends ConsumerState<_AyahRow> {
                   fontSize: 26.0 * widget.arScale,
                   height: 2.4,
                   fontWeight:
-                  widget.bold ? FontWeight.w700 : FontWeight.normal,
+                  widget.arabicBold ? FontWeight.w700 : FontWeight.normal,
                 ),
               ),
             ),
@@ -831,8 +857,9 @@ class _AyahRowState extends ConsumerState<_AyahRow> {
                 color: palette.text,
                 fontSize: 15 * widget.trScale,
                 height: 1.7,
-                fontWeight:
-                widget.bold ? FontWeight.w700 : FontWeight.normal,
+                fontWeight: widget.translationBold
+                    ? FontWeight.w700
+                    : FontWeight.normal,
               ),
             ),
           ],

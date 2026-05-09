@@ -14,6 +14,7 @@ import '../../../shared/widgets/app_field.dart';
 import '../../../shared/widgets/app_sheet.dart';
 import '../../../shared/widgets/app_spinner.dart';
 import '../../../shared/widgets/page_scaffold.dart';
+import '../../quran/widgets/tafsir_sheet.dart';
 
 class TafsirsPage extends ConsumerStatefulWidget {
   const TafsirsPage({super.key});
@@ -27,6 +28,7 @@ class _TafsirsPageState extends ConsumerState<TafsirsPage> {
   List<Tafsir>? _tafsirs;
   String? _error;
   bool _loading = true;
+  final Set<int> _installed = <int>{};
 
   @override
   void initState() {
@@ -42,8 +44,18 @@ class _TafsirsPageState extends ConsumerState<TafsirsPage> {
     try {
       final list = await TafsirCatalog.all();
       if (!mounted) return;
+      final installed = <int>{};
+      for (final t in list) {
+        if (await TafsirService.instance.isInstalled(t.id)) {
+          installed.add(t.id);
+        }
+      }
+      if (!mounted) return;
       setState(() {
         _tafsirs = list;
+        _installed
+          ..clear()
+          ..addAll(installed);
         _loading = false;
       });
     } catch (e) {
@@ -52,6 +64,54 @@ class _TafsirsPageState extends ConsumerState<TafsirsPage> {
         _error = e.toString();
         _loading = false;
       });
+    }
+  }
+
+  Future<void> _install(Tafsir tafsir) async {
+    final l10n = AppL10n.of(context);
+    final ok = await showAppSheet<bool>(
+      context: context,
+      title: '${l10n.t('tafsirs.installTitle')} · ${tafsir.name}',
+      builder: (ctx) => _InstallConfirmBody(
+        languageLabel: tafsir.languageLabel,
+        onConfirm: () => Navigator.of(ctx).pop(true),
+        onCancel: () => Navigator.of(ctx).pop(false),
+      ),
+    );
+    if (ok != true || !mounted) return;
+    final done = await showAppSheet<bool>(
+      context: context,
+      title: l10n.t('tafsirs.installing'),
+      dismissible: false,
+      builder: (ctx) => _InstallProgressBody(tafsir: tafsir),
+    );
+    if (done == true && mounted) {
+      setState(() => _installed.add(tafsir.id));
+      final settings = ref.read(settingsProvider);
+      if (settings.selectedTafsirId == null) {
+        ref.read(settingsProvider.notifier).setSelectedTafsir(tafsir.id);
+      }
+    }
+  }
+
+  Future<void> _uninstall(Tafsir tafsir) async {
+    final l10n = AppL10n.of(context);
+    final ok = await showAppSheet<bool>(
+      context: context,
+      title: l10n.t('tafsirs.uninstallTitle'),
+      builder: (ctx) => _UninstallConfirmBody(
+        name: tafsir.name,
+        onConfirm: () => Navigator.of(ctx).pop(true),
+        onCancel: () => Navigator.of(ctx).pop(false),
+      ),
+    );
+    if (ok != true || !mounted) return;
+    await TafsirService.instance.uninstall(tafsir.id);
+    if (!mounted) return;
+    setState(() => _installed.remove(tafsir.id));
+    final settings = ref.read(settingsProvider);
+    if (settings.selectedTafsirId == tafsir.id) {
+      ref.read(settingsProvider.notifier).setSelectedTafsir(null);
     }
   }
 
@@ -111,7 +171,7 @@ class _TafsirsPageState extends ConsumerState<TafsirsPage> {
               ],
             );
           }
-          final isArabic = tafsir.languageName.toLowerCase() == 'arabic';
+          final dir = tafsirTextDirection(tafsir.languageName, text);
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -135,9 +195,7 @@ class _TafsirsPageState extends ConsumerState<TafsirsPage> {
                   border: Border.all(color: palette.line),
                 ),
                 child: Directionality(
-                  textDirection: isArabic
-                      ? TextDirection.rtl
-                      : Directionality.of(ctx),
+                  textDirection: dir,
                   child: Text(
                     text ?? '',
                     style: TextStyle(
@@ -238,8 +296,11 @@ class _TafsirsPageState extends ConsumerState<TafsirsPage> {
                           itemBuilder: (ctx, i) => _TafsirTile(
                             tafsir: filtered[i],
                             isActive: activeId == filtered[i].id,
+                            isInstalled: _installed.contains(filtered[i].id),
                             onSampleTap: () => _showSample(filtered[i]),
                             onActivateTap: () => _setActive(filtered[i]),
+                            onInstallTap: () => _install(filtered[i]),
+                            onUninstallTap: () => _uninstall(filtered[i]),
                           ),
                         ),
             ),
@@ -324,13 +385,19 @@ class _TafsirTile extends StatelessWidget {
   const _TafsirTile({
     required this.tafsir,
     required this.isActive,
+    required this.isInstalled,
     required this.onSampleTap,
     required this.onActivateTap,
+    required this.onInstallTap,
+    required this.onUninstallTap,
   });
   final Tafsir tafsir;
   final bool isActive;
+  final bool isInstalled;
   final VoidCallback onSampleTap;
   final VoidCallback onActivateTap;
+  final VoidCallback onInstallTap;
+  final VoidCallback onUninstallTap;
 
   @override
   Widget build(BuildContext context) {

@@ -137,7 +137,8 @@ class _AzkarItemCard extends ConsumerWidget {
     final fontFamily = arabicFontFamilies[settings.arabicFont] ?? 'UthmanicHafs';
     final arScale = settings.arabicFontScale;
     final trScale = settings.translationFontScale;
-    final bold = settings.quranBold;
+    final arabicBold = settings.quranBold;
+    final translationBold = settings.translationBold;
     final fav = ref.watch(favoritesProvider);
     final notifier = ref.read(favoritesProvider.notifier);
 
@@ -266,8 +267,9 @@ class _AzkarItemCard extends ConsumerWidget {
                           fontFamily: fontFamily,
                           fontSize: 22.0 * arScale,
                           height: 2.1,
-                          fontWeight:
-                              bold ? FontWeight.w700 : FontWeight.normal,
+                          fontWeight: arabicBold
+                              ? FontWeight.w700
+                              : FontWeight.normal,
                         ),
                       ),
                     ),
@@ -283,7 +285,9 @@ class _AzkarItemCard extends ConsumerWidget {
                       fontSize: 13.5 * trScale,
                       fontStyle: FontStyle.italic,
                       height: 1.55,
-                      fontWeight: bold ? FontWeight.w700 : FontWeight.normal,
+                      fontWeight: translationBold
+                          ? FontWeight.w700
+                          : FontWeight.normal,
                     ),
                   ),
                 ],
@@ -296,7 +300,9 @@ class _AzkarItemCard extends ConsumerWidget {
                       color: palette.text,
                       fontSize: 15 * trScale,
                       height: 1.7,
-                      fontWeight: bold ? FontWeight.w700 : FontWeight.normal,
+                      fontWeight: translationBold
+                          ? FontWeight.w700
+                          : FontWeight.normal,
                     ),
                   ),
                 ],

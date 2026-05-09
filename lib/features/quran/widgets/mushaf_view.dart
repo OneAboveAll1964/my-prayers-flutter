@@ -495,12 +495,9 @@ class _MushafPageContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
-    final lines = surahFilter == null
-        ? bundle.data.lines
-        : bundle.data.lines.where((line) {
+    final lines = bundle.data.lines.where((line) {
       if (line.words.isEmpty) return false;
-      final prefix = '$surahFilter:';
-      return line.words.any((w) => w.verseKey.startsWith(prefix));
+      return line.words.any((w) => ayahByKey.containsKey(w.verseKey));
     }).toList();
     return LayoutBuilder(builder: (ctx, c) {
       const padH = 24.0;

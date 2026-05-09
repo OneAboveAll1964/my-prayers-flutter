@@ -54,13 +54,14 @@ class _RecitersPageState extends ConsumerState<RecitersPage> {
     try {
       final list = await ReciterCatalog.all();
       if (!mounted) return;
+      await ref
+          .read(installedRecitersProvider.notifier)
+          .refreshFor(list.map((r) => r.id));
+      if (!mounted) return;
       setState(() {
         _reciters = list;
         _loading = false;
       });
-      await ref
-          .read(installedRecitersProvider.notifier)
-          .refreshFor(list.map((r) => r.id));
     } catch (e) {
       if (!mounted) return;
       setState(() {

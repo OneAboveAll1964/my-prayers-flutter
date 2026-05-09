@@ -120,7 +120,8 @@ class _SurahInfoBodyState extends ConsumerState<_SurahInfoBody> {
     final lang = surahInfoLanguageFor(l10n, override: selected);
     final trScale =
         ref.watch(settingsProvider.select((s) => s.translationFontScale));
-    final bold = ref.watch(settingsProvider.select((s) => s.quranBold));
+    final bold =
+        ref.watch(settingsProvider.select((s) => s.translationBold));
 
     if (_loadedLang != null && _loadedLang != lang && !_loading) {
       WidgetsBinding.instance.addPostFrameCallback((_) {

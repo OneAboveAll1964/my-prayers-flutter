@@ -85,6 +85,7 @@ final appRouter = GoRouter(
       builder: (context, state) => SurahPage(
         number: int.parse(state.pathParameters['number']!),
         initialAyah: int.tryParse(state.uri.queryParameters['ayah'] ?? ''),
+        endAyah: int.tryParse(state.uri.queryParameters['end'] ?? ''),
         englishName: state.uri.queryParameters['name'],
         arabicName: state.uri.queryParameters['ar'],
         ayahCount: int.tryParse(state.uri.queryParameters['n'] ?? ''),

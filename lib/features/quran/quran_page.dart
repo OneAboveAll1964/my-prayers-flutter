@@ -6,6 +6,7 @@ import '../../core/services/surah_name_font_service.dart';
 import '../../core/theme/tokens.dart';
 import '../../shared/data/quran_repository.dart';
 import '../../shared/models/quran.dart';
+import '../../shared/util/search.dart';
 import '../../shared/state/favorites_provider.dart';
 import '../../shared/state/settings_provider.dart';
 import '../../shared/widgets/app_button.dart';
@@ -51,14 +52,17 @@ class _QuranPageState extends ConsumerState<QuranPage> {
     final fav = ref.watch(favoritesProvider);
     final settings = ref.watch(settingsProvider);
 
-    final q = _query.trim().toLowerCase();
+    final q = _query.trim();
     final filtered = q.isEmpty
         ? _list
         : _list.where((s) {
-      return s.englishName.toLowerCase().contains(q) ||
-          s.name.contains(q) ||
-          s.number.toString().contains(q);
-    }).toList();
+            return matchesAny([
+              s.englishName,
+              s.englishNameTranslation,
+              s.name,
+              s.number.toString(),
+            ], q);
+          }).toList();
 
     final bookmarked =
     _list.where((s) => fav.surahs.contains(s.number)).toList();

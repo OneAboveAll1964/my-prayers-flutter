@@ -591,49 +591,80 @@ class _LineWidget extends StatelessWidget {
       shownWords = line.words;
     }
     final gap = fontSize * 0.15;
-    final children = <Widget>[];
+    final highlightChildren = <Widget>[];
+    final textChildren = <Widget>[];
     for (var i = 0; i < shownWords.length; i++) {
-      children.add(_wordWidget(shownWords[i]));
+      final w = shownWords[i];
+      final isSelected = selectedKey == w.verseKey;
+
+      final invisibleText = Opacity(
+        opacity: 0.0,
+        child: Text(
+          w.code,
+          style: TextStyle(
+            fontFamily: fontFamily,
+            fontSize: fontSize,
+            height: 1.4,
+          ),
+        ),
+      );
+      highlightChildren.add(IgnorePointer(
+        child: isSelected
+            ? ColoredBox(color: palette.accentSoft, child: invisibleText)
+            : invisibleText,
+      ));
+
+      textChildren.add(_wordWidget(w));
+
       if (i < shownWords.length - 1) {
+        final next = shownWords[i + 1];
         final bridge = selectedKey != null &&
-            shownWords[i].verseKey == selectedKey &&
-            shownWords[i + 1].verseKey == selectedKey;
-        children.add(Container(
+            w.verseKey == selectedKey &&
+            next.verseKey == selectedKey;
+        highlightChildren.add(Container(
           width: gap,
           height: fontSize * 1.4,
           color: bridge ? palette.accentSoft : null,
         ));
+        textChildren.add(SizedBox(width: gap));
       }
     }
     return Directionality(
       textDirection: TextDirection.rtl,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: children,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: highlightChildren,
+          ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: textChildren,
+          ),
+        ],
       ),
     );
   }
 
   Widget _wordWidget(MushafLineWord w) {
     final ayah = ayahByKey[w.verseKey];
-    final isSelected = selectedKey == w.verseKey;
-    Widget child = Text(
-      w.code,
-      style: TextStyle(
-        fontFamily: fontFamily,
-        fontSize: fontSize,
-        color: w.isAyahEnd ? palette.accent : null,
-        height: 1.4,
-      ),
-    );
-    if (isSelected) {
-      child = ColoredBox(color: palette.accentSoft, child: child);
-    }
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () => onTapWord(w.verseKey, ayah),
-      child: child,
+      child: Text(
+        w.code,
+        style: TextStyle(
+          fontFamily: fontFamily,
+          fontSize: fontSize,
+          color: w.isAyahEnd ? palette.accent : null,
+          height: 1.4,
+        ),
+      ),
     );
   }
 }

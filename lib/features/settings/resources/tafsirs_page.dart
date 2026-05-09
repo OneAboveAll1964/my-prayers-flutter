@@ -9,6 +9,7 @@ import '../../../core/services/tafsir_service.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../shared/data/tafsir_catalog.dart';
 import '../../../shared/state/settings_provider.dart';
+import '../../../shared/util/search.dart';
 import '../../../shared/widgets/app_button.dart';
 import '../../../shared/widgets/app_field.dart';
 import '../../../shared/widgets/app_sheet.dart';
@@ -231,15 +232,17 @@ class _TafsirsPageState extends ConsumerState<TafsirsPage> {
 
   List<Tafsir> _filtered() {
     final all = _tafsirs ?? const <Tafsir>[];
-    final q = _query.trim().toLowerCase();
+    final q = _query.trim();
     return all.where((t) {
       if (_languageFilter != 'all' && t.languageName != _languageFilter) {
         return false;
       }
       if (q.isEmpty) return true;
-      return t.name.toLowerCase().contains(q) ||
-          t.authorName.toLowerCase().contains(q) ||
-          t.languageName.toLowerCase().contains(q);
+      return matchesAny([
+        t.name,
+        t.authorName,
+        t.languageName,
+      ], q);
     }).toList();
   }
 

@@ -11,6 +11,7 @@ import '../../../core/theme/tokens.dart';
 import '../../../shared/data/reciter_catalog.dart';
 import '../../../shared/state/recitation_provider.dart';
 import '../../../shared/state/settings_provider.dart';
+import '../../../shared/util/search.dart';
 import '../../../shared/widgets/app_button.dart';
 import '../../../shared/widgets/app_field.dart';
 import '../../../shared/widgets/app_sheet.dart';
@@ -168,7 +169,7 @@ class _RecitersPageState extends ConsumerState<RecitersPage> {
 
   List<Reciter> _filtered() {
     final all = _reciters ?? const <Reciter>[];
-    final q = _query.trim().toLowerCase();
+    final q = _query.trim();
     return all.where((r) {
       final style = (r.style ?? '').toLowerCase();
       if (_filter == _Filter.mujawwad && !style.contains('mujawwad')) {
@@ -181,9 +182,11 @@ class _RecitersPageState extends ConsumerState<RecitersPage> {
         return false;
       }
       if (q.isEmpty) return true;
-      return r.name.toLowerCase().contains(q) ||
-          (r.style ?? '').toLowerCase().contains(q) ||
-          r.translatedName.toLowerCase().contains(q);
+      return matchesAny([
+        r.name,
+        r.translatedName,
+        r.style ?? '',
+      ], q);
     }).toList();
   }
 

@@ -1,5 +1,6 @@
 import '../models/azkar.dart';
 import '../../core/i18n/app_l10n.dart';
+import '../util/search.dart';
 import 'muslim_db.dart';
 
 class HisnulMuslimRepository {
@@ -61,26 +62,44 @@ class HisnulMuslimRepository {
     required String langCode,
     required String query,
   }) async {
-    final lang = resolveDbLanguage(langCode);
     final q = query.trim();
     if (q.isEmpty) return [];
+    final lang = resolveDbLanguage(langCode);
     final db = await MuslimDb.instance.open();
     final rows = await db.rawQuery('''
-      SELECT t.chapter_id AS id, t.chapter_name AS name, c.category_id AS category_id
+      SELECT t.chapter_id AS id,
+             t.language AS language,
+             t.chapter_name AS name,
+             c.category_id AS category_id
       FROM azkar_chapter_translation t
       JOIN azkar_chapter c ON c._id = t.chapter_id
-      WHERE t.language = ? AND t.chapter_name LIKE ?
       ORDER BY t.chapter_id
-      LIMIT 50
-    ''', [lang, '%$q%']);
-    return rows
-        .map((r) => AzkarChapter(
-              id: r['id'] as int,
-              categoryId: r['category_id'] as int,
-              categoryName: '',
-              name: (r['name'] ?? '') as String,
-            ))
-        .toList();
+    ''');
+    final names = <int, Map<String, String>>{};
+    final categoryById = <int, int>{};
+    for (final r in rows) {
+      final id = r['id'] as int;
+      final l = (r['language'] ?? '') as String;
+      final n = (r['name'] ?? '') as String;
+      categoryById[id] = r['category_id'] as int;
+      names.putIfAbsent(id, () => <String, String>{})[l] = n;
+    }
+    final results = <AzkarChapter>[];
+    for (final entry in names.entries) {
+      final translations = entry.value;
+      if (!matchesAny(translations.values, q)) continue;
+      final preferred = translations[lang] ??
+          translations['en'] ??
+          translations.values.first;
+      results.add(AzkarChapter(
+        id: entry.key,
+        categoryId: categoryById[entry.key] ?? 0,
+        categoryName: '',
+        name: preferred,
+      ));
+      if (results.length >= 50) break;
+    }
+    return results;
   }
 
   Future<List<AzkarItem>> getItems({

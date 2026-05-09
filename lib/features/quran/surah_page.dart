@@ -66,24 +66,28 @@ class _SurahPageState extends ConsumerState<SurahPage> {
   AyahAudioState _audio = AyahAudioController.instance.state;
   bool _lastQueueActiveHere = false;
 
-  // Cached mushaf widget — only rebuilt when its real inputs change
-  // (surah / language). Keeps unrelated SurahPage rebuilds (audio
-  // state, settings, favorites) from cascading into MushafView.
   Widget? _cachedMushaf;
   SurahPageMap? _cachedMushafFor;
   String? _cachedMushafLang;
+  int? _cachedMushafInitialAyah;
 
   SurahMeta? get _meta => _pageMap?.meta;
   int get _surahNumber => _pageMap?.meta.number ?? widget.number;
 
+  void _invalidateMushafCache() {
+    _cachedMushaf = null;
+    _cachedMushafFor = null;
+    _cachedMushafLang = null;
+    _cachedMushafInitialAyah = null;
+  }
+
   Widget _buildMushaf(SurahPageMap pageMap, String langCode) {
     if (!identical(_cachedMushafFor, pageMap) ||
-        _cachedMushafLang != langCode) {
+        _cachedMushafLang != langCode ||
+        _cachedMushafInitialAyah != _currentAyah) {
       _cachedMushafFor = pageMap;
       _cachedMushafLang = langCode;
-      // Wrap in RepaintBoundary so the rasterized mushaf glyphs are
-      // cached on the GPU. Header / sibling repaints (audio buttons,
-      // bookmark icon, mode toggle) won't re-rasterize the mushaf.
+      _cachedMushafInitialAyah = _currentAyah;
       _cachedMushaf = RepaintBoundary(
         child: MushafView(
           pageMap: pageMap,

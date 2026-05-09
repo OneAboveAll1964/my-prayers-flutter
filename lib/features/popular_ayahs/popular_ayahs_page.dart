@@ -120,6 +120,14 @@ List<PopularEntry> _popularEntries(AppL10n l10n) {
       benefit: t('popular.kahf_benefit'),
     ),
     PopularEntry(
+      surah: 32,
+      startAyah: 1,
+      endAyah: 30,
+      title: t('popular.sajdah'),
+      reference: '32',
+      benefit: t('popular.sajdah_benefit'),
+    ),
+    PopularEntry(
       surah: 36,
       startAyah: 1,
       endAyah: 83,

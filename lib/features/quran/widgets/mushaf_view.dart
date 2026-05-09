@@ -198,10 +198,12 @@ class _MushafViewState extends ConsumerState<MushafView> {
   @override
   Widget build(BuildContext context) {
     final pageCount = _lastPage - _firstPage + 1;
+    final isLtr = Directionality.of(context) == TextDirection.ltr;
     return PageView.builder(
       controller: _pageController,
       itemCount: pageCount,
       allowImplicitScrolling: true,
+      reverse: isLtr,
       onPageChanged: (idx) {
         final pageNumber = _firstPage + idx;
         final firstAyah =

@@ -199,6 +199,8 @@ const enBundle = <String, String>{
   'popular.kahfLast10_benefit': 'Protection from the trial of Dajjal.',
   'popular.kahf': 'Surah Al-Kahf',
   'popular.kahf_benefit': 'Read on Fridays — light between two Fridays.',
+  'popular.sajdah': 'Surah As-Sajdah',
+  'popular.sajdah_benefit': 'Recited every Friday night with Al-Mulk.',
   'popular.yaseen': 'Surah Yaseen',
   'popular.yaseen_benefit': 'The heart of the Quran.',
   'popular.rahman': 'Surah Ar-Rahman',

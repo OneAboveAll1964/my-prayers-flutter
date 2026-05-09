@@ -199,6 +199,8 @@ const ckbBadiniBundle = <String, String>{
   'popular.kahfLast10_benefit': 'پاراستن ژ ئەزمونا دەججالی.',
   'popular.kahf': 'سورەتا کەهف',
   'popular.kahf_benefit': 'د جوماعەدا تێتە خواندن — ڕۆناهی د ناڤبەرا دو جوماعا.',
+  'popular.sajdah': 'سورەتا سەجدە',
+  'popular.sajdah_benefit': 'هەر شەڤا جوماعێ دگەل سورەتا موڵک تێتە خواندن.',
   'popular.yaseen': 'سورەتا یاسین',
   'popular.yaseen_benefit': 'دلێ قورئانێ.',
   'popular.rahman': 'سورەتا ڕەحمان',

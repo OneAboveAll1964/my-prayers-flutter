@@ -199,6 +199,8 @@ const ckbBundle = <String, String>{
   'popular.kahfLast10_benefit': 'پاراستن لە تاقیکردنەوەی دەججال.',
   'popular.kahf': 'سورەی کەهف',
   'popular.kahf_benefit': 'لە جومعەدا دەخوێنرێت — ڕووناکی لە نێوان دوو جومعەدا.',
+  'popular.sajdah': 'سورەی سەجدە',
+  'popular.sajdah_benefit': 'هەموو شەوێکی هەینی لەگەڵ سورەی موڵک دەخوێنرێت.',
   'popular.yaseen': 'سورەی یاسین',
   'popular.yaseen_benefit': 'دڵی قورئان.',
   'popular.rahman': 'سورەی ڕەحمان',

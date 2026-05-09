@@ -199,6 +199,8 @@ const arBundle = <String, String>{
   'popular.kahfLast10_benefit': 'عُصِم من فتنة الدجال.',
   'popular.kahf': 'سورة الكهف',
   'popular.kahf_benefit': 'تُقرأ يوم الجمعة — نور بين الجمعتين.',
+  'popular.sajdah': 'سورة السجدة',
+  'popular.sajdah_benefit': 'تُقرأ كل ليلة جمعة مع سورة الملك.',
   'popular.yaseen': 'سورة يس',
   'popular.yaseen_benefit': 'قلب القرآن.',
   'popular.rahman': 'سورة الرحمن',

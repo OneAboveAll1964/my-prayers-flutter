@@ -668,10 +668,12 @@ class _SurahPageState extends ConsumerState<SurahPage> {
                                 const SizedBox(height: 12),
                             itemBuilder: (ctx, i) {
                               final a = _surah!.ayahs[i];
-                              return _AyahRow(
-                                key: _ayahKeys[a.numberInSurah],
-                                ayah: a,
-                                surah: _surah!,
+                              return RepaintBoundary(
+                                child: _AyahRow(
+                                  key: _ayahKeys[a.numberInSurah],
+                                  ayah: a,
+                                  surah: _surah!,
+                                ),
                               );
                             },
                           ),
@@ -741,17 +743,18 @@ class _AyahRowState extends ConsumerState<_AyahRow> {
         (a) =>
             a.surah == widget.surah.number &&
             a.ayah == widget.ayah.numberInSurah)));
-    final arabicFont =
-        ref.watch(settingsProvider.select((s) => s.arabicFont));
-    final arScale =
-        ref.watch(settingsProvider.select((s) => s.arabicFontScale));
-    final trScale =
-        ref.watch(settingsProvider.select((s) => s.translationFontScale));
-    final arabicBold =
-        ref.watch(settingsProvider.select((s) => s.quranBold));
-    final translationBold =
-        ref.watch(settingsProvider.select((s) => s.translationBold));
-    final fontFamily = arabicFontFamilies[arabicFont] ?? 'UthmanicHafs';
+    final styling = ref.watch(settingsProvider.select((s) => (
+          font: s.arabicFont,
+          arScale: s.arabicFontScale,
+          trScale: s.translationFontScale,
+          arabicBold: s.quranBold,
+          translationBold: s.translationBold,
+        )));
+    final fontFamily = arabicFontFamilies[styling.font] ?? 'UthmanicHafs';
+    final arScale = styling.arScale;
+    final trScale = styling.trScale;
+    final arabicBold = styling.arabicBold;
+    final translationBold = styling.translationBold;
     final ayah = widget.ayah;
     final surah = widget.surah;
     final isAudioForThis =

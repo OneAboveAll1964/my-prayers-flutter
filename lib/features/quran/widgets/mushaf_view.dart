@@ -107,7 +107,7 @@ class _MushafViewState extends ConsumerState<MushafView> {
 
   void _preloadNeighbours(int idx, int pageCount) {
     final service = MushafAssetService.instance;
-    for (final delta in const [1, -1, 2, 3]) {
+    for (final delta in const [1, -1, 2, 3, 4]) {
       final i = idx + delta;
       if (i < 0 || i >= pageCount) continue;
       final pageNumber = _firstPage + i;

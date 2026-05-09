@@ -609,47 +609,60 @@ class _LineWidget extends StatelessWidget {
       shownWords = line.words;
     }
     final gap = fontSize * 0.15;
-    final highlightChildren = <Widget>[];
+    final selKey = selectedKey;
+    final hasSelection =
+        selKey != null && shownWords.any((w) => w.verseKey == selKey);
+
     final textChildren = <Widget>[];
     for (var i = 0; i < shownWords.length; i++) {
-      final w = shownWords[i];
-      final isSelected = selectedKey == w.verseKey;
+      textChildren.add(_wordWidget(shownWords[i]));
+      if (i < shownWords.length - 1) {
+        textChildren.add(SizedBox(width: gap));
+      }
+    }
+    final textRow = Row(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: textChildren,
+    );
 
-      final invisibleText = Opacity(
-        opacity: 0.0,
-        child: Text(
+    Widget body;
+    if (!hasSelection) {
+      body = textRow;
+    } else {
+      final highlightChildren = <Widget>[];
+      for (var i = 0; i < shownWords.length; i++) {
+        final w = shownWords[i];
+        final isSelected = selKey == w.verseKey;
+        final sizingText = Text(
           w.code,
           style: TextStyle(
             fontFamily: fontFamily,
             fontSize: fontSize,
+            color: const Color(0x00000000),
             height: 1.4,
           ),
-        ),
-      );
-      highlightChildren.add(IgnorePointer(
-        child: isSelected
-            ? ColoredBox(color: palette.accentSoft, child: invisibleText)
-            : invisibleText,
-      ));
-
-      textChildren.add(_wordWidget(w));
-
-      if (i < shownWords.length - 1) {
-        final next = shownWords[i + 1];
-        final bridge = selectedKey != null &&
-            w.verseKey == selectedKey &&
-            next.verseKey == selectedKey;
-        highlightChildren.add(Container(
-          width: gap,
-          height: fontSize * 1.4,
-          color: bridge ? palette.accentSoft : null,
-        ));
-        textChildren.add(SizedBox(width: gap));
+        );
+        highlightChildren.add(
+          isSelected
+              ? ColoredBox(color: palette.accentSoft, child: sizingText)
+              : sizingText,
+        );
+        if (i < shownWords.length - 1) {
+          final next = shownWords[i + 1];
+          final bridge =
+              w.verseKey == selKey && next.verseKey == selKey;
+          highlightChildren.add(SizedBox(
+            width: gap,
+            height: fontSize * 1.4,
+            child: bridge
+                ? ColoredBox(color: palette.accentSoft)
+                : null,
+          ));
+        }
       }
-    }
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Stack(
+      body = Stack(
         alignment: Alignment.center,
         children: [
           Row(
@@ -658,14 +671,13 @@ class _LineWidget extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: highlightChildren,
           ),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: textChildren,
-          ),
+          textRow,
         ],
-      ),
+      );
+    }
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: body,
     );
   }
 

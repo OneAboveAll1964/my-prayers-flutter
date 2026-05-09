@@ -69,7 +69,6 @@ class _SurahPageState extends ConsumerState<SurahPage> {
   Widget? _cachedMushaf;
   SurahPageMap? _cachedMushafFor;
   String? _cachedMushafLang;
-  int? _cachedMushafInitialAyah;
 
   SurahMeta? get _meta => _pageMap?.meta;
   int get _surahNumber => _pageMap?.meta.number ?? widget.number;
@@ -78,16 +77,14 @@ class _SurahPageState extends ConsumerState<SurahPage> {
     _cachedMushaf = null;
     _cachedMushafFor = null;
     _cachedMushafLang = null;
-    _cachedMushafInitialAyah = null;
   }
 
   Widget _buildMushaf(SurahPageMap pageMap, String langCode) {
-    if (!identical(_cachedMushafFor, pageMap) ||
-        _cachedMushafLang != langCode ||
-        _cachedMushafInitialAyah != _currentAyah) {
+    if (_cachedMushaf == null ||
+        !identical(_cachedMushafFor, pageMap) ||
+        _cachedMushafLang != langCode) {
       _cachedMushafFor = pageMap;
       _cachedMushafLang = langCode;
-      _cachedMushafInitialAyah = _currentAyah;
       _cachedMushaf = RepaintBoundary(
         child: MushafView(
           pageMap: pageMap,

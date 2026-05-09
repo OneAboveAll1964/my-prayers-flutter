@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -188,7 +189,29 @@ class FavoritesNotifier extends StateNotifier<FavoritesState> {
     }
   }
 
-  void _save() => _prefs.setString(_key, jsonEncode(state.toJson()));
+  Timer? _saveDebounce;
+
+  /// Debounced disk write: rapid state changes (e.g. mushaf page flips
+  /// rapidly calling [setLastSurah]) collapse into a single
+  /// `jsonEncode` + `setString` call after the user stops.
+  void _save() {
+    _saveDebounce?.cancel();
+    _saveDebounce = Timer(const Duration(milliseconds: 300), _flush);
+  }
+
+  void _flush() {
+    _saveDebounce = null;
+    _prefs.setString(_key, jsonEncode(state.toJson()));
+  }
+
+  @override
+  void dispose() {
+    if (_saveDebounce?.isActive ?? false) {
+      _saveDebounce!.cancel();
+      _flush();
+    }
+    super.dispose();
+  }
 
   void toggleChapter(int id) {
     final list = [...state.chapters];

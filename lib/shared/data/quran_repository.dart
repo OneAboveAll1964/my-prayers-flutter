@@ -20,7 +20,7 @@ class QuranRepository {
     final db = await QuranDb.instance.open();
     final rows = await db.rawQuery(
       'SELECT number, name, english_name, english_name_translation, '
-      'revelation_type, ayah_count FROM surahs ORDER BY number ASC',
+          'revelation_type, ayah_count FROM surahs ORDER BY number ASC',
     );
     _list = [
       for (final r in rows)
@@ -45,7 +45,7 @@ class QuranRepository {
     final translationCol = _translationColumn(lang);
     final headerRows = await db.rawQuery(
       'SELECT name, english_name, english_name_translation, revelation_type '
-      'FROM surahs WHERE number = ? LIMIT 1',
+          'FROM surahs WHERE number = ? LIMIT 1',
       [number],
     );
     if (headerRows.isEmpty) return null;
@@ -53,8 +53,8 @@ class QuranRepository {
 
     final ayahRows = await db.rawQuery(
       'SELECT number_in_surah, number_global, arabic, $translationCol AS '
-      'translation, juz, page, sajda FROM ayahs WHERE surah = ? '
-      'ORDER BY number_in_surah ASC',
+          'translation, juz, page, sajda FROM ayahs WHERE surah = ? '
+          'ORDER BY number_in_surah ASC',
       [number],
     );
 
@@ -88,8 +88,8 @@ class QuranRepository {
     final translationCol = _translationColumn(lang);
     final rows = await db.rawQuery(
       'SELECT number_in_surah, number_global, arabic, $translationCol AS '
-      'translation, juz, page, sajda FROM ayahs WHERE surah = ? AND '
-      'number_in_surah = ? LIMIT 1',
+          'translation, juz, page, sajda FROM ayahs WHERE surah = ? AND '
+          'number_in_surah = ? LIMIT 1',
       [surah, numberInSurah],
     );
     if (rows.isEmpty) return null;
@@ -113,14 +113,14 @@ class QuranRepository {
     final db = await QuranDb.instance.open();
     final headerRows = await db.rawQuery(
       'SELECT number, name, english_name, english_name_translation, '
-      'revelation_type, ayah_count FROM surahs WHERE number = ? LIMIT 1',
+          'revelation_type, ayah_count FROM surahs WHERE number = ? LIMIT 1',
       [number],
     );
     if (headerRows.isEmpty) return null;
     final h = headerRows.first;
     final ayahRows = await db.rawQuery(
       'SELECT number_in_surah, page FROM ayahs WHERE surah = ? '
-      'ORDER BY number_in_surah ASC',
+          'ORDER BY number_in_surah ASC',
       [number],
     );
     final ayahToPage = <int, int>{};
@@ -153,13 +153,6 @@ class QuranRepository {
     return map;
   }
 
-  /// Synchronous accessor for already-cached page ayah maps. Returns null
-  /// when the data isn't in memory yet.
-  Map<String, Ayah>? cachedAyahsByKeyForPage(int page, String langCode) {
-    final lang = resolveDbLanguage(langCode);
-    return _pageAyahCacheFor(lang)[page];
-  }
-
   /// Returns every ayah on a mushaf page (across surahs at edges), keyed
   /// by `surah:numberInSurah`.
   Future<Map<String, Ayah>> getAyahsByKeyForPage(
@@ -172,8 +165,8 @@ class QuranRepository {
     final translationCol = _translationColumn(lang);
     final rows = await db.rawQuery(
       'SELECT surah, number_in_surah, number_global, arabic, $translationCol '
-      'AS translation, juz, page, sajda FROM ayahs WHERE page = ? '
-      'ORDER BY surah ASC, number_in_surah ASC',
+          'AS translation, juz, page, sajda FROM ayahs WHERE page = ? '
+          'ORDER BY surah ASC, number_in_surah ASC',
       [page],
     );
     final result = <String, Ayah>{
@@ -198,8 +191,8 @@ class QuranRepository {
     final translationCol = _translationColumn(lang);
     final rows = await db.rawQuery(
       'SELECT number_in_surah, number_global, arabic, $translationCol AS '
-      'translation, juz, page, sajda FROM ayahs WHERE page = ? '
-      'ORDER BY surah ASC, number_in_surah ASC',
+          'translation, juz, page, sajda FROM ayahs WHERE page = ? '
+          'ORDER BY surah ASC, number_in_surah ASC',
       [page],
     );
     return [

@@ -1,7 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ionicons/ionicons.dart';
@@ -46,9 +44,9 @@ class _MushafViewState extends ConsumerState<MushafView> {
   late int _firstPage;
   late int _lastPage;
   late PageController _pageController;
-  late final ValueNotifier<int> _settledPageIdx;
   String? _selectedKey;
   String? _playingKey;
+  Timer? _preloadTimer;
   StreamSubscription<AyahAudioState>? _audioSub;
   int? _lastQueueAyah;
 
@@ -65,11 +63,11 @@ class _MushafViewState extends ConsumerState<MushafView> {
     final initialPage = widget.pageMap.ayahToPage[initialAyahNum] ??
         widget.pageMap.firstPage;
     final initialIdx =
-        (initialPage - _firstPage).clamp(0, _lastPage - _firstPage);
+    (initialPage - _firstPage).clamp(0, _lastPage - _firstPage);
     _pageController = PageController(initialPage: initialIdx);
-    _settledPageIdx = ValueNotifier<int>(initialIdx);
     final pageCount = _lastPage - _firstPage + 1;
-    _preloadNeighbours(initialIdx, pageCount);
+    _scheduleSettledPreload(initialIdx, pageCount,
+        delay: const Duration(milliseconds: 400));
     final audioState = AyahAudioController.instance.state;
     if (audioState.surah == _surahNumber && audioState.ayah != null) {
       if (audioState.playing || audioState.loading) {
@@ -84,7 +82,7 @@ class _MushafViewState extends ConsumerState<MushafView> {
     if (!mounted) return;
     final isThisSurah = s.surah == _surahNumber && s.ayah != null;
     final newKey =
-        isThisSurah && (s.playing || s.loading) ? '${s.surah}:${s.ayah}' : null;
+    isThisSurah && (s.playing || s.loading) ? '${s.surah}:${s.ayah}' : null;
     if (newKey != _playingKey) {
       setState(() => _playingKey = newKey);
     }
@@ -105,9 +103,21 @@ class _MushafViewState extends ConsumerState<MushafView> {
     );
   }
 
+  void _scheduleSettledPreload(
+      int idx,
+      int pageCount, {
+        Duration delay = const Duration(milliseconds: 400),
+      }) {
+    _preloadTimer?.cancel();
+    _preloadTimer = Timer(delay, () {
+      if (!mounted) return;
+      _preloadNeighbours(idx, pageCount);
+    });
+  }
+
   void _preloadNeighbours(int idx, int pageCount) {
     final service = MushafAssetService.instance;
-    for (final delta in const [1, -1, 2, 3, 4]) {
+    for (final delta in const [1, -1, 2, -2]) {
       final i = idx + delta;
       if (i < 0 || i >= pageCount) continue;
       final pageNumber = _firstPage + i;
@@ -120,8 +130,8 @@ class _MushafViewState extends ConsumerState<MushafView> {
   @override
   void dispose() {
     _audioSub?.cancel();
+    _preloadTimer?.cancel();
     _pageController.dispose();
-    _settledPageIdx.dispose();
     super.dispose();
   }
 
@@ -172,54 +182,40 @@ class _MushafViewState extends ConsumerState<MushafView> {
     setState(() => _selectedKey = null);
   }
 
-  bool _onScrollNotification(Notification n) {
-    if (n is ScrollEndNotification && n.depth == 0) {
-      final idx = _pageController.page?.round();
-      if (idx != null) {
-        final pageNumber = _firstPage + idx;
-        final firstAyahNum = widget.pageMap.firstAyahByPage[pageNumber] ?? 1;
-        widget.onPageAyahChanged?.call(firstAyahNum);
-      }
-    }
-    return false;
-  }
-
   @override
   Widget build(BuildContext context) {
     final pageCount = _lastPage - _firstPage + 1;
     final isLtr = Directionality.of(context) == TextDirection.ltr;
-    return NotificationListener<ScrollNotification>(
-      onNotification: _onScrollNotification,
-      child: PageView.builder(
-        controller: _pageController,
-        itemCount: pageCount,
-        allowImplicitScrolling: true,
-        reverse: isLtr,
-        onPageChanged: (idx) {
-          _settledPageIdx.value = idx;
-          _preloadNeighbours(idx, pageCount);
-        },
-        itemBuilder: (ctx, idx) {
-          final pageNumber = _firstPage + idx;
-          return RepaintBoundary(
-            child: _MushafPageView(
-              key: ValueKey<int>(pageNumber),
-              pageNumber: pageNumber,
-              surahNumber: _surahNumber,
-              langCode: widget.langCode,
-              selectedKey: _selectedKey ?? _playingKey,
-              onTapWord: _handleTapWord,
-              pageIndex: idx,
-              totalPages: pageCount,
-              onSwitchSurah: widget.onSwitchSurah,
-              rangeFiltered: widget.rangeFiltered,
-              startAyah: widget.startAyah,
-              endAyah: widget.endAyah,
-              settledPageIdx: _settledPageIdx,
-            ),
-          );
-        },
-      ),
+    return PageView.builder(
+      controller: _pageController,
+      itemCount: pageCount,
+      allowImplicitScrolling: true,
+      reverse: isLtr,
+      onPageChanged: (idx) {
+        final pageNumber = _firstPage + idx;
+        final firstAyahNum = widget.pageMap.firstAyahByPage[pageNumber] ?? 1;
+        widget.onPageAyahChanged?.call(firstAyahNum);
+        _scheduleSettledPreload(idx, pageCount);
+      },
+      itemBuilder: (ctx, idx) {
+        final pageNumber = _firstPage + idx;
+        return RepaintBoundary(
+          child: _MushafPageView(
+            key: ValueKey<int>(pageNumber),
+            pageNumber: pageNumber,
+            surahNumber: _surahNumber,
+            langCode: widget.langCode,
+            selectedKey: _selectedKey ?? _playingKey,
+            onTapWord: _handleTapWord,
+            pageIndex: idx,
+            totalPages: pageCount,
+            onSwitchSurah: widget.onSwitchSurah,
+            rangeFiltered: widget.rangeFiltered,
+            startAyah: widget.startAyah,
+            endAyah: widget.endAyah,
+          ),
+        );
+      },
     );
   }
 }
@@ -247,7 +243,6 @@ class _MushafPageView extends StatefulWidget {
     required this.totalPages,
     required this.onSwitchSurah,
     required this.rangeFiltered,
-    required this.settledPageIdx,
     this.startAyah,
     this.endAyah,
   });
@@ -261,7 +256,6 @@ class _MushafPageView extends StatefulWidget {
   final int totalPages;
   final void Function(int newSurahNumber)? onSwitchSurah;
   final bool rangeFiltered;
-  final ValueListenable<int> settledPageIdx;
   final int? startAyah;
   final int? endAyah;
 
@@ -270,101 +264,34 @@ class _MushafPageView extends StatefulWidget {
 }
 
 class _MushafPageViewState extends State<_MushafPageView> {
+  Future<_PageData>? _dataFuture;
   _PageData? _data;
-  Object? _error;
-  bool _isSettled = false;
-  bool _activationScheduled = false;
 
   @override
   void initState() {
     super.initState();
-    _isSettled = widget.settledPageIdx.value == widget.pageIndex;
-    widget.settledPageIdx.addListener(_onSettledChanged);
-    if (!_loadFromCacheSync()) {
-      _kickoffLoad();
-    }
+    _dataFuture = _loadAll(widget.pageNumber);
   }
 
-  @override
-  void dispose() {
-    widget.settledPageIdx.removeListener(_onSettledChanged);
-    super.dispose();
-  }
-
-  bool _loadFromCacheSync() {
+  Future<_PageData> _loadAll(int pageNumber) async {
     final service = MushafAssetService.instance;
-    final cachedFont = service.cachedFontFamily(widget.pageNumber);
-    final cachedPage = service.cachedPageData(widget.pageNumber);
-    if (cachedFont == null || cachedPage == null) return false;
-    final cachedAyahs = QuranRepository.instance
-        .cachedAyahsByKeyForPage(widget.pageNumber, widget.langCode);
-    if (cachedAyahs == null) return false;
-    _data = _buildPageData(cachedPage, cachedFont, cachedAyahs);
-    return true;
-  }
-
-  _PageData _buildPageData(
-    MushafPageData pageData,
-    String fontFamily,
-    Map<String, Ayah> ayahByKey,
-  ) {
+    final results = await Future.wait([
+      service.getPageData(pageNumber),
+      service.loadFontForPage(pageNumber),
+      QuranRepository.instance
+          .getAyahsByKeyForPage(pageNumber, widget.langCode),
+    ]);
+    final ayahByKey = (results[2] as Map<String, Ayah>);
     final filtered = _applyRangeFilter(ayahByKey);
-    return _PageData(
-      fontFamily: fontFamily,
-      ayahByKey: filtered,
-      lines: _buildVisibleLines(
-        pageData: pageData,
-        ayahByKey: filtered,
-        surahFilter: widget.surahNumber,
-        rangeFiltered: widget.rangeFiltered,
+    final data = _PageData(
+      bundle: _PageBundle(
+        data: results[0] as MushafPageData,
+        fontFamily: results[1] as String,
       ),
+      ayahByKey: filtered,
     );
-  }
-
-  void _kickoffLoad() {
-    _loadAll(widget.pageNumber);
-  }
-
-  Future<void> _loadAll(int pageNumber) async {
-    final service = MushafAssetService.instance;
-    try {
-      final results = await Future.wait([
-        service.getPageData(pageNumber),
-        service.loadFontForPage(pageNumber),
-        QuranRepository.instance
-            .getAyahsByKeyForPage(pageNumber, widget.langCode),
-      ]);
-      if (!mounted) return;
-      final data = _buildPageData(
-        results[0] as MushafPageData,
-        results[1] as String,
-        results[2] as Map<String, Ayah>,
-      );
-      setState(() {
-        _data = data;
-        _error = null;
-      });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _error = e);
-    }
-  }
-
-  void _onSettledChanged() {
-    final shouldBeSettled = widget.settledPageIdx.value == widget.pageIndex;
-    if (shouldBeSettled == _isSettled) return;
-    if (!shouldBeSettled) {
-      setState(() => _isSettled = false);
-      return;
-    }
-    if (_activationScheduled) return;
-    _activationScheduled = true;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _activationScheduled = false;
-      if (!mounted) return;
-      if (widget.settledPageIdx.value != widget.pageIndex) return;
-      setState(() => _isSettled = true);
-    });
+    if (mounted) setState(() => _data = data);
+    return data;
   }
 
   Map<String, Ayah> _applyRangeFilter(Map<String, Ayah> source) {
@@ -386,63 +313,6 @@ class _MushafPageViewState extends State<_MushafPageView> {
       return a.juz;
     }
     return 1;
-  }
-
-  Widget _buildBody(AppPalette palette, AppL10n l10n) {
-    if (!_isSettled) return const SizedBox.expand();
-    if (_error != null) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Ionicons.alert_circle_outline,
-                  size: 32, color: palette.textMuted),
-              const SizedBox(height: 8),
-              Text(
-                l10n.t('common.error'),
-                style:
-                    TextStyle(color: palette.textMuted, fontSize: 13),
-              ),
-              const SizedBox(height: 12),
-              GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () {
-                  setState(() => _error = null);
-                  _kickoffLoad();
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: palette.surface2,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: palette.line),
-                  ),
-                  child: Text(
-                    l10n.t('common.retry'),
-                    style: TextStyle(
-                      color: palette.text,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-    if (_data == null) return const SizedBox.expand();
-    return _MushafPageContent(
-      fontFamily: _data!.fontFamily,
-      lines: _data!.lines,
-      ayahByKey: _data!.ayahByKey,
-      selectedKey: widget.selectedKey,
-      onTapWord: widget.onTapWord,
-    );
   }
 
   @override
@@ -483,7 +353,86 @@ class _MushafPageViewState extends State<_MushafPageView> {
             ),
           ),
           Expanded(
-            child: _buildBody(palette, l10n),
+            child: _data != null
+                ? _MushafPageContent(
+              bundle: _data!.bundle,
+              ayahByKey: _data!.ayahByKey,
+              selectedKey: widget.selectedKey,
+              onTapWord: widget.onTapWord,
+              surahFilter: widget.surahNumber,
+              rangeFiltered: widget.rangeFiltered,
+            )
+                : FutureBuilder<_PageData>(
+              future: _dataFuture,
+              builder: (ctx, snap) {
+                if (snap.hasError) {
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Ionicons.alert_circle_outline,
+                              size: 32, color: palette.textMuted),
+                          const SizedBox(height: 8),
+                          Text(
+                            l10n.t('common.error'),
+                            style: TextStyle(
+                                color: palette.textMuted, fontSize: 13),
+                          ),
+                          const SizedBox(height: 12),
+                          GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () => setState(() {
+                              _dataFuture = _loadAll(widget.pageNumber);
+                            }),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 10),
+                              decoration: BoxDecoration(
+                                color: palette.surface2,
+                                borderRadius: BorderRadius.circular(10),
+                                border:
+                                Border.all(color: palette.line),
+                              ),
+                              child: Text(
+                                l10n.t('common.retry'),
+                                style: TextStyle(
+                                  color: palette.text,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+                if (!snap.hasData) {
+                  return Center(
+                    child: SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.4,
+                        color: palette.accent,
+                      ),
+                    ),
+                  );
+                }
+                final data = snap.data!;
+                return _MushafPageContent(
+                  bundle: data.bundle,
+                  ayahByKey: data.ayahByKey,
+                  selectedKey: widget.selectedKey,
+                  onTapWord: widget.onTapWord,
+                  surahFilter: widget.surahNumber,
+                  rangeFiltered: widget.rangeFiltered,
+                );
+              },
+            ),
           ),
           Padding(
             padding: EdgeInsets.fromLTRB(
@@ -544,237 +493,208 @@ class _MushafPageViewState extends State<_MushafPageView> {
 }
 
 class _PageData {
-  _PageData({
-    required this.fontFamily,
-    required this.lines,
-    required this.ayahByKey,
-  });
-  final String fontFamily;
-  final List<List<MushafLineWord>> lines;
+  _PageData({required this.bundle, required this.ayahByKey});
+  final _PageBundle bundle;
   final Map<String, Ayah> ayahByKey;
 }
 
-List<List<MushafLineWord>> _buildVisibleLines({
-  required MushafPageData pageData,
-  required Map<String, Ayah> ayahByKey,
-  required int? surahFilter,
-  required bool rangeFiltered,
-}) {
-  final out = <List<MushafLineWord>>[];
-  for (final line in pageData.lines) {
-    if (line.words.isEmpty) continue;
-    if (rangeFiltered) {
-      final filtered = <MushafLineWord>[
-        for (final w in line.words)
-          if (ayahByKey.containsKey(w.verseKey)) w,
-      ];
-      if (filtered.isEmpty) continue;
-      out.add(filtered);
-      continue;
-    }
-    if (surahFilter != null) {
-      final prefix = '$surahFilter:';
-      var matches = false;
-      for (final w in line.words) {
-        if (w.verseKey.startsWith(prefix)) {
-          matches = true;
-          break;
-        }
-      }
-      if (!matches) continue;
-    }
-    out.add(line.words);
-  }
-  return out;
+class _PageBundle {
+  _PageBundle({required this.data, required this.fontFamily});
+  final MushafPageData data;
+  final String fontFamily;
 }
 
 class _MushafPageContent extends StatelessWidget {
   const _MushafPageContent({
-    required this.fontFamily,
-    required this.lines,
+    required this.bundle,
     required this.ayahByKey,
     required this.selectedKey,
     required this.onTapWord,
+    this.surahFilter,
+    this.rangeFiltered = false,
   });
 
-  final String fontFamily;
-  final List<List<MushafLineWord>> lines;
+  final _PageBundle bundle;
   final Map<String, Ayah> ayahByKey;
   final String? selectedKey;
   final void Function(String verseKey, Ayah? ayah) onTapWord;
+  final int? surahFilter;
+  final bool rangeFiltered;
 
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: LayoutBuilder(builder: (ctx, c) {
-        const padH = 24.0;
-        const padV = 12.0;
-        final usableHeight = c.maxHeight - padV * 2;
-        final lineHeight = usableHeight / _linesPerPage;
-        final fontSize = lineHeight * 0.55;
-        return Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: padH,
-            vertical: padV,
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              for (final words in lines)
-                SizedBox(
-                  height: lineHeight,
+    final lines = bundle.data.lines.where((line) {
+      if (line.words.isEmpty) return false;
+      if (rangeFiltered) {
+        return line.words.any((w) => ayahByKey.containsKey(w.verseKey));
+      }
+      if (surahFilter == null) return true;
+      final prefix = '$surahFilter:';
+      return line.words.any((w) => w.verseKey.startsWith(prefix));
+    }).toList();
+    return LayoutBuilder(builder: (ctx, c) {
+      const padH = 24.0;
+      const padV = 12.0;
+      final usableHeight = c.maxHeight - padV * 2;
+      final lineHeight = usableHeight / _linesPerPage;
+      final fontSize = lineHeight * 0.55;
+
+      return Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: padH,
+          vertical: padV,
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (final line in lines)
+              SizedBox(
+                height: lineHeight,
+                child: ClipRect(
                   child: FittedBox(
                     fit: BoxFit.scaleDown,
                     alignment: Alignment.center,
                     child: _LineWidget(
-                      words: words,
-                      fontFamily: fontFamily,
+                      line: line,
+                      fontFamily: bundle.fontFamily,
                       fontSize: fontSize,
                       ayahByKey: ayahByKey,
                       selectedKey: selectedKey,
                       onTapWord: onTapWord,
                       palette: palette,
+                      rangeFiltered: rangeFiltered,
                     ),
                   ),
                 ),
-            ],
-          ),
-        );
-      }),
-    );
+              ),
+          ],
+        ),
+      );
+    });
   }
 }
 
-class _LineWidget extends StatefulWidget {
+class _LineWidget extends StatelessWidget {
   const _LineWidget({
-    required this.words,
+    required this.line,
     required this.fontFamily,
     required this.fontSize,
     required this.ayahByKey,
     required this.selectedKey,
     required this.onTapWord,
     required this.palette,
+    this.rangeFiltered = false,
   });
 
-  final List<MushafLineWord> words;
+  final MushafLine line;
   final String fontFamily;
   final double fontSize;
   final Map<String, Ayah> ayahByKey;
   final String? selectedKey;
   final void Function(String verseKey, Ayah? ayah) onTapWord;
   final AppPalette palette;
-
-  @override
-  State<_LineWidget> createState() => _LineWidgetState();
-}
-
-class _LineWidgetState extends State<_LineWidget> {
-  final List<TapGestureRecognizer> _recognizers = <TapGestureRecognizer>[];
-  TextSpan? _cachedRoot;
-  List<MushafLineWord>? _cachedWords;
-  String? _cachedSelectedKey;
-  AppPalette? _cachedPalette;
-  double? _cachedFontSize;
-  String? _cachedFontFamily;
-
-  @override
-  void dispose() {
-    for (final r in _recognizers) {
-      r.dispose();
-    }
-    super.dispose();
-  }
-
-  TapGestureRecognizer _recognizerAt(int i) {
-    while (_recognizers.length <= i) {
-      _recognizers.add(TapGestureRecognizer());
-    }
-    return _recognizers[i];
-  }
+  final bool rangeFiltered;
 
   @override
   Widget build(BuildContext context) {
-    final words = widget.words;
-    final selKey = widget.selectedKey;
-    final palette = widget.palette;
-    final fontSize = widget.fontSize;
-    final fontFamily = widget.fontFamily;
+    final List<MushafLineWord> shownWords;
+    if (rangeFiltered) {
+      shownWords = [
+        for (final w in line.words)
+          if (ayahByKey.containsKey(w.verseKey)) w,
+      ];
+    } else {
+      shownWords = line.words;
+    }
+    final gap = fontSize * 0.15;
+    final selKey = selectedKey;
+    final hasSelection =
+        selKey != null && shownWords.any((w) => w.verseKey == selKey);
 
-    final reuse = _cachedRoot != null &&
-        identical(_cachedWords, words) &&
-        identical(_cachedPalette, palette) &&
-        _cachedSelectedKey == selKey &&
-        _cachedFontSize == fontSize &&
-        _cachedFontFamily == fontFamily;
+    final textChildren = <Widget>[];
+    for (var i = 0; i < shownWords.length; i++) {
+      textChildren.add(_wordWidget(shownWords[i]));
+      if (i < shownWords.length - 1) {
+        textChildren.add(SizedBox(width: gap));
+      }
+    }
+    final textRow = Row(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: textChildren,
+    );
 
-    if (!reuse) {
-      final endColor = palette.accent;
-      final highlightPaint =
-          selKey == null ? null : (Paint()..color = palette.accentSoft);
-      final endStyle = TextStyle(color: endColor);
-      final endSelectedStyle =
-          TextStyle(color: endColor, background: highlightPaint);
-      final selectedStyle = TextStyle(background: highlightPaint);
-      final gap = fontSize * 0.05;
-      final lineH = fontSize * 1.4;
-      final gapBox = SizedBox(width: gap, height: lineH);
-      final bridgeBox = SizedBox(
-        width: gap,
-        height: lineH,
-        child: ColoredBox(color: palette.accentSoft),
-      );
-
-      final children = <InlineSpan>[];
-      final last = words.length - 1;
-      for (var i = 0; i <= last; i++) {
-        final w = words[i];
-        final isSelected = selKey != null && w.verseKey == selKey;
-        final ayah = widget.ayahByKey[w.verseKey];
-        final r = _recognizerAt(i);
-        r.onTap = () => widget.onTapWord(w.verseKey, ayah);
-
-        TextStyle? style;
-        if (w.isAyahEnd) {
-          style = isSelected ? endSelectedStyle : endStyle;
-        } else if (isSelected) {
-          style = selectedStyle;
-        }
-
-        children.add(TextSpan(
-          text: w.code,
-          style: style,
-          recognizer: r,
-        ));
-
-        if (i < last) {
-          final bridge = isSelected && words[i + 1].verseKey == selKey;
-          children.add(WidgetSpan(
-            alignment: PlaceholderAlignment.middle,
-            child: bridge ? bridgeBox : gapBox,
+    Widget body;
+    if (!hasSelection) {
+      body = textRow;
+    } else {
+      final highlightChildren = <Widget>[];
+      for (var i = 0; i < shownWords.length; i++) {
+        final w = shownWords[i];
+        final isSelected = selKey == w.verseKey;
+        final sizingText = Text(
+          w.code,
+          style: TextStyle(
+            fontFamily: fontFamily,
+            fontSize: fontSize,
+            color: const Color(0x00000000),
+            height: 1.4,
+          ),
+        );
+        highlightChildren.add(
+          isSelected
+              ? ColoredBox(color: palette.accentSoft, child: sizingText)
+              : sizingText,
+        );
+        if (i < shownWords.length - 1) {
+          final next = shownWords[i + 1];
+          final bridge =
+              w.verseKey == selKey && next.verseKey == selKey;
+          highlightChildren.add(SizedBox(
+            width: gap,
+            height: fontSize * 1.4,
+            child: bridge
+                ? ColoredBox(color: palette.accentSoft)
+                : null,
           ));
         }
       }
-      _cachedRoot = TextSpan(
+      body = Stack(
+        alignment: Alignment.center,
+        children: [
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: highlightChildren,
+          ),
+          textRow,
+        ],
+      );
+    }
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: body,
+    );
+  }
+
+  Widget _wordWidget(MushafLineWord w) {
+    final ayah = ayahByKey[w.verseKey];
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => onTapWord(w.verseKey, ayah),
+      child: Text(
+        w.code,
         style: TextStyle(
           fontFamily: fontFamily,
           fontSize: fontSize,
+          color: w.isAyahEnd ? palette.accent : null,
           height: 1.4,
         ),
-        children: children,
-      );
-      _cachedWords = words;
-      _cachedSelectedKey = selKey;
-      _cachedPalette = palette;
-      _cachedFontSize = fontSize;
-      _cachedFontFamily = fontFamily;
-    }
-
-    return RichText(
-      textDirection: TextDirection.rtl,
-      text: _cachedRoot!,
+      ),
     );
   }
 }

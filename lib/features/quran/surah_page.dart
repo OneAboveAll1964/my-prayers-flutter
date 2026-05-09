@@ -114,9 +114,6 @@ class _SurahPageState extends ConsumerState<SurahPage> {
     final wasFor = _audio.surah;
     final wasAyah = _audio.ayah;
     _audio = s;
-    // Only rebuild SurahPage when something the visible header cares about
-    // actually flipped (queue active for *this* surah). Audio progress
-    // ticks during playback don't need to repaint the page.
     final ctrl = AyahAudioController.instance;
     final queueActiveHere =
         ctrl.isQueueActive && ctrl.queueSurah == _surahNumber;

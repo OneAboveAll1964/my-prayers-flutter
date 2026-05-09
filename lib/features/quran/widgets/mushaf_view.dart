@@ -718,9 +718,18 @@ class _LineWidgetState extends State<_LineWidget> {
       final endSelectedStyle =
           TextStyle(color: endColor, background: highlightPaint);
       final selectedStyle = TextStyle(background: highlightPaint);
+      final gap = fontSize * 0.05;
+      final lineH = fontSize * 1.4;
+      final gapBox = SizedBox(width: gap, height: lineH);
+      final bridgeBox = SizedBox(
+        width: gap,
+        height: lineH,
+        child: ColoredBox(color: palette.accentSoft),
+      );
 
       final children = <InlineSpan>[];
-      for (var i = 0; i < words.length; i++) {
+      final last = words.length - 1;
+      for (var i = 0; i <= last; i++) {
         final w = words[i];
         final isSelected = selKey != null && w.verseKey == selKey;
         final ayah = widget.ayahByKey[w.verseKey];
@@ -735,10 +744,18 @@ class _LineWidgetState extends State<_LineWidget> {
         }
 
         children.add(TextSpan(
-          text: i == 0 ? w.code : ' ${w.code}',
+          text: w.code,
           style: style,
           recognizer: r,
         ));
+
+        if (i < last) {
+          final bridge = isSelected && words[i + 1].verseKey == selKey;
+          children.add(WidgetSpan(
+            alignment: PlaceholderAlignment.middle,
+            child: bridge ? bridgeBox : gapBox,
+          ));
+        }
       }
       _cachedRoot = TextSpan(
         style: TextStyle(

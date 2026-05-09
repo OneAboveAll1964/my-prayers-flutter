@@ -2,18 +2,22 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+import 'extra_reciters.dart';
+
 class Reciter {
   const Reciter({
     required this.id,
     required this.name,
     required this.style,
     required this.translatedName,
+    this.everyayahFolder,
   });
 
   final int id;
   final String name;
   final String? style;
   final String translatedName;
+  final String? everyayahFolder;
 
   String get displayName => name;
 
@@ -63,7 +67,8 @@ class ReciterCatalog {
       final body =
           jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
       final raw = (body['recitations'] as List).cast<Map<String, dynamic>>();
-      final list = raw.map(Reciter.fromJson).toList()
+      final fromApi = raw.map(Reciter.fromJson).toList();
+      final list = <Reciter>[...fromApi, ...extraReciters]
         ..sort((a, b) => a.name.compareTo(b.name));
       _cached = list;
       _inflight = null;

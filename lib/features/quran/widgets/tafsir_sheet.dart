@@ -223,14 +223,25 @@ class _TafsirBodyState extends ConsumerState<_TafsirBody> {
     }
     final text = _text ?? '';
     final dir = tafsirTextDirection(_tafsir?.languageName, text);
+    final activeTafsir = _tafsir;
+    String activeSubtitle = '';
+    if (activeTafsir != null) {
+      final localizedLanguage =
+          localizedLanguageName(l10n, activeTafsir.languageName);
+      final parts = <String>[
+        if (localizedLanguage.isNotEmpty) localizedLanguage,
+        if (activeTafsir.authorName.isNotEmpty) activeTafsir.authorName,
+      ];
+      activeSubtitle = parts.join(' · ');
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (_tafsir != null)
+        if (activeSubtitle.isNotEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: Text(
-              _tafsir!.displaySubtitle,
+              activeSubtitle,
               style: TextStyle(
                 color: palette.textSubtle,
                 fontSize: 12,

@@ -9,6 +9,7 @@ import '../../../core/i18n/app_l10n.dart';
 import '../../../core/services/recitation_service.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../shared/data/reciter_catalog.dart';
+import '../../../shared/data/reciter_translations.dart';
 import '../../../shared/state/recitation_provider.dart';
 import '../../../shared/state/settings_provider.dart';
 import '../../../shared/util/search.dart';
@@ -110,7 +111,7 @@ class _RecitersPageState extends ConsumerState<RecitersPage> {
     final l10n = AppL10n.of(context);
     final confirmed = await showAppSheet<bool>(
       context: context,
-      title: '${l10n.t('reciters.install')} · ${reciter.displayName}',
+      title: '${l10n.t('reciters.install')} · ${localizedReciterName(reciter.id, reciter.name, langKey(l10n.locale))}',
       builder: (ctx) => _InstallConfirmBody(
         approxSizeMb: _approxSizeFor(reciter),
         onConfirm: () => Navigator.of(ctx).pop(true),
@@ -151,7 +152,8 @@ class _RecitersPageState extends ConsumerState<RecitersPage> {
       context: context,
       title: l10n.t('reciters.uninstallTitle'),
       builder: (ctx) => _UninstallConfirmBody(
-        name: reciter.displayName,
+        name: localizedReciterName(
+            reciter.id, reciter.name, langKey(l10n.locale)),
         onConfirm: () => Navigator.of(ctx).pop(true),
         onCancel: () => Navigator.of(ctx).pop(false),
       ),
@@ -186,6 +188,7 @@ class _RecitersPageState extends ConsumerState<RecitersPage> {
         r.name,
         r.translatedName,
         r.style ?? '',
+        ...reciterNameVariants(r.id),
       ], q);
     }).toList();
   }
@@ -352,6 +355,10 @@ class _ReciterTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = context.palette;
     final l10n = AppL10n.of(context);
+    final lang = langKey(l10n.locale);
+    final localizedName =
+        localizedReciterName(reciter.id, reciter.name, lang);
+    final localizedStyle = localizedReciterStyle(reciter.style, lang);
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: isActive ? null : onActivateTap,
@@ -396,7 +403,7 @@ class _ReciterTile extends StatelessWidget {
                     children: [
                       Flexible(
                         child: Text(
-                          reciter.displayName,
+                          localizedName,
                           style: TextStyle(
                             color: palette.text,
                             fontSize: 14.5,
@@ -428,11 +435,11 @@ class _ReciterTile extends StatelessWidget {
                       ],
                     ],
                   ),
-                  if (reciter.displaySubtitle.isNotEmpty)
+                  if (localizedStyle.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.only(top: 2),
                       child: Text(
-                        reciter.displaySubtitle,
+                        localizedStyle,
                         style: TextStyle(
                           color: palette.textMuted,
                           fontSize: 12,

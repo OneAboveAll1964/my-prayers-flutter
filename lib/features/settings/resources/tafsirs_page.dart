@@ -8,6 +8,7 @@ import '../../../core/i18n/app_l10n.dart';
 import '../../../core/services/tafsir_service.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../shared/data/tafsir_catalog.dart';
+import '../../../shared/data/tafsir_translations.dart';
 import '../../../shared/state/settings_provider.dart';
 import '../../../shared/util/search.dart';
 import '../../../shared/widgets/app_button.dart';
@@ -70,11 +71,14 @@ class _TafsirsPageState extends ConsumerState<TafsirsPage> {
 
   Future<void> _install(Tafsir tafsir) async {
     final l10n = AppL10n.of(context);
+    final lang = langKey(l10n.locale);
+    final localizedName =
+        localizedTafsirName(tafsir.id, tafsir.name, lang);
     final ok = await showAppSheet<bool>(
       context: context,
-      title: '${l10n.t('tafsirs.installTitle')} · ${tafsir.name}',
+      title: '${l10n.t('tafsirs.installTitle')} · $localizedName',
       builder: (ctx) => _InstallConfirmBody(
-        languageLabel: tafsir.languageLabel,
+        languageLabel: localizedLanguageName(l10n, tafsir.languageName),
         onConfirm: () => Navigator.of(ctx).pop(true),
         onCancel: () => Navigator.of(ctx).pop(false),
       ),
@@ -101,7 +105,8 @@ class _TafsirsPageState extends ConsumerState<TafsirsPage> {
       context: context,
       title: l10n.t('tafsirs.uninstallTitle'),
       builder: (ctx) => _UninstallConfirmBody(
-        name: tafsir.name,
+        name: localizedTafsirName(
+            tafsir.id, tafsir.name, langKey(l10n.locale)),
         onConfirm: () => Navigator.of(ctx).pop(true),
         onCancel: () => Navigator.of(ctx).pop(false),
       ),
@@ -118,12 +123,14 @@ class _TafsirsPageState extends ConsumerState<TafsirsPage> {
 
   Future<void> _showSample(Tafsir tafsir) async {
     final l10n = AppL10n.of(context);
+    final lang = langKey(l10n.locale);
+    final localizedName = localizedTafsirName(tafsir.id, tafsir.name, lang);
     String? text;
     String? error;
     bool loading = true;
     await showAppSheet<void>(
       context: context,
-      title: tafsir.name,
+      title: localizedName,
       builder: (ctx) {
         return StatefulBuilder(builder: (ctx, setSheetState) {
           if (loading && text == null && error == null) {
@@ -242,6 +249,7 @@ class _TafsirsPageState extends ConsumerState<TafsirsPage> {
         t.name,
         t.authorName,
         t.languageName,
+        ...tafsirNameVariants(t.id),
       ], q);
     }).toList();
   }
@@ -406,6 +414,16 @@ class _TafsirTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = context.palette;
     final l10n = AppL10n.of(context);
+    final lang = langKey(l10n.locale);
+    final localizedName =
+        localizedTafsirName(tafsir.id, tafsir.name, lang);
+    final localizedLanguage =
+        localizedLanguageName(l10n, tafsir.languageName);
+    final subtitleParts = <String>[
+      if (localizedLanguage.isNotEmpty) localizedLanguage,
+      if (tafsir.authorName.isNotEmpty) tafsir.authorName,
+    ];
+    final subtitle = subtitleParts.join(' · ');
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: isActive ? null : onActivateTap,
@@ -442,7 +460,7 @@ class _TafsirTile extends StatelessWidget {
                     children: [
                       Flexible(
                         child: Text(
-                          tafsir.name,
+                          localizedName,
                           style: TextStyle(
                             color: palette.text,
                             fontSize: 14.5,
@@ -474,11 +492,11 @@ class _TafsirTile extends StatelessWidget {
                       ],
                     ],
                   ),
-                  if (tafsir.displaySubtitle.isNotEmpty)
+                  if (subtitle.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.only(top: 2),
                       child: Text(
-                        tafsir.displaySubtitle,
+                        subtitle,
                         style: TextStyle(
                           color: palette.textMuted,
                           fontSize: 12,

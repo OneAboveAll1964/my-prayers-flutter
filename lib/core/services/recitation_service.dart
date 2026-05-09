@@ -108,9 +108,30 @@ class RecitationService {
     return total;
   }
 
+  String? _everyayahFolderFor(int reciterId) {
+    final cached = ReciterCatalog.cachedAll();
+    if (cached == null) return null;
+    for (final r in cached) {
+      if (r.id == reciterId) return r.everyayahFolder;
+    }
+    return null;
+  }
+
+  String _everyayahUrl(String folder, int surah, int ayah) {
+    final s = surah.toString().padLeft(3, '0');
+    final a = ayah.toString().padLeft(3, '0');
+    return 'https://everyayah.com/data/$folder/$s$a.mp3';
+  }
+
   Future<String> sampleUrl(int reciterId) async {
     if (_sampleUrlCache[reciterId] != null) {
       return _sampleUrlCache[reciterId]!;
+    }
+    final folder = _everyayahFolderFor(reciterId);
+    if (folder != null) {
+      final url = _everyayahUrl(folder, 1, 1);
+      _sampleUrlCache[reciterId] = url;
+      return url;
     }
     final res = await http
         .get(
@@ -132,6 +153,21 @@ class RecitationService {
   }
 
   Future<List<_AyahFile>> _fetchAllUrls(int reciterId) async {
+    final folder = _everyayahFolderFor(reciterId);
+    if (folder != null) {
+      final list = <_AyahFile>[];
+      for (var s = 1; s <= 114; s++) {
+        final count = _ayahCountsBySurah[s - 1];
+        for (var a = 1; a <= count; a++) {
+          list.add(_AyahFile(
+            surah: s,
+            ayah: a,
+            url: _everyayahUrl(folder, s, a),
+          ));
+        }
+      }
+      return list;
+    }
     final res = await http
         .get(
           Uri.parse(
@@ -242,22 +278,30 @@ class RecitationService {
   Future<File> downloadSingleAyah(int reciterId, int surah, int ayah) async {
     final cached = await cachedFile(reciterId, surah, ayah);
     if (cached != null) return cached;
-    final res = await http
-        .get(
-          Uri.parse(
-              'https://api.quran.com/api/v4/quran/recitations/$reciterId?chapter_number=$surah'),
-          headers: const {'User-Agent': 'MyPrayers/1.0'},
-        )
-        .timeout(const Duration(seconds: 15));
-    if (res.statusCode != 200) {
-      throw Exception('ayah ${res.statusCode}');
+    final folder = _everyayahFolderFor(reciterId);
+    final String url;
+    if (folder != null) {
+      url = _everyayahUrl(folder, surah, ayah);
+    } else {
+      final res = await http
+          .get(
+            Uri.parse(
+                'https://api.quran.com/api/v4/quran/recitations/$reciterId?chapter_number=$surah'),
+            headers: const {'User-Agent': 'MyPrayers/1.0'},
+          )
+          .timeout(const Duration(seconds: 15));
+      if (res.statusCode != 200) {
+        throw Exception('ayah ${res.statusCode}');
+      }
+      final body =
+          jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
+      final files =
+          (body['audio_files'] as List).cast<Map<String, dynamic>>();
+      final key = '$surah:$ayah';
+      final entry = files.firstWhere((f) => f['verse_key'] == key,
+          orElse: () => throw Exception('ayah not found'));
+      url = resolveAudioUrl(entry['url'] as String);
     }
-    final body = jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
-    final files = (body['audio_files'] as List).cast<Map<String, dynamic>>();
-    final key = '$surah:$ayah';
-    final entry = files.firstWhere((f) => f['verse_key'] == key,
-        orElse: () => throw Exception('ayah not found'));
-    final url = resolveAudioUrl(entry['url'] as String);
     final file = await _ayahFile(reciterId, surah, ayah);
     final client = http.Client();
     try {
@@ -428,3 +472,13 @@ class _AyahFile {
   final int ayah;
   final String url;
 }
+
+const _ayahCountsBySurah = <int>[
+  7, 286, 200, 176, 120, 165, 206, 75, 129, 109, 123, 111, 43, 52, 99, 128,
+  111, 110, 98, 135, 112, 78, 118, 64, 77, 227, 93, 88, 69, 60, 34, 30, 73,
+  54, 45, 83, 182, 88, 75, 85, 54, 53, 89, 59, 37, 35, 38, 29, 18, 45, 60,
+  49, 62, 55, 78, 96, 29, 22, 24, 13, 14, 11, 11, 18, 12, 12, 30, 52, 52,
+  44, 28, 28, 20, 56, 40, 31, 50, 40, 46, 42, 29, 19, 36, 25, 22, 17, 19,
+  26, 30, 20, 15, 21, 11, 8, 8, 19, 5, 8, 8, 11, 11, 8, 3, 9, 5, 4, 7, 3,
+  6, 3, 5, 4, 5, 6,
+];

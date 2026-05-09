@@ -571,7 +571,14 @@ class _LineWidget extends StatelessWidget {
     for (var i = 0; i < words.length; i++) {
       children.add(_wordWidget(words[i]));
       if (i < words.length - 1) {
-        children.add(SizedBox(width: gap));
+        final bridge = selectedKey != null &&
+            words[i].verseKey == selectedKey &&
+            words[i + 1].verseKey == selectedKey;
+        children.add(Container(
+          width: gap,
+          height: fontSize * 1.4,
+          color: bridge ? palette.accentSoft : null,
+        ));
       }
     }
     return Directionality(

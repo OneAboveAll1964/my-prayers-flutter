@@ -691,36 +691,97 @@ class _LineWidgetState extends State<_LineWidget> {
     final endColor = palette.accent;
     final textColor = palette.text;
     final highlightColor = palette.accentSoft;
-    final extra = fontSize * 0.05;
-    final padding = EdgeInsets.symmetric(horizontal: extra);
-    final children = <Widget>[];
-    for (var i = 0; i < words.length; i++) {
-      final w = words[i];
-      final isSelected = selKey != null && w.verseKey == selKey;
-      final ayah = widget.ayahByKey[w.verseKey];
-      children.add(GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: () => widget.onTapWord(w.verseKey, ayah),
-        child: Container(
-          padding: padding,
-          color: isSelected ? highlightColor : null,
-          child: Text(
-            w.code,
-            style: TextStyle(
-              fontFamily: fontFamily,
-              fontSize: fontSize,
-              height: 1.4,
-              color: w.isAyahEnd ? endColor : textColor,
-            ),
-          ),
-        ),
-      ));
+    final gap = fontSize * 0.05;
+    final extra = fontSize * 0.12;
+    final lineH = fontSize * 1.4;
+
+    bool lineHasSelection = false;
+    if (selKey != null) {
+      for (final w in words) {
+        if (w.verseKey == selKey) {
+          lineHasSelection = true;
+          break;
+        }
+      }
     }
-    return Row(
+
+    final textRow = Row(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
-      children: children,
+      children: [
+        for (var i = 0; i < words.length; i++) ...[
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => widget.onTapWord(
+                words[i].verseKey, widget.ayahByKey[words[i].verseKey]),
+            child: Text(
+              words[i].code,
+              style: TextStyle(
+                fontFamily: fontFamily,
+                fontSize: fontSize,
+                height: 1.4,
+                color: words[i].isAyahEnd ? endColor : textColor,
+              ),
+            ),
+          ),
+          if (i < words.length - 1) SizedBox(width: gap, height: lineH),
+        ],
+      ],
     );
+
+    if (!lineHasSelection) {
+      return textRow;
+    }
+
+    final highlightRow = Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        for (var i = 0; i < words.length; i++) ...[
+          CustomPaint(
+            painter: words[i].verseKey == selKey
+                ? _LineHighlightPainter(
+                    color: highlightColor, extra: extra)
+                : null,
+            child: Text(
+              words[i].code,
+              style: TextStyle(
+                fontFamily: fontFamily,
+                fontSize: fontSize,
+                height: 1.4,
+                color: const Color(0x00000000),
+              ),
+            ),
+          ),
+          if (i < words.length - 1) SizedBox(width: gap, height: lineH),
+        ],
+      ],
+    );
+
+    return Stack(
+      alignment: Alignment.center,
+      children: [highlightRow, textRow],
+    );
+  }
+}
+
+class _LineHighlightPainter extends CustomPainter {
+  _LineHighlightPainter({required this.color, required this.extra});
+
+  final Color color;
+  final double extra;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.drawRect(
+      Rect.fromLTRB(-extra, 0, size.width + extra, size.height),
+      Paint()..color = color,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _LineHighlightPainter old) {
+    return color != old.color || extra != old.extra;
   }
 }
 

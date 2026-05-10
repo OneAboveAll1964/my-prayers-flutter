@@ -761,40 +761,30 @@ class _LineWidgetState extends State<_LineWidget> {
     final endColor = palette.accent;
     final textColor = palette.text;
     final highlightColor = palette.accentSoft;
-    final gap = fontSize * 0.05;
-    final lineH = fontSize * 1.4;
-    final last = words.length - 1;
+    final halfGap = fontSize * 0.05;
+    final padding = EdgeInsets.symmetric(horizontal: halfGap);
     final children = <Widget>[];
-    for (var i = 0; i <= last; i++) {
+    for (var i = 0; i < words.length; i++) {
       final w = words[i];
       final isSelected = w.verseKey == selKey;
       final ayah = widget.ayahByKey[w.verseKey];
-      final wordWidget = GestureDetector(
+      children.add(GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () => widget.onTapWord(w.verseKey, ayah),
-        child: Text(
-          w.code,
-          style: TextStyle(
-            fontFamily: fontFamily,
-            fontSize: fontSize,
-            height: 1.4,
-            color: w.isAyahEnd ? endColor : textColor,
+        child: Container(
+          padding: padding,
+          color: isSelected ? highlightColor : null,
+          child: Text(
+            w.code,
+            style: TextStyle(
+              fontFamily: fontFamily,
+              fontSize: fontSize,
+              height: 1.4,
+              color: w.isAyahEnd ? endColor : textColor,
+            ),
           ),
         ),
-      );
-      children.add(
-        isSelected
-            ? ColoredBox(color: highlightColor, child: wordWidget)
-            : wordWidget,
-      );
-      if (i < last) {
-        final bridge = isSelected && words[i + 1].verseKey == selKey;
-        children.add(SizedBox(
-          width: gap,
-          height: lineH,
-          child: bridge ? ColoredBox(color: highlightColor) : null,
-        ));
-      }
+      ));
     }
     return Row(
       mainAxisSize: MainAxisSize.min,

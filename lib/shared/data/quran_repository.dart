@@ -153,6 +153,13 @@ class QuranRepository {
     return map;
   }
 
+  /// Synchronous accessor for already-cached page ayah maps. Returns null
+  /// when the data isn't in memory yet.
+  Map<String, Ayah>? cachedAyahsByKeyForPage(int page, String langCode) {
+    final lang = resolveDbLanguage(langCode);
+    return _pageAyahCacheFor(lang)[page];
+  }
+
   /// Returns every ayah on a mushaf page (across surahs at edges), keyed
   /// by `surah:numberInSurah`.
   Future<Map<String, Ayah>> getAyahsByKeyForPage(

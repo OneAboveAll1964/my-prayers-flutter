@@ -204,6 +204,7 @@ class _MoreSheet extends StatelessWidget {
                   _MoreTile(item: it, label: l10n.t('nav.${it.label}')))
               .toList(),
         ),
+        const SizedBox(height: 4),
         SizedBox(
           height: 60,
           child: _MoreTile(

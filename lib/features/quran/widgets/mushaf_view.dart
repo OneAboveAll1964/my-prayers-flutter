@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ionicons/ionicons.dart';
@@ -648,28 +647,12 @@ class _LineWidget extends StatefulWidget {
 }
 
 class _LineWidgetState extends State<_LineWidget> {
-  final List<TapGestureRecognizer> _recognizers = <TapGestureRecognizer>[];
-  TextSpan? _cachedRoot;
+  Widget? _cachedWidget;
   List<MushafLineWord>? _cachedWords;
   String? _cachedSelectedKey;
   AppPalette? _cachedPalette;
   double? _cachedFontSize;
   String? _cachedFontFamily;
-
-  @override
-  void dispose() {
-    for (final r in _recognizers) {
-      r.dispose();
-    }
-    super.dispose();
-  }
-
-  TapGestureRecognizer _recognizerAt(int i) {
-    while (_recognizers.length <= i) {
-      _recognizers.add(TapGestureRecognizer());
-    }
-    return _recognizers[i];
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -679,81 +662,28 @@ class _LineWidgetState extends State<_LineWidget> {
     final fontSize = widget.fontSize;
     final fontFamily = widget.fontFamily;
 
-    bool lineHasSelection = false;
-    if (selKey != null) {
-      for (final w in words) {
-        if (w.verseKey == selKey) {
-          lineHasSelection = true;
-          break;
-        }
-      }
-    }
-
-    if (lineHasSelection) {
-      return _buildSelectedLine(
-          words, selKey!, palette, fontSize, fontFamily);
-    }
-
-    final reuse = _cachedRoot != null &&
+    final reuse = _cachedWidget != null &&
         identical(_cachedWords, words) &&
         identical(_cachedPalette, palette) &&
-        _cachedSelectedKey == null &&
+        _cachedSelectedKey == selKey &&
         _cachedFontSize == fontSize &&
         _cachedFontFamily == fontFamily;
 
     if (!reuse) {
-      final endColor = palette.accent;
-      final endStyle = TextStyle(color: endColor);
-      final gap = fontSize * 0.05;
-      final lineH = fontSize * 1.4;
-      final gapBox = SizedBox(width: gap, height: lineH);
-
-      final children = <InlineSpan>[];
-      final last = words.length - 1;
-      for (var i = 0; i <= last; i++) {
-        final w = words[i];
-        final ayah = widget.ayahByKey[w.verseKey];
-        final r = _recognizerAt(i);
-        r.onTap = () => widget.onTapWord(w.verseKey, ayah);
-
-        children.add(TextSpan(
-          text: w.code,
-          style: w.isAyahEnd ? endStyle : null,
-          recognizer: r,
-        ));
-
-        if (i < last) {
-          children.add(WidgetSpan(
-            alignment: PlaceholderAlignment.middle,
-            child: gapBox,
-          ));
-        }
-      }
-      _cachedRoot = TextSpan(
-        style: TextStyle(
-          fontFamily: fontFamily,
-          fontSize: fontSize,
-          height: 1.4,
-          color: palette.text,
-        ),
-        children: children,
-      );
+      _cachedWidget =
+          _buildLine(words, selKey, palette, fontSize, fontFamily);
       _cachedWords = words;
-      _cachedSelectedKey = null;
+      _cachedSelectedKey = selKey;
       _cachedPalette = palette;
       _cachedFontSize = fontSize;
       _cachedFontFamily = fontFamily;
     }
-
-    return RichText(
-      textDirection: TextDirection.rtl,
-      text: _cachedRoot!,
-    );
+    return _cachedWidget!;
   }
 
-  Widget _buildSelectedLine(
+  Widget _buildLine(
     List<MushafLineWord> words,
-    String selKey,
+    String? selKey,
     AppPalette palette,
     double fontSize,
     String fontFamily,
@@ -761,30 +691,46 @@ class _LineWidgetState extends State<_LineWidget> {
     final endColor = palette.accent;
     final textColor = palette.text;
     final highlightColor = palette.accentSoft;
-    final halfGap = fontSize * 0.05;
-    final padding = EdgeInsets.symmetric(horizontal: halfGap);
+    final halfGap = fontSize * 0.025;
+    final lineH = fontSize * 1.4;
+    final last = words.length - 1;
     final children = <Widget>[];
-    for (var i = 0; i < words.length; i++) {
+    for (var i = 0; i <= last; i++) {
       final w = words[i];
-      final isSelected = w.verseKey == selKey;
+      final isSelected = selKey != null && w.verseKey == selKey;
       final ayah = widget.ayahByKey[w.verseKey];
-      children.add(GestureDetector(
+      final wordWidget = GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () => widget.onTapWord(w.verseKey, ayah),
-        child: Container(
-          padding: padding,
-          color: isSelected ? highlightColor : null,
-          child: Text(
-            w.code,
-            style: TextStyle(
-              fontFamily: fontFamily,
-              fontSize: fontSize,
-              height: 1.4,
-              color: w.isAyahEnd ? endColor : textColor,
-            ),
+        child: Text(
+          w.code,
+          style: TextStyle(
+            fontFamily: fontFamily,
+            fontSize: fontSize,
+            height: 1.4,
+            color: w.isAyahEnd ? endColor : textColor,
           ),
         ),
-      ));
+      );
+      children.add(
+        isSelected
+            ? ColoredBox(color: highlightColor, child: wordWidget)
+            : wordWidget,
+      );
+      if (i < last) {
+        final nextSelected =
+            selKey != null && words[i + 1].verseKey == selKey;
+        children.add(SizedBox(
+          width: halfGap,
+          height: lineH,
+          child: isSelected ? ColoredBox(color: highlightColor) : null,
+        ));
+        children.add(SizedBox(
+          width: halfGap,
+          height: lineH,
+          child: nextSelected ? ColoredBox(color: highlightColor) : null,
+        ));
+      }
     }
     return Row(
       mainAxisSize: MainAxisSize.min,

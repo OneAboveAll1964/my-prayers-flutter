@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -78,7 +77,6 @@ class _MushafViewState extends ConsumerState<MushafView> {
     final initialIdx =
     (initialPage - _firstPage).clamp(0, _lastPage - _firstPage);
     _pageController = PageController(initialPage: initialIdx);
-    _settledPageIdx = ValueNotifier<int>(initialIdx);
     final pageCount = _lastPage - _firstPage + 1;
     _preloadNeighbours(initialIdx, pageCount);
     final audioState = AyahAudioController.instance.state;
@@ -132,7 +130,6 @@ class _MushafViewState extends ConsumerState<MushafView> {
   void dispose() {
     _audioSub?.cancel();
     _pageController.dispose();
-    _settledPageIdx.dispose();
     super.dispose();
   }
 
@@ -207,7 +204,6 @@ class _MushafViewState extends ConsumerState<MushafView> {
         allowImplicitScrolling: true,
         reverse: isLtr,
         onPageChanged: (idx) {
-          _settledPageIdx.value = idx;
           _preloadNeighbours(idx, pageCount);
         },
         itemBuilder: (ctx, idx) {
@@ -226,7 +222,6 @@ class _MushafViewState extends ConsumerState<MushafView> {
               rangeFiltered: widget.rangeFiltered,
               startAyah: widget.startAyah,
               endAyah: widget.endAyah,
-              settledPageIdx: _settledPageIdx,
             ),
           );
         },
@@ -258,7 +253,6 @@ class _MushafPageView extends StatefulWidget {
     required this.totalPages,
     required this.onSwitchSurah,
     required this.rangeFiltered,
-    required this.settledPageIdx,
     this.startAyah,
     this.endAyah,
   });
@@ -272,7 +266,6 @@ class _MushafPageView extends StatefulWidget {
   final int totalPages;
   final void Function(int newSurahNumber)? onSwitchSurah;
   final bool rangeFiltered;
-  final ValueListenable<int> settledPageIdx;
   final int? startAyah;
   final int? endAyah;
 
@@ -283,23 +276,13 @@ class _MushafPageView extends StatefulWidget {
 class _MushafPageViewState extends State<_MushafPageView> {
   _PageData? _data;
   Object? _error;
-  bool _isSettled = false;
-  bool _activationScheduled = false;
 
   @override
   void initState() {
     super.initState();
-    _isSettled = widget.settledPageIdx.value == widget.pageIndex;
-    widget.settledPageIdx.addListener(_onSettledChanged);
     if (!_loadFromCacheSync()) {
       _kickoffLoad();
     }
-  }
-
-  @override
-  void dispose() {
-    widget.settledPageIdx.removeListener(_onSettledChanged);
-    super.dispose();
   }
 
   bool _loadFromCacheSync() {
@@ -361,23 +344,6 @@ class _MushafPageViewState extends State<_MushafPageView> {
     }
   }
 
-  void _onSettledChanged() {
-    final shouldBeSettled = widget.settledPageIdx.value == widget.pageIndex;
-    if (shouldBeSettled == _isSettled) return;
-    if (!shouldBeSettled) {
-      setState(() => _isSettled = false);
-      return;
-    }
-    if (_activationScheduled) return;
-    _activationScheduled = true;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _activationScheduled = false;
-      if (!mounted) return;
-      if (widget.settledPageIdx.value != widget.pageIndex) return;
-      setState(() => _isSettled = true);
-    });
-  }
-
   Map<String, Ayah> _applyRangeFilter(Map<String, Ayah> source) {
     if (!widget.rangeFiltered) return source;
     final start = widget.startAyah ?? 1;
@@ -400,7 +366,6 @@ class _MushafPageViewState extends State<_MushafPageView> {
   }
 
   Widget _buildBody(AppPalette palette, AppL10n l10n) {
-    if (!_isSettled) return const SizedBox.expand();
     if (_error != null) {
       return Center(
         child: Padding(

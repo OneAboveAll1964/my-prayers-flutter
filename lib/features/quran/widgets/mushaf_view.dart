@@ -662,18 +662,28 @@ class _LineWidgetState extends State<_LineWidget> {
     final fontSize = widget.fontSize;
     final fontFamily = widget.fontFamily;
 
+    String? effectiveSelKey;
+    if (selKey != null) {
+      for (final w in words) {
+        if (w.verseKey == selKey) {
+          effectiveSelKey = selKey;
+          break;
+        }
+      }
+    }
+
     final reuse = _cachedWidget != null &&
         identical(_cachedWords, words) &&
         identical(_cachedPalette, palette) &&
-        _cachedSelectedKey == selKey &&
+        _cachedSelectedKey == effectiveSelKey &&
         _cachedFontSize == fontSize &&
         _cachedFontFamily == fontFamily;
 
     if (!reuse) {
-      _cachedWidget =
-          _buildLine(words, selKey, palette, fontSize, fontFamily);
+      _cachedWidget = _buildLine(
+          words, effectiveSelKey, palette, fontSize, fontFamily);
       _cachedWords = words;
-      _cachedSelectedKey = selKey;
+      _cachedSelectedKey = effectiveSelKey;
       _cachedPalette = palette;
       _cachedFontSize = fontSize;
       _cachedFontFamily = fontFamily;
@@ -694,16 +704,6 @@ class _LineWidgetState extends State<_LineWidget> {
     final gap = fontSize * 0.05;
     final extra = fontSize * 0.12;
     final lineH = fontSize * 1.4;
-
-    bool lineHasSelection = false;
-    if (selKey != null) {
-      for (final w in words) {
-        if (w.verseKey == selKey) {
-          lineHasSelection = true;
-          break;
-        }
-      }
-    }
 
     final textRow = Row(
       mainAxisSize: MainAxisSize.min,
@@ -729,7 +729,7 @@ class _LineWidgetState extends State<_LineWidget> {
       ],
     );
 
-    if (!lineHasSelection) {
+    if (selKey == null) {
       return textRow;
     }
 

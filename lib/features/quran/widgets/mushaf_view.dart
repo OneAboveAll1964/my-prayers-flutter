@@ -790,7 +790,8 @@ class _LineWidgetState extends State<_LineWidget> {
     final endColor = palette.accent;
     final textColor = palette.text;
     final highlightColor = palette.accentSoft;
-    final extra = fontSize * 0.12;
+    final extra = fontSize * 0.08;
+    final verticalInset = fontSize * 0.08;
     final endStyle = TextStyle(color: endColor);
 
     final spans = <InlineSpan>[];
@@ -847,6 +848,7 @@ class _LineWidgetState extends State<_LineWidget> {
                 ranges: ranges,
                 color: highlightColor,
                 extra: extra,
+                verticalInset: verticalInset,
               ),
             ),
           ),
@@ -863,12 +865,14 @@ class _LineRangeHighlightPainter extends CustomPainter {
     required this.ranges,
     required this.color,
     required this.extra,
+    required this.verticalInset,
   });
 
   final TextSpan rootSpan;
   final List<TextRange> ranges;
   final Color color;
   final double extra;
+  final double verticalInset;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -886,7 +890,12 @@ class _LineRangeHighlightPainter extends CustomPainter {
       for (final box in boxes) {
         final r = box.toRect();
         canvas.drawRect(
-          Rect.fromLTRB(r.left - extra, r.top, r.right + extra, r.bottom),
+          Rect.fromLTRB(
+            r.left - extra,
+            r.top + verticalInset,
+            r.right + extra,
+            r.bottom - verticalInset,
+          ),
           paint,
         );
       }

@@ -790,31 +790,47 @@ class _LineWidgetState extends State<_LineWidget> {
     final endColor = palette.accent;
     final textColor = palette.text;
     final highlightColor = palette.accentSoft;
-    final extra = fontSize * 0.08;
-    final verticalInset = fontSize * 0.08;
+    final extra = 0.0;
+    final verticalInset = 0.0;
     final endStyle = TextStyle(color: endColor);
 
     final spans = <InlineSpan>[];
     final ranges = <TextRange>[];
     var charOffset = 0;
+    int? pendingStart;
+    int? pendingEnd;
     for (var i = 0; i < words.length; i++) {
       final w = words[i];
       final r = _recognizerAt(i);
       final ayah = widget.ayahByKey[w.verseKey];
       r.onTap = () => widget.onTapWord(w.verseKey, ayah);
       final text = i == 0 ? w.code : ' ${w.code}';
+      final start = charOffset;
+      final end = charOffset + text.length;
       if (selKey != null && w.verseKey == selKey) {
-        ranges.add(TextRange(
-          start: charOffset,
-          end: charOffset + text.length,
-        ));
+        if (pendingEnd == start) {
+          pendingEnd = end;
+        } else {
+          if (pendingStart != null) {
+            ranges.add(TextRange(start: pendingStart, end: pendingEnd!));
+          }
+          pendingStart = start;
+          pendingEnd = end;
+        }
+      } else if (pendingStart != null) {
+        ranges.add(TextRange(start: pendingStart, end: pendingEnd!));
+        pendingStart = null;
+        pendingEnd = null;
       }
       spans.add(TextSpan(
         text: text,
         style: w.isAyahEnd ? endStyle : null,
         recognizer: r,
       ));
-      charOffset += text.length;
+      charOffset = end;
+    }
+    if (pendingStart != null) {
+      ranges.add(TextRange(start: pendingStart, end: pendingEnd!));
     }
 
     final rootSpan = TextSpan(
@@ -887,18 +903,27 @@ class _LineRangeHighlightPainter extends CustomPainter {
       final boxes = tp.getBoxesForSelection(
         TextSelection(baseOffset: range.start, extentOffset: range.end),
       );
+      if (boxes.isEmpty) continue;
+      var minTop = double.infinity;
+      var maxBottom = -double.infinity;
+      var minLeft = double.infinity;
+      var maxRight = -double.infinity;
       for (final box in boxes) {
         final r = box.toRect();
-        canvas.drawRect(
-          Rect.fromLTRB(
-            r.left - extra,
-            r.top + verticalInset,
-            r.right + extra,
-            r.bottom - verticalInset,
-          ),
-          paint,
-        );
+        if (r.top < minTop) minTop = r.top;
+        if (r.bottom > maxBottom) maxBottom = r.bottom;
+        if (r.left < minLeft) minLeft = r.left;
+        if (r.right > maxRight) maxRight = r.right;
       }
+      canvas.drawRect(
+        Rect.fromLTRB(
+          minLeft - extra,
+          minTop + verticalInset,
+          maxRight + extra,
+          maxBottom - verticalInset,
+        ),
+        paint,
+      );
     }
     tp.dispose();
   }

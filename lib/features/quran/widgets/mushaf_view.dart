@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ionicons/ionicons.dart';
@@ -719,12 +720,28 @@ class _LineWidget extends StatefulWidget {
 }
 
 class _LineWidgetState extends State<_LineWidget> {
+  final List<TapGestureRecognizer> _recognizers = [];
   Widget? _cachedWidget;
   List<MushafLineWord>? _cachedWords;
   String? _cachedSelectedKey;
   AppPalette? _cachedPalette;
   double? _cachedFontSize;
   String? _cachedFontFamily;
+
+  @override
+  void dispose() {
+    for (final r in _recognizers) {
+      r.dispose();
+    }
+    super.dispose();
+  }
+
+  TapGestureRecognizer _recognizerAt(int i) {
+    while (_recognizers.length <= i) {
+      _recognizers.add(TapGestureRecognizer());
+    }
+    return _recognizers[i];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -773,87 +790,113 @@ class _LineWidgetState extends State<_LineWidget> {
     final endColor = palette.accent;
     final textColor = palette.text;
     final highlightColor = palette.accentSoft;
-    final gap = fontSize * 0.05;
     final extra = fontSize * 0.12;
-    final lineH = fontSize * 1.4;
+    final endStyle = TextStyle(color: endColor);
 
-    final textRow = Row(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        for (var i = 0; i < words.length; i++) ...[
-          GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () => widget.onTapWord(
-                words[i].verseKey, widget.ayahByKey[words[i].verseKey]),
-            child: Text(
-              words[i].code,
-              style: TextStyle(
-                fontFamily: fontFamily,
-                fontSize: fontSize,
-                height: 1.4,
-                color: words[i].isAyahEnd ? endColor : textColor,
-              ),
-            ),
-          ),
-          if (i < words.length - 1) SizedBox(width: gap, height: lineH),
-        ],
-      ],
-    );
-
-    if (selKey == null) {
-      return textRow;
+    final spans = <InlineSpan>[];
+    final ranges = <TextRange>[];
+    var charOffset = 0;
+    for (var i = 0; i < words.length; i++) {
+      final w = words[i];
+      final r = _recognizerAt(i);
+      final ayah = widget.ayahByKey[w.verseKey];
+      r.onTap = () => widget.onTapWord(w.verseKey, ayah);
+      final text = i == 0 ? w.code : ' ${w.code}';
+      if (selKey != null && w.verseKey == selKey) {
+        ranges.add(TextRange(
+          start: charOffset,
+          end: charOffset + text.length,
+        ));
+      }
+      spans.add(TextSpan(
+        text: text,
+        style: w.isAyahEnd ? endStyle : null,
+        recognizer: r,
+      ));
+      charOffset += text.length;
     }
 
-    final highlightRow = Row(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        for (var i = 0; i < words.length; i++) ...[
-          CustomPaint(
-            painter: words[i].verseKey == selKey
-                ? _LineHighlightPainter(
-                    color: highlightColor, extra: extra)
-                : null,
-            child: Text(
-              words[i].code,
-              style: TextStyle(
-                fontFamily: fontFamily,
-                fontSize: fontSize,
-                height: 1.4,
-                color: const Color(0x00000000),
-              ),
-            ),
-          ),
-          if (i < words.length - 1) SizedBox(width: gap, height: lineH),
-        ],
-      ],
+    final rootSpan = TextSpan(
+      style: TextStyle(
+        fontFamily: fontFamily,
+        fontSize: fontSize,
+        height: 1.4,
+        color: textColor,
+        wordSpacing: -fontSize * 0.18,
+      ),
+      children: spans,
     );
+
+    final textWidget = RichText(
+      textDirection: TextDirection.rtl,
+      text: rootSpan,
+    );
+
+    if (ranges.isEmpty) {
+      return textWidget;
+    }
 
     return Stack(
       alignment: Alignment.center,
-      children: [highlightRow, textRow],
+      children: [
+        Positioned.fill(
+          child: IgnorePointer(
+            child: CustomPaint(
+              painter: _LineRangeHighlightPainter(
+                rootSpan: rootSpan,
+                ranges: ranges,
+                color: highlightColor,
+                extra: extra,
+              ),
+            ),
+          ),
+        ),
+        textWidget,
+      ],
     );
   }
 }
 
-class _LineHighlightPainter extends CustomPainter {
-  _LineHighlightPainter({required this.color, required this.extra});
+class _LineRangeHighlightPainter extends CustomPainter {
+  _LineRangeHighlightPainter({
+    required this.rootSpan,
+    required this.ranges,
+    required this.color,
+    required this.extra,
+  });
 
+  final TextSpan rootSpan;
+  final List<TextRange> ranges;
   final Color color;
   final double extra;
 
   @override
   void paint(Canvas canvas, Size size) {
-    canvas.drawRect(
-      Rect.fromLTRB(-extra, 0, size.width + extra, size.height),
-      Paint()..color = color,
+    if (ranges.isEmpty) return;
+    final tp = TextPainter(
+      text: rootSpan,
+      textDirection: TextDirection.rtl,
     );
+    tp.layout(maxWidth: size.width);
+    final paint = Paint()..color = color;
+    for (final range in ranges) {
+      final boxes = tp.getBoxesForSelection(
+        TextSelection(baseOffset: range.start, extentOffset: range.end),
+      );
+      for (final box in boxes) {
+        final r = box.toRect();
+        canvas.drawRect(
+          Rect.fromLTRB(r.left - extra, r.top, r.right + extra, r.bottom),
+          paint,
+        );
+      }
+    }
+    tp.dispose();
   }
 
   @override
-  bool shouldRepaint(covariant _LineHighlightPainter old) {
-    return color != old.color || extra != old.extra;
+  bool shouldRepaint(covariant _LineRangeHighlightPainter old) {
+    return true;
   }
 }
 

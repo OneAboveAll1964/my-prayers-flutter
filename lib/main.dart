@@ -10,9 +10,6 @@ import 'shared/state/settings_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  try {
-    await FlutterDisplayMode.setHighRefreshRate();
-  } catch (_) {}
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
     systemNavigationBarColor: Colors.transparent,
@@ -51,6 +48,9 @@ Future<void> main() async {
   }
 
   WidgetsBinding.instance.addPostFrameCallback((_) async {
+    try {
+      await FlutterDisplayMode.setHighRefreshRate();
+    } catch (_) {}
     final granted = await NotificationService.instance.requestPermissions();
     if (granted) await tryReschedule();
   });

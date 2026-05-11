@@ -790,8 +790,8 @@ class _LineWidgetState extends State<_LineWidget> {
     final endColor = palette.accent;
     final textColor = palette.text;
     final highlightColor = palette.accentSoft;
-    final extra = 0.0;
-    final verticalInset = 0.0;
+    final extra = fontSize * 0.06;
+    final verticalInset = fontSize * 0.06;
     final endStyle = TextStyle(color: endColor);
 
     final spans = <InlineSpan>[];

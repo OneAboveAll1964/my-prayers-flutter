@@ -105,6 +105,7 @@ class _MushafViewState extends ConsumerState<MushafView> {
           service.getPageData(p),
           repo.getAyahsByKeyForPage(p, widget.langCode),
         ]);
+        _preShapePage(p);
       } catch (_) {}
       if (!mounted) return;
       setState(() => _loadedCount++);
@@ -122,6 +123,29 @@ class _MushafViewState extends ConsumerState<MushafView> {
     await Future.wait([for (var i = 0; i < concurrency; i++) worker()]);
     if (!mounted) return;
     setState(() => _surahReady = true);
+  }
+
+  void _preShapePage(int p) {
+    final service = MushafAssetService.instance;
+    final font = service.cachedFontFamily(p);
+    final pageData = service.cachedPageData(p);
+    if (font == null || pageData == null) return;
+    final style = TextStyle(
+      fontFamily: font,
+      fontSize: 24,
+      height: 1.4,
+    );
+    for (final line in pageData.lines) {
+      if (line.words.isEmpty) continue;
+      for (final w in line.words) {
+        final tp = TextPainter(
+          text: TextSpan(text: w.code, style: style),
+          textDirection: TextDirection.rtl,
+        );
+        tp.layout();
+        tp.dispose();
+      }
+    }
   }
 
   void _onAudio(AyahAudioState s) {

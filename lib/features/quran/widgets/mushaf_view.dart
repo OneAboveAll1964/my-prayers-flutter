@@ -48,6 +48,9 @@ class _MushafViewState extends ConsumerState<MushafView> {
   String? _playingKey;
   StreamSubscription<AyahAudioState>? _audioSub;
   int? _lastQueueAyah;
+  bool _surahReady = false;
+  int _loadedCount = 0;
+  int _totalToLoad = 0;
 
   int get _surahNumber => widget.pageMap.meta.number;
 
@@ -74,10 +77,9 @@ class _MushafViewState extends ConsumerState<MushafView> {
         1;
     final initialPage = widget.pageMap.ayahToPage[initialAyahNum] ?? _firstPage;
     final initialIdx =
-    (initialPage - _firstPage).clamp(0, _lastPage - _firstPage);
+        (initialPage - _firstPage).clamp(0, _lastPage - _firstPage);
     _pageController = PageController(initialPage: initialIdx);
-    final pageCount = _lastPage - _firstPage + 1;
-    _preloadNeighbours(initialIdx, pageCount);
+    _preloadSurah();
     final audioState = AyahAudioController.instance.state;
     if (audioState.surah == _surahNumber && audioState.ayah != null) {
       if (audioState.playing || audioState.loading) {
@@ -88,11 +90,45 @@ class _MushafViewState extends ConsumerState<MushafView> {
     _audioSub = AyahAudioController.instance.stream.listen(_onAudio);
   }
 
+  Future<void> _preloadSurah() async {
+    final service = MushafAssetService.instance;
+    final repo = QuranRepository.instance;
+    final pages = <int>[
+      for (var p = _firstPage; p <= _lastPage; p++) p,
+    ];
+    _totalToLoad = pages.length;
+    _loadedCount = 0;
+    Future<void> loadOne(int p) async {
+      try {
+        await Future.wait([
+          service.loadFontForPage(p),
+          service.getPageData(p),
+          repo.getAyahsByKeyForPage(p, widget.langCode),
+        ]);
+      } catch (_) {}
+      if (!mounted) return;
+      setState(() => _loadedCount++);
+    }
+
+    const concurrency = 4;
+    var next = 0;
+    Future<void> worker() async {
+      while (next < pages.length) {
+        final i = next++;
+        await loadOne(pages[i]);
+      }
+    }
+
+    await Future.wait([for (var i = 0; i < concurrency; i++) worker()]);
+    if (!mounted) return;
+    setState(() => _surahReady = true);
+  }
+
   void _onAudio(AyahAudioState s) {
     if (!mounted) return;
     final isThisSurah = s.surah == _surahNumber && s.ayah != null;
     final newKey =
-    isThisSurah && (s.playing || s.loading) ? '${s.surah}:${s.ayah}' : null;
+        isThisSurah && (s.playing || s.loading) ? '${s.surah}:${s.ayah}' : null;
     if (newKey != _playingKey) {
       setState(() => _playingKey = newKey);
     }
@@ -111,18 +147,6 @@ class _MushafViewState extends ConsumerState<MushafView> {
       duration: const Duration(milliseconds: 320),
       curve: Curves.easeOutCubic,
     );
-  }
-
-  void _preloadNeighbours(int idx, int pageCount) {
-    final service = MushafAssetService.instance;
-    for (final delta in const [1, -1, 2, 3, 4]) {
-      final i = idx + delta;
-      if (i < 0 || i >= pageCount) continue;
-      final pageNumber = _firstPage + i;
-      service.loadFontForPage(pageNumber).catchError((_) => '');
-      service.getPageData(pageNumber).catchError((_) =>
-          MushafPageData(pageNumber: pageNumber, lines: const []));
-    }
   }
 
   @override
@@ -193,6 +217,36 @@ class _MushafViewState extends ConsumerState<MushafView> {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
+    if (!_surahReady) {
+      final progress = _totalToLoad == 0 ? 0.0 : _loadedCount / _totalToLoad;
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: 120,
+              child: LinearProgressIndicator(
+                value: progress,
+                minHeight: 4,
+                color: palette.accent,
+                backgroundColor: palette.line,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              '$_loadedCount / $_totalToLoad',
+              style: TextStyle(
+                color: palette.textMuted,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
     final pageCount = _lastPage - _firstPage + 1;
     final isLtr = Directionality.of(context) == TextDirection.ltr;
     return NotificationListener<ScrollNotification>(
@@ -202,9 +256,6 @@ class _MushafViewState extends ConsumerState<MushafView> {
         itemCount: pageCount,
         allowImplicitScrolling: true,
         reverse: isLtr,
-        onPageChanged: (idx) {
-          _preloadNeighbours(idx, pageCount);
-        },
         itemBuilder: (ctx, idx) {
           final pageNumber = _firstPage + idx;
           return RepaintBoundary(
@@ -377,8 +428,7 @@ class _MushafPageViewState extends State<_MushafPageView> {
               const SizedBox(height: 8),
               Text(
                 l10n.t('common.error'),
-                style:
-                TextStyle(color: palette.textMuted, fontSize: 13),
+                style: TextStyle(color: palette.textMuted, fontSize: 13),
               ),
               const SizedBox(height: 12),
               GestureDetector(
@@ -457,9 +507,7 @@ class _MushafPageViewState extends State<_MushafPageView> {
               ],
             ),
           ),
-          Expanded(
-            child: _buildBody(palette, l10n),
-          ),
+          Expanded(child: _buildBody(palette, l10n)),
           Padding(
             padding: EdgeInsets.fromLTRB(
               16,
@@ -474,13 +522,13 @@ class _MushafPageViewState extends State<_MushafPageView> {
                   SizedBox(
                     width: 40,
                     child: widget.pageIndex == 0 &&
-                        widget.surahNumber > 1 &&
-                        widget.onSwitchSurah != null
+                            widget.surahNumber > 1 &&
+                            widget.onSwitchSurah != null
                         ? _SurahNavButton(
-                      icon: Ionicons.chevron_forward,
-                      onTap: () => widget
-                          .onSwitchSurah!(widget.surahNumber - 1),
-                    )
+                            icon: Ionicons.chevron_forward,
+                            onTap: () => widget
+                                .onSwitchSurah!(widget.surahNumber - 1),
+                          )
                         : null,
                   ),
                   Expanded(
@@ -499,13 +547,13 @@ class _MushafPageViewState extends State<_MushafPageView> {
                   SizedBox(
                     width: 40,
                     child: widget.pageIndex == widget.totalPages - 1 &&
-                        widget.surahNumber < 114 &&
-                        widget.onSwitchSurah != null
+                            widget.surahNumber < 114 &&
+                            widget.onSwitchSurah != null
                         ? _SurahNavButton(
-                      icon: Ionicons.chevron_back,
-                      onTap: () => widget
-                          .onSwitchSurah!(widget.surahNumber + 1),
-                    )
+                            icon: Ionicons.chevron_back,
+                            onTap: () => widget
+                                .onSwitchSurah!(widget.surahNumber + 1),
+                          )
                         : null,
                   ),
                 ],

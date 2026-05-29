@@ -105,20 +105,32 @@ with open(os.path.join(LAUNCH, "Contents.json"), "w") as f:
 circle_alpha(resized(COLOR, 512)).save(
     os.path.join(ROOT, "assets", "widget", "launch_icon.png"))
 
-# ----------------------------------------------- notification icon (Android) ---
-# Small status-bar icon: white logo silhouette only (no stars), padded. Android
-# uses only the alpha channel and tints it, so RGB is irrelevant.
+# --------------------------------------------- notification icons (Android) ---
+# White logo silhouette (green stars dropped). The OS tints the small status-bar
+# icon by its alpha; the notification-shade large icon is the colour badge.
 _nr, _ng, _nb, _na = FG.split()
 _nmask = ImageChops.darker(ImageChops.darker(_nr, _ng), _nb).point(
     lambda v: 255 if v > 200 else 0)
-_nlogo = Image.merge("RGBA", (_nr, _ng, _nb, ImageChops.multiply(_na, _nmask)))
-_nlogo = _nlogo.crop(_nlogo.getbbox())
-_nscale = int(192 * 0.76) / max(_nlogo.size)
-_nlogo = _nlogo.resize(
-    (round(_nlogo.size[0] * _nscale), round(_nlogo.size[1] * _nscale)), Image.LANCZOS)
-notif = Image.new("RGBA", (192, 192), (0, 0, 0, 0))
-notif.alpha_composite(_nlogo, ((192 - _nlogo.size[0]) // 2, (192 - _nlogo.size[1]) // 2))
-notif.save(os.path.join(RES, "drawable-nodpi", "ic_notify.png"))
+_wlogo = Image.merge("RGBA", (_nr, _ng, _nb, ImageChops.multiply(_na, _nmask)))
+_wlogo = _wlogo.crop(_wlogo.getbbox())
+
+
+def _logo_on(canvas, frac, disc=False):
+    s = int(canvas * frac) / max(_wlogo.size)
+    lg = _wlogo.resize(
+        (round(_wlogo.size[0] * s), round(_wlogo.size[1] * s)), Image.LANCZOS)
+    out = Image.new("RGBA", (canvas, canvas), (0, 0, 0, 0))
+    if disc:
+        out.alpha_composite(circle_alpha(Image.new("RGB", (canvas, canvas), BG_RGB)))
+    out.alpha_composite(lg, ((canvas - lg.size[0]) // 2, (canvas - lg.size[1]) // 2))
+    return out
+
+
+# Status-bar small icon: white logo only, padded (perfect at the tiny size).
+_logo_on(192, 0.76).save(os.path.join(RES, "drawable-nodpi", "ic_notify.png"))
+# Notification-shade large icon: green circle + white logo, comfortably padded.
+_logo_on(256, 0.56, disc=True).save(
+    os.path.join(RES, "drawable-nodpi", "ic_notify_large.png"))
 
 # ------------------------------------------------------------ previews ---------
 # Emulate the Android adaptive render: 108dp canvas, only the central 72dp

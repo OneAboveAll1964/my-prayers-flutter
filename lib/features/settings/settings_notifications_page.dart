@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:ionicons/ionicons.dart';
 import '../../core/i18n/app_l10n.dart';
 import '../../core/services/notification_service.dart';
 import '../../core/theme/tokens.dart';
@@ -21,46 +19,6 @@ class SettingsNotificationsPage extends ConsumerWidget {
       useFixed: s.useFixedTimes,
       enabled: s.notificationsEnabled,
       perPrayer: s.perPrayerNotifications,
-    );
-  }
-
-  void _promptOpenSettings(BuildContext context, AppL10n l10n) {
-    final palette = context.palette;
-    showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: palette.surface,
-        title: Text(
-          l10n.t('settings.notificationsBlockedTitle'),
-          style: TextStyle(
-              color: palette.text,
-              fontSize: 16,
-              fontWeight: FontWeight.w700),
-        ),
-        content: Text(
-          l10n.t('settings.notificationsBlockedBody'),
-          style: TextStyle(
-              color: palette.textMuted, fontSize: 13.5, height: 1.5),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: Text(l10n.t('common.cancel'),
-                style: TextStyle(color: palette.textMuted)),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(ctx).pop();
-              openAppSettings();
-            },
-            child: Text(
-              l10n.t('settings.openSystemSettings'),
-              style: TextStyle(
-                  color: palette.accent, fontWeight: FontWeight.w600),
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -154,111 +112,6 @@ class SettingsNotificationsPage extends ConsumerWidget {
                                 ],
                               ),
                             ),
-                          const SizedBox(height: 8),
-                          GestureDetector(
-                            behavior: HitTestBehavior.opaque,
-                            onTap: () async {
-                              final granted = await NotificationService
-                                  .instance
-                                  .requestPermissions();
-                              if (!granted) {
-                                if (context.mounted) {
-                                  _promptOpenSettings(context, l10n);
-                                }
-                                return;
-                              }
-                              final s = ref.read(settingsProvider);
-                              if (s.location != null &&
-                                  s.notificationsEnabled) {
-                                await NotificationService.instance
-                                    .reschedule(
-                                  location: s.location,
-                                  attribute: s.toAttribute(),
-                                  useFixed: s.useFixedTimes,
-                                  enabled: s.notificationsEnabled,
-                                  perPrayer: s.perPrayerNotifications,
-                                );
-                              }
-                              await NotificationService.instance.showTest();
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 14, vertical: 12),
-                              decoration: BoxDecoration(
-                                color: palette.surface2,
-                                borderRadius: BorderRadius.circular(
-                                    AppTokens.radius),
-                                border: Border.all(color: palette.line),
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(Ionicons.notifications_outline,
-                                      size: 18, color: palette.accent),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                    child: Text(
-                                      l10n.t(
-                                          'settings.sendTestNotification'),
-                                      style: TextStyle(
-                                          color: palette.text,
-                                          fontSize: 13.5,
-                                          fontWeight: FontWeight.w600),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          GestureDetector(
-                            behavior: HitTestBehavior.opaque,
-                            onTap: () async {
-                              final granted = await NotificationService
-                                  .instance
-                                  .requestPermissions();
-                              if (!granted) {
-                                if (context.mounted) {
-                                  _promptOpenSettings(context, l10n);
-                                }
-                                return;
-                              }
-                              await NotificationService.instance.scheduleTest();
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                        'Scheduled — lock your phone, adhan plays in ~1 min'),
-                                  ),
-                                );
-                              }
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 14, vertical: 12),
-                              decoration: BoxDecoration(
-                                color: palette.surface2,
-                                borderRadius: BorderRadius.circular(
-                                    AppTokens.radius),
-                                border: Border.all(color: palette.line),
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(Ionicons.alarm_outline,
-                                      size: 18, color: palette.accent),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                    child: Text(
-                                      'Schedule test (1 min)',
-                                      style: TextStyle(
-                                          color: palette.text,
-                                          fontSize: 13.5,
-                                          fontWeight: FontWeight.w600),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
                         ],
                       ],
                     ),

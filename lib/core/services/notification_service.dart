@@ -161,47 +161,6 @@ class NotificationService {
     }
   }
 
-  Future<void> showTest() async {
-    await _plugin.show(
-      99999,
-      'Sakina',
-      'Notifications are working',
-      const NotificationDetails(
-        android: AndroidNotificationDetails(
-          _channelId,
-          _channelName,
-          channelDescription: 'Plays adhan at scheduled prayer times',
-          importance: Importance.high,
-          priority: Priority.high,
-          playSound: true,
-          sound: RawResourceAndroidNotificationSound(_adhanResource),
-          category: AndroidNotificationCategory.alarm,
-        ),
-        iOS: DarwinNotificationDetails(
-          sound: 'adhan.caf',
-          presentSound: true,
-          presentBanner: true,
-          presentList: true,
-          interruptionLevel: InterruptionLevel.active,
-        ),
-      ),
-    );
-  }
-
-  Future<void> scheduleTest({Duration delay = const Duration(seconds: 60)}) async {
-    await init();
-    final canExact = await _canScheduleExactAndroid();
-    await _scheduleOne(
-      id: 99998,
-      when: tz.TZDateTime.now(tz.local).add(delay),
-      title: 'Sakina (scheduled test)',
-      body: 'If you see this, scheduled adhan notifications work.',
-      mode: canExact
-          ? AndroidScheduleMode.alarmClock
-          : AndroidScheduleMode.inexactAllowWhileIdle,
-    );
-  }
-
   Future<void> _scheduleOne({
     required int id,
     required tz.TZDateTime when,
@@ -225,6 +184,7 @@ class NotificationService {
             playSound: true,
             sound: RawResourceAndroidNotificationSound(_adhanResource),
             category: AndroidNotificationCategory.alarm,
+            largeIcon: DrawableResourceAndroidBitmap('ic_notify_large'),
           ),
           iOS: DarwinNotificationDetails(
             sound: 'adhan.caf',
@@ -253,6 +213,7 @@ class NotificationService {
               playSound: true,
               sound: RawResourceAndroidNotificationSound(_adhanResource),
               category: AndroidNotificationCategory.alarm,
+              largeIcon: DrawableResourceAndroidBitmap('ic_notify_large'),
             ),
             iOS: DarwinNotificationDetails(
               sound: 'adhan.caf',

@@ -2,12 +2,13 @@
 """Generate iOS + Android launcher icons from the branding source images.
 
 Sources (branding/icon/src):
-  icon_color.png  - fully composed icon: solid green bg (#2E7C4F) + light logo
-  foreground.png  - logo + decorative stars on transparent (adaptive foreground)
-  icon_dark.png   - black bg + white logo (iOS dark appearance)
+  icon_color.png      - fully composed icon: solid green bg (#2E7C4F) + light logo
+  foreground.png      - light logo + decorative stars on transparent (adaptive fg)
+  foreground_only.png - green logo on transparent (iOS dark appearance)
 
 Run from the project root:  python3 tool/gen_app_icons.py
 """
+import json
 import os
 from PIL import Image, ImageOps, ImageDraw
 
@@ -16,7 +17,7 @@ SRC = os.path.join(ROOT, "branding", "icon", "src")
 
 COLOR = Image.open(os.path.join(SRC, "icon_color.png")).convert("RGB")
 FG = Image.open(os.path.join(SRC, "foreground.png")).convert("RGBA")
-DARK = Image.open(os.path.join(SRC, "icon_dark.png")).convert("RGB")
+DARK = Image.open(os.path.join(SRC, "foreground_only.png")).convert("RGBA")
 
 BG_RGB = (46, 124, 79)  # #2E7C4F sampled from icon_color.png
 
@@ -40,7 +41,8 @@ ios_light = {
 for fn, sz in ios_light.items():
     resized(COLOR, sz).save(os.path.join(IOS, fn))
 
-# Dark appearance: opaque black bg + white logo, as designed.
+# Dark appearance: transparent green logo; iOS composites it over its own
+# dark system background.
 resized(DARK, 1024).save(os.path.join(IOS, "Icon-App-Dark-1024@1x.png"))
 
 # Tinted appearance: grayscale (luminance) logo on transparent; iOS applies the tint.
@@ -69,6 +71,32 @@ for d, sz in legacy.items():
     sq = resized(COLOR, sz)
     sq.save(os.path.join(RES, f"mipmap-{d}", "ic_launcher.png"))
     circle_alpha(sq).save(os.path.join(RES, f"mipmap-{d}", "ic_launcher_round.png"))
+
+# ------------------------------------------------------ splash (Android) -------
+# Full-bleed circular badge. No icon-background color is set, so the Android-12
+# splash renders the whole drawable; the disc therefore fills the entire canvas
+# to read as a complete circle with no padding gaps around it.
+splash = circle_alpha(resized(COLOR, 1152))
+nodpi = os.path.join(RES, "drawable-nodpi")
+os.makedirs(nodpi, exist_ok=True)
+splash.save(os.path.join(nodpi, "splash_icon.png"))
+
+# ---------------------------------------------------------- launch (iOS) -------
+# LaunchScreen.storyboard references a 120pt "LaunchImage"; provide a matching
+# circular badge so the iOS splash shows the same icon as Android.
+LAUNCH = os.path.join(ROOT, "ios", "Runner", "Assets.xcassets", "LaunchImage.imageset")
+os.makedirs(LAUNCH, exist_ok=True)
+for scale, name in [(1, "LaunchImage.png"), (2, "LaunchImage@2x.png"), (3, "LaunchImage@3x.png")]:
+    circle_alpha(resized(COLOR, 120 * scale)).save(os.path.join(LAUNCH, name))
+with open(os.path.join(LAUNCH, "Contents.json"), "w") as f:
+    json.dump({
+        "images": [
+            {"idiom": "universal", "filename": "LaunchImage.png", "scale": "1x"},
+            {"idiom": "universal", "filename": "LaunchImage@2x.png", "scale": "2x"},
+            {"idiom": "universal", "filename": "LaunchImage@3x.png", "scale": "3x"},
+        ],
+        "info": {"version": 1, "author": "xcode"},
+    }, f, indent=2)
 
 # ------------------------------------------------------------ previews ---------
 # Emulate the Android adaptive render: 108dp canvas, only the central 72dp
@@ -113,5 +141,15 @@ resized(COLOR, 256).save(os.path.join(OUT, "ios_light_256.png"))
 prev_t = Image.new("RGBA", (256, 256), (90, 110, 200, 255))
 prev_t.alpha_composite(resized(tinted, 256))
 prev_t.save(os.path.join(OUT, "ios_tinted_on_blue_256.png"))
+
+prev_d = Image.new("RGBA", (256, 256), (28, 28, 30, 255))
+prev_d.alpha_composite(resized(DARK, 256))
+prev_d.convert("RGB").save(os.path.join(OUT, "ios_dark_on_systembg_256.png"))
+
+# splash badge on the light + dark splash backgrounds
+for bg, tag in [((251, 251, 250), "light"), ((14, 16, 19), "dark")]:
+    p = Image.new("RGBA", (1152, 1152), bg + (255,))
+    p.alpha_composite(splash)
+    p.convert("RGB").resize((360, 360), Image.LANCZOS).save(os.path.join(OUT, f"splash_on_{tag}.png"))
 
 print("done; previews in", OUT)

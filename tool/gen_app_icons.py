@@ -81,7 +81,7 @@ splash = Image.new("RGBA", (1152, 1152), (0, 0, 0, 0))
 splash.alpha_composite(circle_alpha(resized(COLOR, DISC)), ((1152 - DISC) // 2, (1152 - DISC) // 2))
 nodpi = os.path.join(RES, "drawable-nodpi")
 os.makedirs(nodpi, exist_ok=True)
-splash.save(os.path.join(nodpi, "splash_icon.png"))
+splash.save(os.path.join(nodpi, "splash_icon_src.png"))
 
 # ---------------------------------------------------------- launch (iOS) -------
 # LaunchScreen.storyboard references a 120pt "LaunchImage"; provide a matching

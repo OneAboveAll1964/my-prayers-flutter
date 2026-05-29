@@ -10,7 +10,7 @@ Run from the project root:  python3 tool/gen_app_icons.py
 """
 import json
 import os
-from PIL import Image, ImageDraw, ImageOps
+from PIL import Image, ImageChops, ImageDraw, ImageOps
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(ROOT, "branding", "icon", "src")
@@ -104,6 +104,21 @@ with open(os.path.join(LAUNCH, "Contents.json"), "w") as f:
 # uses the same circular badge so the handoff is seamless.
 circle_alpha(resized(COLOR, 512)).save(
     os.path.join(ROOT, "assets", "widget", "launch_icon.png"))
+
+# ----------------------------------------------- notification icon (Android) ---
+# Small status-bar icon: white logo silhouette only (no stars), padded. Android
+# uses only the alpha channel and tints it, so RGB is irrelevant.
+_nr, _ng, _nb, _na = FG.split()
+_nmask = ImageChops.darker(ImageChops.darker(_nr, _ng), _nb).point(
+    lambda v: 255 if v > 200 else 0)
+_nlogo = Image.merge("RGBA", (_nr, _ng, _nb, ImageChops.multiply(_na, _nmask)))
+_nlogo = _nlogo.crop(_nlogo.getbbox())
+_nscale = int(192 * 0.76) / max(_nlogo.size)
+_nlogo = _nlogo.resize(
+    (round(_nlogo.size[0] * _nscale), round(_nlogo.size[1] * _nscale)), Image.LANCZOS)
+notif = Image.new("RGBA", (192, 192), (0, 0, 0, 0))
+notif.alpha_composite(_nlogo, ((192 - _nlogo.size[0]) // 2, (192 - _nlogo.size[1]) // 2))
+notif.save(os.path.join(RES, "drawable-nodpi", "ic_notify.png"))
 
 # ------------------------------------------------------------ previews ---------
 # Emulate the Android adaptive render: 108dp canvas, only the central 72dp

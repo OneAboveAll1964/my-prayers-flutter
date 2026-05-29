@@ -209,6 +209,56 @@ class SettingsNotificationsPage extends ConsumerWidget {
                               ),
                             ),
                           ),
+                          const SizedBox(height: 8),
+                          GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () async {
+                              final granted = await NotificationService
+                                  .instance
+                                  .requestPermissions();
+                              if (!granted) {
+                                if (context.mounted) {
+                                  _promptOpenSettings(context, l10n);
+                                }
+                                return;
+                              }
+                              await NotificationService.instance.scheduleTest();
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                        'Scheduled — lock your phone, adhan plays in ~1 min'),
+                                  ),
+                                );
+                              }
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 14, vertical: 12),
+                              decoration: BoxDecoration(
+                                color: palette.surface2,
+                                borderRadius: BorderRadius.circular(
+                                    AppTokens.radius),
+                                border: Border.all(color: palette.line),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(Ionicons.alarm_outline,
+                                      size: 18, color: palette.accent),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Text(
+                                      'Schedule test (1 min)',
+                                      style: TextStyle(
+                                          color: palette.text,
+                                          fontSize: 13.5,
+                                          fontWeight: FontWeight.w600),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
                         ],
                       ],
                     ),

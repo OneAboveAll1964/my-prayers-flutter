@@ -120,7 +120,10 @@ class NotificationService {
 
     final now = DateTime.now();
     final repo = PrayerTimeRepository.instance;
-    final daysAhead = 30;
+    final enabledCount = perPrayer.where((e) => e).length;
+    final daysAhead = (Platform.isIOS && enabledCount > 0)
+        ? (60 ~/ enabledCount).clamp(1, 30)
+        : 30;
     var idCounter = 1;
     final labels = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
 
@@ -182,6 +185,20 @@ class NotificationService {
           interruptionLevel: InterruptionLevel.active,
         ),
       ),
+    );
+  }
+
+  Future<void> scheduleTest({Duration delay = const Duration(seconds: 60)}) async {
+    await init();
+    final canExact = await _canScheduleExactAndroid();
+    await _scheduleOne(
+      id: 99998,
+      when: tz.TZDateTime.now(tz.local).add(delay),
+      title: 'Sakina (scheduled test)',
+      body: 'If you see this, scheduled adhan notifications work.',
+      mode: canExact
+          ? AndroidScheduleMode.alarmClock
+          : AndroidScheduleMode.inexactAllowWhileIdle,
     );
   }
 

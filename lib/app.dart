@@ -7,6 +7,7 @@ import 'core/i18n/app_l10n.dart';
 import 'core/router/router.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/tokens.dart';
+import 'features/onboarding/onboarding_flow.dart';
 import 'shared/state/settings_provider.dart';
 import 'shared/widgets/splash_overlay.dart';
 
@@ -63,6 +64,9 @@ class MyPrayersApp extends ConsumerWidget {
       builder: (ctx, child) {
         final activeLocale = Localizations.localeOf(ctx);
         final isRtl = isRtlLang(langKey(activeLocale));
+        final content = settings.onboardingComplete
+            ? (child ?? const SizedBox())
+            : const OnboardingFlow();
         return MediaQuery(
           data: MediaQuery.of(ctx).copyWith(
             textScaler: TextScaler.noScaling,
@@ -70,7 +74,7 @@ class MyPrayersApp extends ConsumerWidget {
           ),
           child: Directionality(
             textDirection: isRtl ? TextDirection.rtl : TextDirection.ltr,
-            child: SplashOverlay(child: child ?? const SizedBox()),
+            child: SplashOverlay(child: content),
           ),
         );
       },

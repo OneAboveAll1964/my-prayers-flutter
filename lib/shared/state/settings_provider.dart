@@ -27,6 +27,7 @@ class AppSettings {
     this.quranBold = false,
     this.translationBold = false,
     this.quranReadMode = 'scroll',
+    this.onboardingComplete = false,
     this.selectedReciterId,
     this.selectedTafsirId,
     this.selectedSurahInfoLanguage,
@@ -51,6 +52,7 @@ class AppSettings {
   final bool quranBold;
   final bool translationBold;
   final String quranReadMode;
+  final bool onboardingComplete;
   final int? selectedReciterId;
   final int? selectedTafsirId;
   final String? selectedSurahInfoLanguage;
@@ -75,6 +77,7 @@ class AppSettings {
     bool? quranBold,
     bool? translationBold,
     String? quranReadMode,
+    bool? onboardingComplete,
     Object? selectedReciterId = _sentinel,
     Object? selectedTafsirId = _sentinel,
     Object? selectedSurahInfoLanguage = _sentinel,
@@ -100,6 +103,7 @@ class AppSettings {
       quranBold: quranBold ?? this.quranBold,
       translationBold: translationBold ?? this.translationBold,
       quranReadMode: quranReadMode ?? this.quranReadMode,
+      onboardingComplete: onboardingComplete ?? this.onboardingComplete,
       selectedReciterId: selectedReciterId == _sentinel
           ? this.selectedReciterId
           : selectedReciterId as int?,
@@ -134,6 +138,7 @@ class AppSettings {
         'quranBold': quranBold,
         'translationBold': translationBold,
         'quranReadMode': quranReadMode,
+        'onboardingComplete': onboardingComplete,
         'selectedReciterId': selectedReciterId,
         'selectedTafsirId': selectedTafsirId,
         'selectedSurahInfoLanguage': selectedSurahInfoLanguage,
@@ -178,6 +183,7 @@ class AppSettings {
         quranBold: (j['quranBold'] ?? false) as bool,
         translationBold: (j['translationBold'] ?? false) as bool,
         quranReadMode: (j['quranReadMode'] ?? 'scroll') as String,
+        onboardingComplete: (j['onboardingComplete'] ?? false) as bool,
         selectedReciterId: (j['selectedReciterId'] as num?)?.toInt(),
         selectedTafsirId: (j['selectedTafsirId'] as num?)?.toInt(),
         selectedSurahInfoLanguage:
@@ -261,6 +267,8 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       update((s) => s.copyWith(translationFontScale: v.clamp(0.7, 1.6)));
   void setQuranReadMode(String v) =>
       update((s) => s.copyWith(quranReadMode: v));
+  void setOnboardingComplete(bool v) =>
+      update((s) => s.copyWith(onboardingComplete: v));
   void setSelectedReciter(int? id) =>
       update((s) => s.copyWith(selectedReciterId: id));
   void setSelectedTafsir(int? id) =>

@@ -43,15 +43,16 @@ class OrbitField extends StatelessWidget {
         final phoneH = phoneW * 2.0;
         final cx = w / 2;
         final cy = h / 2;
-        final rx = phoneW * 0.75; // horizontal ring radius
+        final rx = phoneW * 0.7; // horizontal ring radius
         final ry = phoneH * 0.12; // vertical (perspective) radius
-        final base = phoneW * 0.54; // focused-orb diameter
+        final base = phoneW * 0.45; // focused-orb diameter (arcs scale from this)
         final n = orbs.length;
 
         final lo = focus.floor();
         final style = _lerp(_styleOf(lo, n), _styleOf(lo + 1, n), focus - lo);
-        // Fixed brand-accent bracket — does not change with the focused orb.
-        final bracketColor = context.palette.accent;
+        // Fixed neutral bracket — doesn't change with the focused orb, and a
+        // muted grey reads better than green against the multi-colour orbs.
+        final bracketColor = context.palette.textMuted;
 
         final placed = <_Placed>[];
         for (var i = 0; i < n; i++) {
@@ -158,10 +159,10 @@ class _BracketPainter extends CustomPainter {
     final paint = Paint()
       ..color = color
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.5
+      ..strokeWidth = 2
       ..strokeCap = StrokeCap.round;
 
-    const sweep = 1.25; // short arcs (~72° each) → clear "( )", big top/bottom gaps
+    const sweep = 1.1; // short arcs (~63° each) → clear "( )", big top/bottom gaps
     canvas.save();
     canvas.translate(size.width / 2, size.height / 2);
     canvas.rotate(turn * 2 * math.pi);

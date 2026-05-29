@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:ionicons/ionicons.dart';
 
 import '../../core/i18n/app_l10n.dart';
@@ -53,6 +54,7 @@ class _OnboardingFeaturesPageState extends State<OnboardingFeaturesPage>
   // naturally (circular). The displayed feature is `_focus` rounded, mod N.
   double _focus = 0;
   int _displayIndex = 0;
+  int _pendingIndex = 0; // change claimed synchronously, to dedupe the haptic
   double _dragAnchor = 0; // settled index when a drag began
   bool _dragging = false;
   Timer? _auto;
@@ -91,14 +93,19 @@ class _OnboardingFeaturesPageState extends State<OnboardingFeaturesPage>
     });
   }
 
-  /// Dissolves the title/subtitle and spins the bracket when the focused
-  /// feature changes.
+  /// Dissolves the title/subtitle, spins the bracket and fires a selection
+  /// haptic when the focused feature changes.
   Future<void> _syncText() async {
-    if (_index == _displayIndex) return;
+    final target = _index;
+    if (target == _pendingIndex) return;
+    // Claim synchronously: _displayIndex only updates after the await below, so
+    // without this the re-entrant settle ticks would double-fire the haptic.
+    _pendingIndex = target;
+    HapticFeedback.selectionClick();
     _spin.forward(from: 0);
     await _textSnapKey.currentState?.prepare();
     if (!mounted) return;
-    setState(() => _displayIndex = _index);
+    setState(() => _displayIndex = target);
     _textSnapKey.currentState?.play();
   }
 

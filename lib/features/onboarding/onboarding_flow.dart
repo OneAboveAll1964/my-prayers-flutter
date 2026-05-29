@@ -17,13 +17,9 @@ class OnboardingFlow extends ConsumerStatefulWidget {
 
 class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
   int _stage = 0; // 0 language, 1 features, 2 setup
-  bool _forward = true;
 
   void _toStage(int s) {
-    setState(() {
-      _forward = s >= _stage;
-      _stage = s;
-    });
+    setState(() => _stage = s);
   }
 
   void _finish() {
@@ -49,24 +45,29 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
         ),
     };
 
-    return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 380),
-      switchInCurve: Curves.easeOutCubic,
-      switchOutCurve: Curves.easeInCubic,
-      transitionBuilder: (child, anim) {
-        final incoming = child.key == stage.key;
-        final dir = _forward ? 1.0 : -1.0;
-        final begin = incoming ? Offset(0.14 * dir, 0) : Offset(-0.14 * dir, 0);
-        return FadeTransition(
+    // Device/system back steps through onboarding stages rather than closing
+    // the app. On the first stage there's nowhere to go, so the pop falls
+    // through (default Android behaviour — leaves the app).
+    return PopScope(
+      canPop: _stage == 0,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        _toStage(_stage - 1);
+      },
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 420),
+        switchInCurve: Curves.easeOut,
+        switchOutCurve: Curves.easeIn,
+        // Soft cross-fade with a subtle settle-in — no directional slide.
+        transitionBuilder: (child, anim) => FadeTransition(
           opacity: anim,
-          child: SlideTransition(
-            position: Tween<Offset>(begin: begin, end: Offset.zero)
-                .animate(anim),
+          child: ScaleTransition(
+            scale: Tween<double>(begin: 0.97, end: 1.0).animate(anim),
             child: child,
           ),
-        );
-      },
-      child: stage,
+        ),
+        child: stage,
+      ),
     );
   }
 }

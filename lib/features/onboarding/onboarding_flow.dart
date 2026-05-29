@@ -15,8 +15,34 @@ class OnboardingFlow extends ConsumerStatefulWidget {
   ConsumerState<OnboardingFlow> createState() => _OnboardingFlowState();
 }
 
-class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
+class _OnboardingFlowState extends ConsumerState<OnboardingFlow>
+    with WidgetsBindingObserver {
   int _stage = 0; // 0 language, 1 features, 2 setup
+
+  @override
+  void initState() {
+    super.initState();
+    // Onboarding renders outside the router's navigator (see MyPrayersApp's
+    // builder), so there's no ModalRoute and PopScope can't hook the back
+    // button. Intercept the Android back button / swipe via the binding's
+    // pop-route callback instead.
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  Future<bool> didPopRoute() async {
+    if (_stage > 0) {
+      _toStage(_stage - 1);
+      return true; // handled — step back a stage, keep the app open
+    }
+    return false; // first stage: let the system close the app as usual
+  }
 
   void _toStage(int s) {
     setState(() => _stage = s);
@@ -45,29 +71,26 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
         ),
     };
 
-    // Device/system back steps through onboarding stages rather than closing
-    // the app. On the first stage there's nowhere to go, so the pop falls
-    // through (default Android behaviour — leaves the app).
-    return PopScope(
-      canPop: _stage == 0,
-      onPopInvokedWithResult: (didPop, _) {
-        if (didPop) return;
-        _toStage(_stage - 1);
-      },
-      child: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 420),
-        switchInCurve: Curves.easeOut,
-        switchOutCurve: Curves.easeIn,
-        // Soft cross-fade with a subtle settle-in — no directional slide.
-        transitionBuilder: (child, anim) => FadeTransition(
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 420),
+      switchInCurve: Curves.easeInOut,
+      switchOutCurve: Curves.easeInOut,
+      // The incoming page dissolves in (with a subtle settle-in scale) on top
+      // of the outgoing one, which stays fully opaque underneath. Because the
+      // screen is always covered, it never dips to the dark background — it
+      // reads as one page transitioning into the next rather than a blackout.
+      transitionBuilder: (child, anim) {
+        final incoming = child.key == stage.key;
+        if (!incoming) return child; // outgoing stays solid beneath
+        return FadeTransition(
           opacity: anim,
           child: ScaleTransition(
-            scale: Tween<double>(begin: 0.97, end: 1.0).animate(anim),
+            scale: Tween<double>(begin: 0.98, end: 1.0).animate(anim),
             child: child,
           ),
-        ),
-        child: stage,
-      ),
+        );
+      },
+      child: stage,
     );
   }
 }

@@ -82,8 +82,8 @@ class OrbitField extends StatelessWidget {
             children: [
               for (final p in placed.where((p) => p.depth < 0)) _orb(p),
               _PhoneMockup(width: phoneW, height: phoneH, style: style),
-              for (final p in placed.where((p) => p.depth >= 0)) _orb(p),
               // "( )" bracket framing the focused orb; spins on selection change.
+              // Drawn under the front orbs so they pass over the arcs while moving.
               Positioned(
                 left: cx - base * 0.60,
                 top: cy - base * 0.60,
@@ -96,6 +96,7 @@ class OrbitField extends StatelessWidget {
                   ),
                 ),
               ),
+              for (final p in placed.where((p) => p.depth >= 0)) _orb(p),
             ],
           ),
         );
@@ -157,7 +158,7 @@ class _BracketPainter extends CustomPainter {
     final paint = Paint()
       ..color = color
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 2
+      ..strokeWidth = 2.5
       ..strokeCap = StrokeCap.round;
 
     const sweep = 1.25; // short arcs (~72° each) → clear "( )", big top/bottom gaps

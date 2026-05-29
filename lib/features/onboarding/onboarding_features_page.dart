@@ -86,7 +86,7 @@ class _OnboardingFeaturesPageState extends State<OnboardingFeaturesPage>
 
   void _startAuto() {
     _auto?.cancel();
-    _auto = Timer.periodic(const Duration(seconds: 5), (_) {
+    _auto = Timer.periodic(const Duration(seconds: 3), (_) {
       if (!_dragging) _settleTo(_focus.roundToDouble() + 1);
     });
   }

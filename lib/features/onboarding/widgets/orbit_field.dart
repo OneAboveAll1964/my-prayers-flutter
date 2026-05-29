@@ -47,20 +47,19 @@ class OrbitField extends StatelessWidget {
         final placed = <_Placed>[];
         for (var i = 0; i < n; i++) {
           final angle = (i - focus) * (2 * math.pi / n);
-          final depth = math.cos(angle); // 1 = front, -1 = back
-          final centered = math.pow(math.max(0.0, depth), 2.5).toDouble();
+          final depth = math.cos(angle); // 1 = front (centre), -1 = back (top)
           final t = (depth + 1) / 2;
 
-          // Ring centred on the phone; the focused orb is pulled to its centre.
-          final ringX = cx + rx * math.sin(angle);
-          final ringY = cy + ry * depth;
+          // Clean tilted ring: orbs stay on the ring and just rotate. The front
+          // orb naturally sits at the phone's centre and scales up in place;
+          // the rest arc up and around behind it. No pulling/collapsing.
           placed.add(_Placed(
             orb: orbs[i],
-            x: _lerp(ringX, cx, centered),
-            y: _lerp(ringY, cy, centered),
-            size: base * _lerp(_lerp(0.46, 0.8, t), 1.0, centered),
-            opacity: _lerp(_lerp(0.5, 0.92, t), 1.0, centered).clamp(0.0, 1.0),
-            depth: _lerp(depth, 1.5, centered),
+            x: cx + rx * math.sin(angle),
+            y: cy - ry * (1 - math.cos(angle)),
+            size: base * _lerp(0.45, 1.0, t),
+            opacity: _lerp(0.45, 1.0, t).clamp(0.0, 1.0),
+            depth: depth,
           ));
         }
         placed.sort((a, b) => a.depth.compareTo(b.depth));

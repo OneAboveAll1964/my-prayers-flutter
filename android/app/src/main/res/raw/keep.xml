@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools"
-    tools:keep="@raw/adhan,@font/uthmanic_hafs,@font/amiri_quran,@font/kfgqpc_nastaleeq,@font/scheherazade,@font/noto_naskh,@drawable/widget_bg_accent,@drawable/widget_bg_solid_dark,@drawable/widget_bg_solid_light,@drawable/widget_bg_tinted_dark,@drawable/widget_bg_tinted_light,@drawable/widget_bg_transparent,@drawable/splash_icon"
+    tools:keep="@raw/adhan,@font/uthmanic_hafs,@font/amiri_quran,@font/kfgqpc_nastaleeq,@font/scheherazade,@font/noto_naskh,@drawable/widget_bg_accent,@drawable/widget_bg_solid_dark,@drawable/widget_bg_solid_light,@drawable/widget_bg_tinted_dark,@drawable/widget_bg_tinted_light,@drawable/widget_bg_transparent,@drawable/splash_icon_src"
     tools:shrinkMode="safe" />

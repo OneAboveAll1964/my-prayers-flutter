@@ -73,13 +73,13 @@ for d, sz in legacy.items():
     circle_alpha(sq).save(os.path.join(RES, f"mipmap-{d}", "ic_launcher_round.png"))
 
 # ------------------------------------------------------ splash (Android) -------
-# Full-bleed circular badge. No icon-background color is set, so the Android-12
-# splash renders the whole drawable; the disc therefore fills the entire canvas
-# to read as a complete circle with no padding gaps around it.
+# Full-bleed circular badge source. drawable/splash_icon.xml wraps it in an
+# 18dp inset so the complete circle sits inside the Android-12 splash slot with
+# breathing room (not edge-clipped / over-zoomed).
 splash = circle_alpha(resized(COLOR, 1152))
 nodpi = os.path.join(RES, "drawable-nodpi")
 os.makedirs(nodpi, exist_ok=True)
-splash.save(os.path.join(nodpi, "splash_icon.png"))
+splash.save(os.path.join(nodpi, "splash_icon_src.png"))
 
 # ---------------------------------------------------------- launch (iOS) -------
 # LaunchScreen.storyboard references a 120pt "LaunchImage"; provide a matching

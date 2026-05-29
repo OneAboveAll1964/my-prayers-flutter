@@ -10,7 +10,7 @@ Run from the project root:  python3 tool/gen_app_icons.py
 """
 import json
 import os
-from PIL import Image, ImageOps, ImageDraw
+from PIL import Image, ImageDraw, ImageOps
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(ROOT, "branding", "icon", "src")
@@ -73,13 +73,15 @@ for d, sz in legacy.items():
     circle_alpha(sq).save(os.path.join(RES, f"mipmap-{d}", "ic_launcher_round.png"))
 
 # ------------------------------------------------------ splash (Android) -------
-# Full-bleed circular badge source. drawable/splash_icon.xml wraps it in an
-# 18dp inset so the complete circle sits inside the Android-12 splash slot with
-# breathing room (not edge-clipped / over-zoomed).
-splash = circle_alpha(resized(COLOR, 1152))
+# Circular badge (green disc + white logo + stars) sized to 80% of the canvas
+# with transparent padding, so it sits inside the launcher icon mask and renders
+# as a clean circle rather than being reshaped into the device's squircle.
+DISC = 922  # ~0.80 * 1152
+splash = Image.new("RGBA", (1152, 1152), (0, 0, 0, 0))
+splash.alpha_composite(circle_alpha(resized(COLOR, DISC)), ((1152 - DISC) // 2, (1152 - DISC) // 2))
 nodpi = os.path.join(RES, "drawable-nodpi")
 os.makedirs(nodpi, exist_ok=True)
-splash.save(os.path.join(nodpi, "splash_icon_src.png"))
+splash.save(os.path.join(nodpi, "splash_icon.png"))
 
 # ---------------------------------------------------------- launch (iOS) -------
 # LaunchScreen.storyboard references a 120pt "LaunchImage"; provide a matching
@@ -151,7 +153,7 @@ prev_d = Image.new("RGBA", (256, 256), (28, 28, 30, 255))
 prev_d.alpha_composite(resized(DARK, 256))
 prev_d.convert("RGB").save(os.path.join(OUT, "ios_dark_on_systembg_256.png"))
 
-# splash badge on the light + dark splash backgrounds
+# splash badge on each splash background
 for bg, tag in [((251, 251, 250), "light"), ((14, 16, 19), "dark")]:
     p = Image.new("RGBA", (1152, 1152), bg + (255,))
     p.alpha_composite(splash)

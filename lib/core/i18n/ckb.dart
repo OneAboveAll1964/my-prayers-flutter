@@ -1,5 +1,5 @@
 const ckbBundle = <String, String>{
-  'appName': 'نوێژەکانم',
+  'appName': 'سەکینە',
   'nav.home': 'سەرەکی',
   'nav.calendar': 'ساڵنامە',
   'nav.qibla': 'قیبلە',
@@ -270,7 +270,7 @@ const ckbBundle = <String, String>{
   'settings.notificationsHint': 'ئەزان لە کاتی هەر نوێژێکی چالاکدا دەژمێردرێ',
   'settings.sendTestNotification': 'ناردنی ئاگادارکردنەوەی تاقیکردنەوە',
   'settings.notificationsBlockedTitle': 'ئاگادارکردنەوەکان داخراون',
-  'settings.notificationsBlockedBody': 'لە ڕێکخستنەکانی مۆبایلەکەت ئاگادارکردنەوە بۆ "نوێژەکانم" چالاک بکە بۆ گوێگرتنی ئەزان لە کاتی هەر نوێژێک.',
+  'settings.notificationsBlockedBody': 'لە ڕێکخستنەکانی مۆبایلەکەت ئاگادارکردنەوە بۆ "سەکینە" چالاک بکە بۆ گوێگرتنی ئەزان لە کاتی هەر نوێژێک.',
   'settings.openSystemSettings': 'کردنەوەی ڕێکخستنەکان',
   'settings.timeFormat': 'شێوازی کات',
   'settings.time12h': '١٢ کاتژمێر',

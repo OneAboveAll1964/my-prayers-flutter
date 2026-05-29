@@ -42,7 +42,7 @@ class MyPrayersApp extends ConsumerWidget {
     ));
 
     return MaterialApp.router(
-      title: 'My Prayers',
+      title: 'Sakina',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),

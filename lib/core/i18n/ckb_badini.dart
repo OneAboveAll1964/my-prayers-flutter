@@ -1,5 +1,5 @@
 const ckbBadiniBundle = <String, String>{
-  'appName': 'نڤێژێن من',
+  'appName': 'سەکینە',
   'nav.home': 'سەرەکی',
   'nav.calendar': 'ساڵنامە',
   'nav.qibla': 'قیبلە',

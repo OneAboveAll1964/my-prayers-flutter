@@ -1,5 +1,5 @@
 const enBundle = <String, String>{
-  'appName': 'My Prayers',
+  'appName': 'Sakina',
   'nav.home': 'Home',
   'nav.calendar': 'Calendar',
   'nav.qibla': 'Qibla',
@@ -270,7 +270,7 @@ const enBundle = <String, String>{
   'settings.notificationsHint': 'Adhan plays at each enabled prayer',
   'settings.sendTestNotification': 'Send test notification',
   'settings.notificationsBlockedTitle': 'Notifications are blocked',
-  'settings.notificationsBlockedBody': 'Allow notifications for My Prayers in your phone\'s settings to hear the adhan at each prayer.',
+  'settings.notificationsBlockedBody': 'Allow notifications for Sakina in your phone\'s settings to hear the adhan at each prayer.',
   'settings.openSystemSettings': 'Open Settings',
   'settings.timeFormat': 'Time format',
   'settings.time12h': '12-hour',

@@ -21,7 +21,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="My Prayers widget"
+            android:text="Sakina widget"
             android:textSize="22sp"
             android:textStyle="bold"
             android:textColor="@color/config_text"

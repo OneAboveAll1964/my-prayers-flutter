@@ -256,7 +256,7 @@ struct MyPrayersWidget: Widget {
         ) { entry in
             PrayersWidgetView(entry: entry)
         }
-        .configurationDisplayName("My Prayers")
+        .configurationDisplayName("Sakina")
         .description("A short ayah or azkar with rich style options.")
         .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
         .contentMarginsDisabled()

@@ -1,5 +1,5 @@
 const arBundle = <String, String>{
-  'appName': 'صلواتي',
+  'appName': 'سكينة',
   'nav.home': 'الرئيسية',
   'nav.calendar': 'التقويم',
   'nav.qibla': 'القبلة',
@@ -270,7 +270,7 @@ const arBundle = <String, String>{
   'settings.notificationsHint': 'يُشغل الأذان عند كل صلاة مفعّلة',
   'settings.sendTestNotification': 'إرسال إشعار تجريبي',
   'settings.notificationsBlockedTitle': 'الإشعارات محظورة',
-  'settings.notificationsBlockedBody': 'فعّل الإشعارات لـ "صلواتي" من إعدادات الهاتف لتستمع إلى الأذان عند كل صلاة.',
+  'settings.notificationsBlockedBody': 'فعّل الإشعارات لـ "سكينة" من إعدادات الهاتف لتستمع إلى الأذان عند كل صلاة.',
   'settings.openSystemSettings': 'فتح الإعدادات',
   'settings.timeFormat': 'تنسيق الوقت',
   'settings.time12h': '١٢ ساعة',

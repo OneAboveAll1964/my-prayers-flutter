@@ -1,4 +1,4 @@
-# My Prayers
+# Sakina
 
 A clean, fully offline prayer-times and Quran companion for iOS and Android.
 
@@ -98,7 +98,7 @@ Source: `android/app/src/main/kotlin/com/shkomaghdid/myprayers/widget/`
 
 Layouts in `res/layout/prayers_app_widget.xml` (default) and `res/layout-v31/prayers_app_widget.xml` (uses the bundled KFGQPC Hafs font on Android 12+).
 
-The widget appears as **My Prayers** in the home-screen picker.
+The widget appears as **Sakina** in the home-screen picker.
 
 ## Continue-reading
 

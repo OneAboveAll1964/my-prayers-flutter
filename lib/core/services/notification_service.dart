@@ -161,7 +161,7 @@ class NotificationService {
   Future<void> showTest() async {
     await _plugin.show(
       99999,
-      'My Prayers',
+      'Sakina',
       'Notifications are working',
       const NotificationDetails(
         android: AndroidNotificationDetails(

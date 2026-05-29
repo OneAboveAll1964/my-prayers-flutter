@@ -82,7 +82,7 @@ enum WidgetFont: String, AppEnum {
 }
 
 struct PrayersWidgetConfigurationIntent: WidgetConfigurationIntent {
-    static var title: LocalizedStringResource = "My Prayers"
+    static var title: LocalizedStringResource = "Sakina"
     static var description: IntentDescription? = IntentDescription("Show an ayah or azkar on your home screen.")
 
     @Parameter(title: "Content", default: WidgetContentType.mix)

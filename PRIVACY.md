@@ -1,12 +1,12 @@
-# Privacy Policy — My Prayers
+# Privacy Policy — Sakina
 
 _Last updated: 2026-05-07_
 
-My Prayers is a personal Islamic companion app for Android and iOS. It is built and maintained by an individual developer ([OneAboveAll1964](https://github.com/OneAboveAll1964)) and operates entirely on your device.
+Sakina is a personal Islamic companion app for Android and iOS. It is built and maintained by an individual developer ([OneAboveAll1964](https://github.com/OneAboveAll1964)) and operates entirely on your device.
 
 ## Short version
 
-**My Prayers does not collect, transmit, sell, or share any personal data.** Everything you see in the app — your location for qibla and prayer times, the dhikr counts, the surah you last read, your widget preferences — lives on your phone and stays on your phone.
+**Sakina does not collect, transmit, sell, or share any personal data.** Everything you see in the app — your location for qibla and prayer times, the dhikr counts, the surah you last read, your widget preferences — lives on your phone and stays on your phone.
 
 There are no analytics, no advertising SDKs, no crash reporting services, and no third-party trackers in the app.
 

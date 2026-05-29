@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:ionicons/ionicons.dart';
 
@@ -39,15 +41,21 @@ class OnboardingFeaturesPage extends StatefulWidget {
 }
 
 class _OnboardingFeaturesPageState extends State<OnboardingFeaturesPage>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late final AnimationController _snap =
       AnimationController(vsync: this, duration: const Duration(milliseconds: 420));
+  // One full turn of the focus-orb bracket on every selection change.
+  late final AnimationController _spin =
+      AnimationController(vsync: this, duration: const Duration(milliseconds: 600));
   Animation<double> _focusAnim = const AlwaysStoppedAnimation(0);
 
   // Continuous, unbounded orbit index. Orb angles are periodic so it wraps
   // naturally (circular). The displayed feature is `_focus` rounded, mod N.
   double _focus = 0;
   int _displayIndex = 0;
+  double _dragAnchor = 0; // settled index when a drag began
+  bool _dragging = false;
+  Timer? _auto;
   final _textSnapKey = GlobalKey<SnapDissolveState>();
 
   static const _pxPerStep = 350.0; // drag distance for one orb step
@@ -59,11 +67,15 @@ class _OnboardingFeaturesPageState extends State<OnboardingFeaturesPage>
       setState(() => _focus = _focusAnim.value);
       _syncText();
     });
+    _spin.addListener(() => setState(() {}));
+    _startAuto();
   }
 
   @override
   void dispose() {
+    _auto?.cancel();
     _snap.dispose();
+    _spin.dispose();
     super.dispose();
   }
 
@@ -72,10 +84,18 @@ class _OnboardingFeaturesPageState extends State<OnboardingFeaturesPage>
     return ((_focus.round() % n) + n) % n;
   }
 
-  /// Dissolves the title/subtitle to the focused feature when it changes —
-  /// the same stretch-blur transition as the language page.
+  void _startAuto() {
+    _auto?.cancel();
+    _auto = Timer.periodic(const Duration(seconds: 5), (_) {
+      if (!_dragging) _settleTo(_focus.roundToDouble() + 1);
+    });
+  }
+
+  /// Dissolves the title/subtitle and spins the bracket when the focused
+  /// feature changes.
   Future<void> _syncText() async {
     if (_index == _displayIndex) return;
+    _spin.forward(from: 0);
     await _textSnapKey.currentState?.prepare();
     if (!mounted) return;
     setState(() => _displayIndex = _index);
@@ -88,17 +108,26 @@ class _OnboardingFeaturesPageState extends State<OnboardingFeaturesPage>
     _snap.forward(from: 0);
   }
 
-  void _onDragStart(DragStartDetails _) => _snap.stop();
+  void _onDragStart(DragStartDetails _) {
+    _snap.stop();
+    _dragging = true;
+    _dragAnchor = _focus.roundToDouble();
+    _auto?.cancel();
+  }
 
   void _onDragUpdate(DragUpdateDetails d) {
-    setState(() => _focus -= (d.primaryDelta ?? 0) / _pxPerStep);
+    // Free drag, but clamped to one step either side — paged, no momentum.
+    setState(() {
+      _focus = (_focus - (d.primaryDelta ?? 0) / _pxPerStep)
+          .clamp(_dragAnchor - 1, _dragAnchor + 1);
+    });
     _syncText();
   }
 
-  void _onDragEnd(DragEndDetails d) {
-    final v = d.primaryVelocity ?? 0;
-    // Carry a little momentum, then snap to the nearest orb.
-    _settleTo((_focus - v / 1600).roundToDouble());
+  void _onDragEnd(DragEndDetails _) {
+    _dragging = false;
+    _settleTo(_focus.roundToDouble()); // snap to nearest; no momentum
+    _startAuto();
   }
 
   @override
@@ -142,7 +171,11 @@ class _OnboardingFeaturesPageState extends State<OnboardingFeaturesPage>
               ),
               Expanded(
                 flex: 5,
-                child: OrbitField(orbs: orbs, focus: _focus),
+                child: OrbitField(
+                  orbs: orbs,
+                  focus: _focus,
+                  bracketTurn: _spin.value,
+                ),
               ),
               // Title + subtitle — dissolves between features (fixed height so
               // nothing below shifts).

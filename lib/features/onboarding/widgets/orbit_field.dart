@@ -10,24 +10,28 @@ class OrbSpec {
   final Color color;
 }
 
-/// A phone mockup with [orbs] orbiting around its centre on a tilted 3D ring.
-/// The orb nearest the (continuous, wrapping) [focus] index is pulled into the
-/// phone's centre, enlarged and in front; the rest sit symmetrically around the
-/// phone — some behind (smaller/dimmer), some in front. Rendered with
-/// [Clip.none] so nothing is clipped.
+/// A morphing phone mockup with [orbs] orbiting around it on a clean tilted 3D
+/// ring. The orb nearest the (continuous, wrapping) [focus] sits at the phone's
+/// centre and scales up. A top/bottom-cut "( )" bracket frames it and spins via
+/// [bracketTurn] (0→1 = one full turn). The phone morphs between an Android and
+/// an iPhone (corner radius + camera cutout) as the focus moves between orbs.
 class OrbitField extends StatelessWidget {
   const OrbitField({
     super.key,
     required this.orbs,
     required this.focus,
-    this.wordmark = 'سَكِينَة',
+    this.bracketTurn = 0,
   });
 
   final List<OrbSpec> orbs;
   final double focus;
-  final String wordmark;
+  final double bracketTurn;
 
   static double _lerp(double a, double b, double t) => a + (b - a) * t;
+
+  // 0 = Android, 1 = iPhone, alternating per orb.
+  static double _styleOf(int i, int n) =>
+      (((i % n) + n) % n).isEven ? 0.0 : 1.0;
 
   @override
   Widget build(BuildContext context) {
@@ -44,6 +48,10 @@ class OrbitField extends StatelessWidget {
         final base = phoneW * 0.54; // focused-orb diameter
         final n = orbs.length;
 
+        final lo = focus.floor();
+        final style = _lerp(_styleOf(lo, n), _styleOf(lo + 1, n), focus - lo);
+        final focusedColor = orbs[(((focus.round() % n) + n) % n)].color;
+
         final placed = <_Placed>[];
         for (var i = 0; i < n; i++) {
           final angle = (i - focus) * (2 * math.pi / n);
@@ -51,8 +59,7 @@ class OrbitField extends StatelessWidget {
           final t = (depth + 1) / 2;
 
           // Clean tilted ring: orbs stay on the ring and just rotate. The front
-          // orb naturally sits at the phone's centre and scales up in place;
-          // the rest arc up and around behind it. No pulling/collapsing.
+          // orb naturally sits at the phone's centre and scales up in place.
           placed.add(_Placed(
             orb: orbs[i],
             x: cx + rx * math.sin(angle),
@@ -64,9 +71,7 @@ class OrbitField extends StatelessWidget {
         }
         placed.sort((a, b) => a.depth.compareTo(b.depth));
 
-        // Force the field to fill the width so the Stack's centre matches `cx`
-        // (otherwise loose constraints shrink it to the phone and the orbs, laid
-        // out from the full-width centre, end up shoved to one side).
+        // Force the field to fill the width so the Stack's centre matches `cx`.
         return SizedBox(
           width: w,
           height: h,
@@ -75,8 +80,21 @@ class OrbitField extends StatelessWidget {
             alignment: Alignment.center,
             children: [
               for (final p in placed.where((p) => p.depth < 0)) _orb(p),
-              _PhoneMockup(width: phoneW, height: phoneH, wordmark: wordmark),
+              _PhoneMockup(width: phoneW, height: phoneH, style: style),
               for (final p in placed.where((p) => p.depth >= 0)) _orb(p),
+              // "( )" bracket framing the focused orb; spins on selection change.
+              Positioned(
+                left: cx - base * 0.78,
+                top: cy - base * 0.78,
+                width: base * 1.56,
+                height: base * 1.56,
+                child: IgnorePointer(
+                  child: CustomPaint(
+                    painter: _BracketPainter(
+                        color: focusedColor, turn: bracketTurn),
+                  ),
+                ),
+              ),
             ],
           ),
         );
@@ -99,17 +117,10 @@ class OrbitField extends StatelessWidget {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                Color.lerp(p.orb.color, Colors.white, 0.20)!,
+                Color.lerp(p.orb.color, Colors.white, 0.18)!,
                 p.orb.color,
               ],
             ),
-            boxShadow: [
-              BoxShadow(
-                color: p.orb.color.withValues(alpha: 0.40 * p.opacity),
-                blurRadius: p.size * 0.30,
-                offset: Offset(0, p.size * 0.10),
-              ),
-            ],
           ),
           child: Center(
             child: Icon(p.orb.icon, size: p.size * 0.46, color: Colors.white),
@@ -133,35 +144,66 @@ class _Placed {
   final double x, y, size, opacity, depth;
 }
 
+class _BracketPainter extends CustomPainter {
+  _BracketPainter({required this.color, required this.turn});
+  final Color color;
+  final double turn;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final r = size.width / 2 * 0.92;
+    final rect = Rect.fromCircle(center: Offset.zero, radius: r);
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3
+      ..strokeCap = StrokeCap.round;
+
+    const sweep = 2.0; // ~114° each arc, leaving gaps top & bottom
+    canvas.save();
+    canvas.translate(size.width / 2, size.height / 2);
+    canvas.rotate(turn * 2 * math.pi);
+    canvas.drawArc(rect, -sweep / 2, sweep, false, paint); // right ")"
+    canvas.drawArc(rect, math.pi - sweep / 2, sweep, false, paint); // left "("
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(_BracketPainter old) =>
+      old.turn != turn || old.color != color;
+}
+
 class _PhoneMockup extends StatelessWidget {
   const _PhoneMockup({
     required this.width,
     required this.height,
-    required this.wordmark,
+    required this.style, // 0 = Android, 1 = iPhone
   });
   final double width;
   final double height;
-  final String wordmark;
+  final double style;
+
+  static double _lerp(double a, double b, double t) => a + (b - a) * t;
 
   @override
   Widget build(BuildContext context) {
-    final palette = context.palette;
     final dark = Theme.of(context).brightness == Brightness.dark;
-
-    // Theme-aware device: dark phone in dark mode, light phone in light mode.
     final frame = dark ? const Color(0xFF2A2F36) : const Color(0xFFD9DCE1);
     final screenTop = dark ? const Color(0xFF181C21) : const Color(0xFFFFFFFF);
     final screenBottom =
         dark ? const Color(0xFF0E1116) : const Color(0xFFEEF0F3);
-    final chrome = dark
-        ? Colors.white.withValues(alpha: 0.35)
-        : Colors.black.withValues(alpha: 0.18);
-    final radius = width * 0.15; // sharp-ish corners
+    final btn = dark ? const Color(0xFF14171C) : const Color(0xFFAEB3BA);
+    const cutout = Color(0xFF0B0D10);
 
-    return Container(
+    final radius = _lerp(width * 0.12, width * 0.34, style); // Android→iPhone
+    // Camera: Android punch-hole (small circle) → iPhone Dynamic Island (pill).
+    final camW = _lerp(width * 0.05, width * 0.36, style);
+    final camH = _lerp(width * 0.05, width * 0.082, style);
+
+    final phone = Container(
       width: width,
       height: height,
-      padding: EdgeInsets.all(width * 0.04),
+      padding: EdgeInsets.all(width * 0.045),
       decoration: BoxDecoration(
         color: frame,
         borderRadius: BorderRadius.circular(radius),
@@ -175,7 +217,7 @@ class _PhoneMockup extends StatelessWidget {
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(radius - width * 0.035),
+        borderRadius: BorderRadius.circular(radius - width * 0.04),
         child: DecoratedBox(
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -186,22 +228,13 @@ class _PhoneMockup extends StatelessWidget {
           ),
           child: Column(
             children: [
-              SizedBox(height: height * 0.05),
+              SizedBox(height: height * 0.035),
               Container(
-                width: width * 0.05,
-                height: width * 0.05,
+                width: camW,
+                height: camH,
                 decoration: BoxDecoration(
-                  color: chrome,
-                  shape: BoxShape.circle,
-                ),
-              ),
-              SizedBox(height: height * 0.045),
-              Text(
-                wordmark,
-                style: TextStyle(
-                  color: palette.accent.withValues(alpha: 0.9),
-                  fontSize: width * 0.13,
-                  fontWeight: FontWeight.w700,
+                  color: cutout,
+                  borderRadius: BorderRadius.circular(camH / 2),
                 ),
               ),
               const Spacer(),
@@ -210,7 +243,9 @@ class _PhoneMockup extends StatelessWidget {
                 height: 4,
                 margin: EdgeInsets.only(bottom: height * 0.03),
                 decoration: BoxDecoration(
-                  color: chrome,
+                  color: dark
+                      ? Colors.white.withValues(alpha: 0.35)
+                      : Colors.black.withValues(alpha: 0.18),
                   borderRadius: BorderRadius.circular(99),
                 ),
               ),
@@ -218,6 +253,36 @@ class _PhoneMockup extends StatelessWidget {
           ),
         ),
       ),
+    );
+
+    Widget sideButton(double h) => Container(
+          width: width * 0.014,
+          height: h,
+          decoration: BoxDecoration(
+            color: btn,
+            borderRadius: BorderRadius.circular(4),
+          ),
+        );
+
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        phone,
+        // Volume buttons (left)
+        Positioned(
+            left: -width * 0.008,
+            top: height * 0.22,
+            child: sideButton(height * 0.07)),
+        Positioned(
+            left: -width * 0.008,
+            top: height * 0.31,
+            child: sideButton(height * 0.07)),
+        // Power button (right)
+        Positioned(
+            right: -width * 0.008,
+            top: height * 0.26,
+            child: sideButton(height * 0.12)),
+      ],
     );
   }
 }

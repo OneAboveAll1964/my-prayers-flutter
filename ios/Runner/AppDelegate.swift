@@ -1,6 +1,7 @@
 import Flutter
 import UIKit
 import UserNotifications
+import workmanager_apple
 
 @main
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
@@ -11,6 +12,9 @@ import UserNotifications
     if #available(iOS 10.0, *) {
       UNUserNotificationCenter.current().delegate = self
     }
+    WorkmanagerPlugin.registerPeriodicTask(
+      withIdentifier: "com.shkomaghdid.myprayers.reschedule",
+      frequency: NSNumber(value: 12 * 60 * 60))
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 

@@ -213,6 +213,18 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     }
   }
 
+  static Future<AppSettings> load() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(_key);
+    if (raw == null) return AppSettings();
+    try {
+      return AppSettings.fromJson(jsonDecode(raw) as Map<String, dynamic>);
+    } catch (_) {
+      return AppSettings();
+    }
+  }
+  AppSettings get current => state;
+
   void update(AppSettings Function(AppSettings) fn) {
     state = fn(state);
     _save();

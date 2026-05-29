@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_displaymode/flutter_displaymode.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'app.dart';
+import 'core/services/background_tasks.dart';
 import 'core/services/notification_service.dart';
 import 'shared/data/muslim_db.dart';
 import 'shared/state/favorites_provider.dart';
@@ -36,7 +37,7 @@ Future<void> main() async {
   );
 
   Future<void> tryReschedule() async {
-    final s = settings.debugState;
+    final s = settings.current;
     if (s.location == null || !s.notificationsEnabled) return;
     await NotificationService.instance.reschedule(
       location: s.location,
@@ -53,6 +54,9 @@ Future<void> main() async {
     } catch (_) {}
     final granted = await NotificationService.instance.requestPermissions();
     if (granted) await tryReschedule();
+    try {
+      await registerBackgroundReschedule();
+    } catch (_) {}
   });
 
   WidgetsBinding.instance.addObserver(_LifecycleHook(tryReschedule));

@@ -50,7 +50,8 @@ class OrbitField extends StatelessWidget {
 
         final lo = focus.floor();
         final style = _lerp(_styleOf(lo, n), _styleOf(lo + 1, n), focus - lo);
-        final focusedColor = orbs[(((focus.round() % n) + n) % n)].color;
+        // Fixed brand-accent bracket — does not change with the focused orb.
+        final bracketColor = context.palette.accent;
 
         final placed = <_Placed>[];
         for (var i = 0; i < n; i++) {
@@ -84,14 +85,14 @@ class OrbitField extends StatelessWidget {
               for (final p in placed.where((p) => p.depth >= 0)) _orb(p),
               // "( )" bracket framing the focused orb; spins on selection change.
               Positioned(
-                left: cx - base * 0.78,
-                top: cy - base * 0.78,
-                width: base * 1.56,
-                height: base * 1.56,
+                left: cx - base * 0.60,
+                top: cy - base * 0.60,
+                width: base * 1.20,
+                height: base * 1.20,
                 child: IgnorePointer(
                   child: CustomPaint(
                     painter: _BracketPainter(
-                        color: focusedColor, turn: bracketTurn),
+                        color: bracketColor, turn: bracketTurn),
                   ),
                 ),
               ),
@@ -156,10 +157,10 @@ class _BracketPainter extends CustomPainter {
     final paint = Paint()
       ..color = color
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 3
+      ..strokeWidth = 2
       ..strokeCap = StrokeCap.round;
 
-    const sweep = 2.0; // ~114° each arc, leaving gaps top & bottom
+    const sweep = 1.25; // short arcs (~72° each) → clear "( )", big top/bottom gaps
     canvas.save();
     canvas.translate(size.width / 2, size.height / 2);
     canvas.rotate(turn * 2 * math.pi);
@@ -192,10 +193,10 @@ class _PhoneMockup extends StatelessWidget {
     final screenTop = dark ? const Color(0xFF181C21) : const Color(0xFFFFFFFF);
     final screenBottom =
         dark ? const Color(0xFF0E1116) : const Color(0xFFEEF0F3);
-    final btn = dark ? const Color(0xFF14171C) : const Color(0xFFAEB3BA);
+    final btn = dark ? const Color(0xFF4A515B) : const Color(0xFFAEB3BA);
     const cutout = Color(0xFF0B0D10);
 
-    final radius = _lerp(width * 0.12, width * 0.34, style); // Android→iPhone
+    final radius = _lerp(width * 0.12, width * 0.2, style); // Android→iPhone
     // Camera: Android punch-hole (small circle) → iPhone Dynamic Island (pill).
     final camW = _lerp(width * 0.05, width * 0.36, style);
     final camH = _lerp(width * 0.05, width * 0.082, style);

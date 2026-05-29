@@ -46,7 +46,7 @@ class _OnboardingFeaturesPageState extends State<OnboardingFeaturesPage>
       AnimationController(vsync: this, duration: const Duration(milliseconds: 420));
   // One full turn of the focus-orb bracket on every selection change.
   late final AnimationController _spin =
-      AnimationController(vsync: this, duration: const Duration(milliseconds: 600));
+      AnimationController(vsync: this, duration: const Duration(milliseconds: 300));
   Animation<double> _focusAnim = const AlwaysStoppedAnimation(0);
 
   // Continuous, unbounded orbit index. Orb angles are periodic so it wraps
@@ -58,7 +58,7 @@ class _OnboardingFeaturesPageState extends State<OnboardingFeaturesPage>
   Timer? _auto;
   final _textSnapKey = GlobalKey<SnapDissolveState>();
 
-  static const _pxPerStep = 350.0; // drag distance for one orb step
+  static const _pxPerStep = 150.0; // drag distance for one orb step
 
   @override
   void initState() {
@@ -116,17 +116,28 @@ class _OnboardingFeaturesPageState extends State<OnboardingFeaturesPage>
   }
 
   void _onDragUpdate(DragUpdateDetails d) {
-    // Free drag, but clamped to one step either side — paged, no momentum.
+    // Free drag, clamped to one step either side — paged, no momentum. The text
+    // dissolve and bracket spin are deferred to release: they fire during the
+    // settle animation (see _onDragEnd → _settleTo → _snap listener → _syncText).
     setState(() {
       _focus = (_focus - (d.primaryDelta ?? 0) / _pxPerStep)
           .clamp(_dragAnchor - 1, _dragAnchor + 1);
     });
-    _syncText();
   }
 
-  void _onDragEnd(DragEndDetails _) {
+  void _onDragEnd(DragEndDetails d) {
     _dragging = false;
-    _settleTo(_focus.roundToDouble()); // snap to nearest; no momentum
+    // A flick, or dragging past a third of a step, advances exactly one orb —
+    // no multi-step momentum. Otherwise it springs back to where it started.
+    final v = d.primaryVelocity ?? 0;
+    final delta = _focus - _dragAnchor;
+    double target = _dragAnchor;
+    if (v < -250 || delta > 0.3) {
+      target = _dragAnchor + 1;
+    } else if (v > 250 || delta < -0.3) {
+      target = _dragAnchor - 1;
+    }
+    _settleTo(target);
     _startAuto();
   }
 

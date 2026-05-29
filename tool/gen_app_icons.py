@@ -98,6 +98,11 @@ with open(os.path.join(LAUNCH, "Contents.json"), "w") as f:
         "info": {"version": 1, "author": "xcode"},
     }, f, indent=2)
 
+# Flutter SplashOverlay (shown briefly on iOS after the native launch screen)
+# uses the same circular badge so the handoff is seamless.
+circle_alpha(resized(COLOR, 512)).save(
+    os.path.join(ROOT, "assets", "widget", "launch_icon.png"))
+
 # ------------------------------------------------------------ previews ---------
 # Emulate the Android adaptive render: 108dp canvas, only the central 72dp
 # viewport is shown, masked to a launcher shape. Scale x4 -> 432.

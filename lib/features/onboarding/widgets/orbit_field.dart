@@ -40,7 +40,7 @@ class OrbitField extends StatelessWidget {
         final cx = w / 2;
         final cy = h / 2;
         final rx = phoneW * 0.75; // horizontal ring radius
-        final ry = phoneH * 0.14; // vertical (perspective) radius
+        final ry = phoneH * 0.12; // vertical (perspective) radius
         final base = phoneW * 0.54; // focused-orb diameter
         final n = orbs.length;
 
@@ -57,8 +57,8 @@ class OrbitField extends StatelessWidget {
             orb: orbs[i],
             x: cx + rx * math.sin(angle),
             y: cy - ry * (1 - math.cos(angle)),
-            size: base * _lerp(0.45, 1.0, t),
-            opacity: _lerp(0.45, 1.0, t).clamp(0.0, 1.0),
+            size: base * _lerp(0.3, 1.0, t),
+            opacity: _lerp(0.75, 1.0, t).clamp(0.0, 1.0),
             depth: depth,
           ));
         }

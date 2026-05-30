@@ -8,7 +8,7 @@ final splashFinished = ValueNotifier<bool>(false);
 
 const splashIconSize = 120.0;
 
-double get splashHandoffSize => (!kIsWeb && Platform.isAndroid) ? 178.0 : 120.0;
+double get splashHandoffSize => (!kIsWeb && Platform.isAndroid) ? 179.0 : 120.0;
 
 class SplashOverlay extends StatefulWidget {
   const SplashOverlay({super.key, required this.child});

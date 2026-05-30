@@ -23,6 +23,10 @@ const enBundle = <String, String>{
   'onboarding.setup.location.title': 'Your Location',
   'onboarding.setup.location.subtitle':
       'Used to calculate accurate prayer times. It stays on your device.',
+  'onboarding.setup.location.detect': 'Use my current location',
+  'onboarding.setup.location.detectHint': 'Detect automatically with GPS',
+  'onboarding.setup.location.searchManually': 'Or search for a city',
+  'onboarding.setup.location.detecting': 'Detecting…',
   'onboarding.setup.notifications.title': 'Prayer Notifications',
   'onboarding.setup.notifications.subtitle':
       'Be notified and hear the adhan at each prayer time.',

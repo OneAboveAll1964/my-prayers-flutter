@@ -25,6 +25,10 @@ const ckbBadiniBundle = <String, String>{
   'onboarding.setup.location.title': 'جهێ تە',
   'onboarding.setup.location.subtitle':
       'بۆ هەژمارکرنا دروستی یا دەمێن نڤێژێ تێدئێتە بکارئینان، و ل سەر ئامێرێ تە دمینیت.',
+  'onboarding.setup.location.detect': 'جهێ من ێ نوها بکار بینە',
+  'onboarding.setup.location.detectHint': 'ب GPS ئۆتۆماتیک بدۆزە',
+  'onboarding.setup.location.searchManually': 'یان ل باژێرەکی بگەڕە',
+  'onboarding.setup.location.detecting': 'دیتن…',
   'onboarding.setup.notifications.title': 'ئاگەهداریێن نڤێژێ',
   'onboarding.setup.notifications.subtitle':
       'ئاگەهدار ببە و گوهـ ل بانگێ بگرە ل هەر نڤێژەکێ.',

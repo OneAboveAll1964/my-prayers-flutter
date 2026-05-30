@@ -22,6 +22,10 @@ const arBundle = <String, String>{
   'onboarding.setup.location.title': 'موقعك',
   'onboarding.setup.location.subtitle':
       'يُستخدم لحساب مواقيت الصلاة بدقة، ويبقى على جهازك.',
+  'onboarding.setup.location.detect': 'استخدام موقعي الحالي',
+  'onboarding.setup.location.detectHint': 'تحديد تلقائي عبر GPS',
+  'onboarding.setup.location.searchManually': 'أو ابحث عن مدينة',
+  'onboarding.setup.location.detecting': 'جارٍ التحديد…',
   'onboarding.setup.notifications.title': 'إشعارات الصلاة',
   'onboarding.setup.notifications.subtitle':
       'تلقَّ إشعارًا واستمع إلى الأذان عند كل صلاة.',

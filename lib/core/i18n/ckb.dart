@@ -23,6 +23,10 @@ const ckbBundle = <String, String>{
   'onboarding.setup.location.title': 'شوێنەکەت',
   'onboarding.setup.location.subtitle':
       'بۆ ژماردنی وردی کاتەکانی نوێژ بەکاردێت، و لەسەر ئامێرەکەت دەمێنێتەوە.',
+  'onboarding.setup.location.detect': 'شوێنی ئێستام بەکاربهێنە',
+  'onboarding.setup.location.detectHint': 'بە GPS خۆکارانە بدۆزەرەوە',
+  'onboarding.setup.location.searchManually': 'یان بەدوای شارێکدا بگەڕێ',
+  'onboarding.setup.location.detecting': 'دۆزینەوە…',
   'onboarding.setup.notifications.title': 'ئاگادارکردنەوەی نوێژ',
   'onboarding.setup.notifications.subtitle':
       'ئاگادار بکرێیتەوە و گوێ لە بانگ بگرە لە هەر نوێژێکدا.',

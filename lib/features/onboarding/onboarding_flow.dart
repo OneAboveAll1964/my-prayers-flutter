@@ -148,9 +148,9 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow>
         alignment: Alignment.center,
         children: [
           Align(
-            alignment: AlignmentDirectional.centerStart,
+            alignment: Alignment.centerLeft,
             child: Padding(
-              padding: const EdgeInsetsDirectional.only(start: 8),
+              padding: const EdgeInsets.only(left: 8),
               child: AnimatedOpacity(
                 opacity: _stage > 0 ? 1 : 0,
                 duration: const Duration(milliseconds: 200),

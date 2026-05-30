@@ -8,6 +8,8 @@ final splashFinished = ValueNotifier<bool>(false);
 
 const splashIconSize = 120.0;
 
+double get splashHandoffSize => (!kIsWeb && Platform.isAndroid) ? 176.0 : 120.0;
+
 class SplashOverlay extends StatefulWidget {
   const SplashOverlay({super.key, required this.child});
   final Widget child;
@@ -73,16 +75,7 @@ class _SplashOverlayState extends State<SplashOverlay>
                 child: Container(
                   width: splashIconSize,
                   height: splashIconSize,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: palette.accent.withValues(alpha: 0.28),
-                        blurRadius: 36,
-                        spreadRadius: 2,
-                      ),
-                    ],
-                  ),
+                  decoration: const BoxDecoration(shape: BoxShape.circle),
                   clipBehavior: Clip.antiAlias,
                   child: Image.asset(
                     'assets/widget/launch_icon.png',

@@ -232,8 +232,8 @@ class _PhoneMockup extends StatelessWidget {
               ),
               const Spacer(),
               Container(
-                width: width * 0.40,
-                height: 3,
+                width: _lerp(width * 0.32, width * 0.44, style),
+                height: math.max(2.5, _lerp(width * 0.028, width * 0.016, style)),
                 margin: EdgeInsets.only(bottom: height * 0.03),
                 decoration: BoxDecoration(
                   color: dark

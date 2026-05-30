@@ -74,7 +74,7 @@ class _OnboardingLanguagePageState extends ConsumerState<OnboardingLanguagePage>
     widget.footerKey.currentState?.play();
   }
 
-  Widget _circle() {
+  Widget _circle({double glow = 0}) {
     final palette = context.palette;
     return Container(
       key: _circleKey,
@@ -84,9 +84,9 @@ class _OnboardingLanguagePageState extends ConsumerState<OnboardingLanguagePage>
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
-            color: palette.accent.withValues(alpha: 0.28),
+            color: palette.accent.withValues(alpha: 0.28 * glow),
             blurRadius: 36,
-            spreadRadius: 2,
+            spreadRadius: 2 * glow,
           ),
         ],
       ),
@@ -106,18 +106,21 @@ class _OnboardingLanguagePageState extends ConsumerState<OnboardingLanguagePage>
   Widget _animatedCircle() {
     return AnimatedBuilder(
       animation: _intro,
-      builder: (context, child) {
-        if (_restOffset == null) return child!;
+      builder: (context, _) {
+        final glow = Curves.easeIn.transform(
+          ((_intro.value - 0.55) / 0.45).clamp(0.0, 1.0),
+        );
+        final circle = _circle(glow: glow);
+        if (_restOffset == null) return circle;
         final c = Curves.easeOutCubic.transform(
           (_intro.value / 0.62).clamp(0.0, 1.0),
         );
-        final scale = 1.0 + (splashIconSize / _iconSize - 1.0) * (1 - c);
+        final scale = 1.0 + (splashHandoffSize / _iconSize - 1.0) * (1 - c);
         return Transform.translate(
           offset: Offset(_restOffset!.dx * (1 - c), _restOffset!.dy * (1 - c)),
-          child: Transform.scale(scale: scale, child: child),
+          child: Transform.scale(scale: scale, child: circle),
         );
       },
-      child: _circle(),
     );
   }
 
@@ -254,9 +257,9 @@ class _LangPill extends StatelessWidget {
             Positioned.fill(
               child: IgnorePointer(
                 child: Align(
-                  alignment: AlignmentDirectional.centerStart,
+                  alignment: Alignment.centerRight,
                   child: Padding(
-                    padding: const EdgeInsetsDirectional.only(start: 16),
+                    padding: const EdgeInsets.only(right: 16),
                     child: AnimatedScale(
                       scale: selected ? 1.0 : 0.5,
                       duration: AppTokens.duration,

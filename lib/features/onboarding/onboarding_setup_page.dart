@@ -12,7 +12,6 @@ import '../../shared/models/location.dart';
 import '../../shared/models/prayer_time.dart';
 import '../../shared/state/favorites_provider.dart';
 import '../../shared/state/settings_provider.dart';
-import '../../shared/widgets/app_button.dart';
 import '../../shared/widgets/app_field.dart';
 import '../../shared/widgets/app_spinner.dart';
 import '../../shared/widgets/app_toggle.dart';
@@ -49,21 +48,81 @@ class OnboardingSetupPage extends StatelessWidget {
             ],
           ),
         ),
-        Expanded(
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 300),
-            switchInCurve: Curves.easeOut,
-            switchOutCurve: Curves.easeIn,
-            transitionBuilder: (child, anim) =>
-                FadeTransition(opacity: anim, child: child),
+        Expanded(child: _StepSwitcher(step: step)),
+      ],
+    );
+  }
+}
+
+class _StepSwitcher extends StatefulWidget {
+  const _StepSwitcher({required this.step});
+  final int step;
+
+  @override
+  State<_StepSwitcher> createState() => _StepSwitcherState();
+}
+
+class _StepSwitcherState extends State<_StepSwitcher>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _fade = AnimationController(
+    vsync: this,
+    value: 1,
+    duration: const Duration(milliseconds: 320),
+  );
+  late final Animation<double> _outAnim = ReverseAnimation(
+    CurvedAnimation(
+      parent: _fade,
+      curve: const Interval(0.0, 0.45, curve: Curves.easeIn),
+    ),
+  );
+  late final Animation<double> _inAnim = CurvedAnimation(
+    parent: _fade,
+    curve: const Interval(0.4, 1.0, curve: Curves.easeOut),
+  );
+
+  int? _outgoing;
+
+  @override
+  void didUpdateWidget(_StepSwitcher old) {
+    super.didUpdateWidget(old);
+    if (old.step != widget.step) {
+      _outgoing = old.step;
+      _fade.forward(from: 0).whenComplete(() {
+        if (mounted && _fade.value == 1) setState(() => _outgoing = null);
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _fade.dispose();
+    super.dispose();
+  }
+
+  Widget _stepFor(int step) => switch (step) {
+    0 => const _LocationStep(),
+    1 => const _NotificationsStep(),
+    _ => const _AppearanceStep(),
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        if (_outgoing != null)
+          FadeTransition(
+            opacity: _outAnim,
             child: KeyedSubtree(
-              key: ValueKey(step),
-              child: switch (step) {
-                0 => const _LocationStep(),
-                1 => const _NotificationsStep(),
-                _ => const _AppearanceStep(),
-              },
+              key: ValueKey(_outgoing),
+              child: _stepFor(_outgoing!),
             ),
+          ),
+        FadeTransition(
+          opacity: _inAnim,
+          child: KeyedSubtree(
+            key: ValueKey(widget.step),
+            child: _stepFor(widget.step),
           ),
         ),
       ],
@@ -219,7 +278,7 @@ class _LocationStepState extends ConsumerState<_LocationStep> {
           curve: AppTokens.ease,
           alignment: Alignment.topCenter,
           child: searching
-              ? const SizedBox(width: double.infinity)
+              ? const SizedBox(width: double.infinity, height: 16)
               : Padding(
                   padding: const EdgeInsets.fromLTRB(24, 2, 24, 0),
                   child: Column(
@@ -250,33 +309,30 @@ class _LocationStepState extends ConsumerState<_LocationStep> {
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Column(
+          child: Row(
             children: [
-              AppButton(
-                label: _detecting
-                    ? l10n.t('common.loading')
-                    : l10n.t('home.useMyLocation'),
-                icon: _detecting ? null : Ionicons.locate_outline,
-                variant: AppButtonVariant.outline,
-                expand: true,
-                onPressed: _detecting ? null : _detect,
-              ),
-              const SizedBox(height: 12),
-              AppTextField(
-                hintText: l10n.t('home.searchCity'),
-                prefix: Icon(
-                  Ionicons.search_outline,
-                  size: 18,
-                  color: palette.textMuted,
+              Expanded(
+                child: AppTextField(
+                  hintText: l10n.t('home.searchCity'),
+                  prefix: Icon(
+                    Ionicons.search_outline,
+                    size: 18,
+                    color: palette.textMuted,
+                  ),
+                  onChanged: (v) {
+                    setState(() => _query = v);
+                    _debounce?.cancel();
+                    _debounce = Timer(
+                      const Duration(milliseconds: 220),
+                      () => _search(v),
+                    );
+                  },
                 ),
-                onChanged: (v) {
-                  setState(() => _query = v);
-                  _debounce?.cancel();
-                  _debounce = Timer(
-                    const Duration(milliseconds: 220),
-                    () => _search(v),
-                  );
-                },
+              ),
+              const SizedBox(width: 10),
+              _DetectButton(
+                detecting: _detecting,
+                onTap: _detecting ? null : _detect,
               ),
             ],
           ),
@@ -328,6 +384,34 @@ class _LocationStepState extends ConsumerState<_LocationStep> {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _DetectButton extends StatelessWidget {
+  const _DetectButton({required this.detecting, required this.onTap});
+  final bool detecting;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Container(
+        width: 52,
+        height: 52,
+        decoration: BoxDecoration(
+          color: palette.accentSoft,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: palette.accent.withValues(alpha: 0.45)),
+        ),
+        alignment: Alignment.center,
+        child: detecting
+            ? const AppSpinner(size: 20)
+            : Icon(Ionicons.locate_outline, size: 22, color: palette.accent),
+      ),
     );
   }
 }

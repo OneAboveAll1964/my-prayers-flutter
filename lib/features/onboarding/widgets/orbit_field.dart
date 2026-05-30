@@ -232,8 +232,8 @@ class _PhoneMockup extends StatelessWidget {
               ),
               const Spacer(),
               Container(
-                width: width * 0.32,
-                height: 4,
+                width: width * 0.40,
+                height: 3,
                 margin: EdgeInsets.only(bottom: height * 0.03),
                 decoration: BoxDecoration(
                   color: dark
@@ -248,33 +248,67 @@ class _PhoneMockup extends StatelessWidget {
       ),
     );
 
-    Widget sideButton(double h) => Container(
-      width: width * 0.014,
-      height: h,
-      decoration: BoxDecoration(
-        color: btn,
-        borderRadius: BorderRadius.circular(4),
-      ),
-    );
+    final android = 1 - style;
+
+    Widget sideButton({
+      required bool left,
+      required double topF,
+      required double heightF,
+      required double opacity,
+    }) {
+      final o = opacity.clamp(0.0, 1.0);
+      if (o <= 0.01 || heightF <= 0.001) return const SizedBox.shrink();
+      return Positioned(
+        left: left ? -width * 0.008 : null,
+        right: left ? null : -width * 0.008,
+        top: height * topF,
+        child: Opacity(
+          opacity: o,
+          child: Container(
+            width: width * 0.014,
+            height: height * heightF,
+            decoration: BoxDecoration(
+              color: btn,
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+        ),
+      );
+    }
 
     return Stack(
       clipBehavior: Clip.none,
       children: [
         phone,
-        Positioned(
-          left: -width * 0.008,
-          top: height * 0.22,
-          child: sideButton(height * 0.07),
+        sideButton(
+          left: true,
+          topF: 0.22,
+          heightF: 0.15 * android,
+          opacity: android,
         ),
-        Positioned(
-          left: -width * 0.008,
-          top: height * 0.31,
-          child: sideButton(height * 0.07),
+        sideButton(
+          left: false,
+          topF: 0.27,
+          heightF: 0.11 * android,
+          opacity: android,
         ),
-        Positioned(
-          right: -width * 0.008,
-          top: height * 0.26,
-          child: sideButton(height * 0.12),
+        sideButton(
+          left: true,
+          topF: 0.15,
+          heightF: 0.05 * style,
+          opacity: style,
+        ),
+        sideButton(
+          left: true,
+          topF: 0.24,
+          heightF: 0.10 * style,
+          opacity: style,
+        ),
+        sideButton(
+          left: true,
+          topF: 0.36,
+          heightF: 0.10 * style,
+          opacity: style,
         ),
       ],
     );

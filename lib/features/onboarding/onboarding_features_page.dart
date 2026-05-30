@@ -80,7 +80,8 @@ class _OnboardingFeaturesPageState extends State<OnboardingFeaturesPage>
   Timer? _auto;
   final _textSnapKey = GlobalKey<SnapDissolveState>();
 
-  static const _pxPerStep = 150.0;
+  double _pxPerStep = 150.0;
+  double _flickVelocity = 250.0;
 
   @override
   void initState() {
@@ -161,9 +162,9 @@ class _OnboardingFeaturesPageState extends State<OnboardingFeaturesPage>
     final v = d.primaryVelocity ?? 0;
     final delta = _focus - _dragAnchor;
     double target = _dragAnchor;
-    if (v < -250 || delta > 0.3) {
+    if (v < -_flickVelocity || delta > 0.3) {
       target = _dragAnchor + 1;
-    } else if (v > 250 || delta < -0.3) {
+    } else if (v > _flickVelocity || delta < -0.3) {
       target = _dragAnchor - 1;
     }
     _settleTo(target);
@@ -175,6 +176,9 @@ class _OnboardingFeaturesPageState extends State<OnboardingFeaturesPage>
     final l10n = AppL10n.of(context);
     final palette = context.palette;
     final orbs = [for (final f in _features) f.spec];
+    final w = MediaQuery.sizeOf(context).width;
+    _pxPerStep = (w * 0.37).clamp(140.0, 480.0);
+    _flickVelocity = (w * 0.6).clamp(240.0, 760.0);
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,

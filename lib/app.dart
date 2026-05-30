@@ -64,9 +64,16 @@ class MyPrayersApp extends ConsumerWidget {
       builder: (ctx, child) {
         final activeLocale = Localizations.localeOf(ctx);
         final isRtl = isRtlLang(langKey(activeLocale));
-        final content = settings.onboardingComplete
-            ? (child ?? const SizedBox())
-            : const OnboardingFlow();
+        final Widget content;
+        if (settings.onboardingComplete) {
+          content = child ?? const SizedBox();
+        } else {
+          content = Overlay(
+            initialEntries: [
+              OverlayEntry(builder: (_) => const OnboardingFlow()),
+            ],
+          );
+        }
         return MediaQuery(
           data: MediaQuery.of(ctx).copyWith(
             textScaler: TextScaler.noScaling,

@@ -1,27 +1,35 @@
 const ckbBundle = <String, String>{
   'appName': 'سەکینە',
   'onboarding.language.title': 'زمان هەڵبژێرە',
-  'onboarding.language.subtitle': 'زمانەکەت هەڵبژێرە بۆ بەردەوامبوون.\nدواتر دەتوانیت بیگۆڕیت.',
+  'onboarding.language.subtitle':
+      'زمانەکەت هەڵبژێرە بۆ بەردەوامبوون.\nدواتر دەتوانیت بیگۆڕیت.',
   'onboarding.continue': 'بەردەوامبوون',
   'onboarding.next': 'دواتر',
   'onboarding.skip': 'تێپەڕاندن',
   'onboarding.getStarted': 'دەستپێبکە',
   'onboarding.finish': 'بچۆ ناو سەکینە',
   'onboarding.feature.prayer.title': 'کاتەکانی نوێژ و بانگ',
-  'onboarding.feature.prayer.subtitle': 'کاتی وردی نوێژ بۆ شوێنەکەت، لەگەڵ بانگدان لە هەر نوێژێکدا.',
+  'onboarding.feature.prayer.subtitle':
+      'کاتی وردی نوێژ بۆ شوێنەکەت، لەگەڵ بانگدان لە هەر نوێژێکدا.',
   'onboarding.feature.qibla.title': 'ئاراستەی قیبلە',
-  'onboarding.feature.qibla.subtitle': 'قیبلەنمایەکی زیندوو کە هەمیشە ئاراستەی کەعبە دەکات لە مەککە.',
+  'onboarding.feature.qibla.subtitle':
+      'قیبلەنمایەکی زیندوو کە هەمیشە ئاراستەی کەعبە دەکات لە مەککە.',
   'onboarding.feature.quran.title': 'قورئانی پیرۆز',
-  'onboarding.feature.quran.subtitle': 'هەموو قورئان بخوێنەرەوە لەگەڵ وەرگێڕان و تەفسیر و قاریان.',
+  'onboarding.feature.quran.subtitle':
+      'هەموو قورئان بخوێنەرەوە لەگەڵ وەرگێڕان و تەفسیر و قاریان.',
   'onboarding.feature.more.title': 'ئەزکار و تەسبیح و زیاتر',
-  'onboarding.feature.more.subtitle': 'ئەزکاری ڕۆژانە، تەسبیحی دیجیتاڵ، ٩٩ ناوەکانی خودا، ساڵنامەی کۆچی، و ویجێتی شاشەی سەرەکی.',
+  'onboarding.feature.more.subtitle':
+      'ئەزکاری ڕۆژانە، تەسبیحی دیجیتاڵ، ٩٩ ناوەکانی خودا، ساڵنامەی کۆچی، و ویجێتی شاشەی سەرەکی.',
   'onboarding.setup.location.title': 'شوێنەکەت',
-  'onboarding.setup.location.subtitle': 'بۆ ژماردنی وردی کاتەکانی نوێژ بەکاردێت، و لەسەر ئامێرەکەت دەمێنێتەوە.',
+  'onboarding.setup.location.subtitle':
+      'بۆ ژماردنی وردی کاتەکانی نوێژ بەکاردێت، و لەسەر ئامێرەکەت دەمێنێتەوە.',
   'onboarding.setup.notifications.title': 'ئاگادارکردنەوەی نوێژ',
-  'onboarding.setup.notifications.subtitle': 'ئاگادار بکرێیتەوە و گوێ لە بانگ بگرە لە هەر نوێژێکدا.',
+  'onboarding.setup.notifications.subtitle':
+      'ئاگادار بکرێیتەوە و گوێ لە بانگ بگرە لە هەر نوێژێکدا.',
   'onboarding.setup.notifications.enable': 'چالاککردنی ئاگادارکردنەوەی نوێژ',
   'onboarding.setup.appearance.title': 'ڕووکار',
-  'onboarding.setup.appearance.subtitle': 'هەڵبژێرە سەکینە چۆن دەربکەوێت. هەر کاتێک دەتوانیت بیگۆڕیت.',
+  'onboarding.setup.appearance.subtitle':
+      'هەڵبژێرە سەکینە چۆن دەربکەوێت. هەر کاتێک دەتوانیت بیگۆڕیت.',
   'onboarding.theme.auto': 'خۆکار',
   'onboarding.theme.light': 'ڕووناک',
   'onboarding.theme.dark': 'تاریک',
@@ -72,7 +80,8 @@ const ckbBundle = <String, String>{
   'qibla.bearing': 'ئاراستەی قیبلە',
   'qibla.heading': 'ئاراستەی ئێستا',
   'qibla.distance': 'دوری بۆ کەعبە',
-  'qibla.calibrate': 'مۆبایلەکەت بەلای ڕاست و چەپدا بجوڵێنە بۆ ڕێکخستنی قیبلەنما',
+  'qibla.calibrate':
+      'مۆبایلەکەت بەلای ڕاست و چەپدا بجوڵێنە بۆ ڕێکخستنی قیبلەنما',
   'qibla.noCompass': 'قیبلەنما بەردەست نییە — ئاراستەکە بە جێگیری دەردەکەوێ',
   'qibla.enable': 'چالاککردنی قیبلەنما',
   'azkars.title': 'ئەزکار',
@@ -129,7 +138,8 @@ const ckbBundle = <String, String>{
   'settings.save': 'پاراستن',
   'settings.minutes': 'خو',
   'mushaf.installTitle': 'پاکەی فۆنتی موسحەف',
-  'mushaf.installBody': 'دۆخی موسحەف بۆ هەر پەڕەیەک فۆنتێکی تایبەتی بەکاردێنێ (٦٠٤ پەڕە). بۆ یەکەم جار، نزیکەی ٣٦٠ مێگابایت دادەبەزرێت. پاشان بێ ئینتەرنێت کاردەکات.',
+  'mushaf.installBody':
+      'دۆخی موسحەف بۆ هەر پەڕەیەک فۆنتێکی تایبەتی بەکاردێنێ (٦٠٤ پەڕە). بۆ یەکەم جار، نزیکەی ٣٦٠ مێگابایت دادەبەزرێت. پاشان بێ ئینتەرنێت کاردەکات.',
   'mushaf.installAction': 'دابەزاندن',
   'mushaf.installing': 'دادەبەزرێت…',
   'mushaf.installFonts': 'فۆنتەکانی پەڕەکان',
@@ -139,11 +149,13 @@ const ckbBundle = <String, String>{
   'mushaf.installRetry': 'دووبارە',
   'mushaf.installDone': 'کردنەوەی موسحەف',
   'mushaf.removeTitle': 'سڕینەوەی پاکەی فۆنتی موسحەف',
-  'mushaf.removeBody': 'نزیکەی ٣٦٠ مێگابایت ئازاد دەکات. دۆخی موسحەف کار ناکات تا دیسان دایبەزێنیت.',
+  'mushaf.removeBody':
+      'نزیکەی ٣٦٠ مێگابایت ئازاد دەکات. دۆخی موسحەف کار ناکات تا دیسان دایبەزێنیت.',
   'common.retry': 'دووبارە هەوڵبدە',
   'settings.resources': 'سەرچاوەکان',
   'resources.title': 'سەرچاوەکان',
-  'resources.description': 'دەنگخوێندن و تەفسیر و ناوەڕۆکی دیکە دابەزێنە بۆ بەکارهێنانی ئۆفلاین. کلیک لەسەر بکە بۆ بەڕێوەبردنی.',
+  'resources.description':
+      'دەنگخوێندن و تەفسیر و ناوەڕۆکی دیکە دابەزێنە بۆ بەکارهێنانی ئۆفلاین. کلیک لەسەر بکە بۆ بەڕێوەبردنی.',
   'resources.reciters': 'قاری',
   'resources.tafsirs': 'تەفسیرەکان',
   'resources.fonts': 'فۆنتەکان',
@@ -153,8 +165,10 @@ const ckbBundle = <String, String>{
   'reciters.install': 'دابەزاندن',
   'reciters.uninstall': 'سڕینەوە',
   'reciters.installing': 'دابەزاندنی تلاوە',
-  'reciters.installingBody': '٦٢٣٦ فایلی دەنگی ئایەت دادەبەزێت. دەتوانیت بەکارهێنانی ئەپ بەردەوام بکەیت.',
-  'reciters.installingBodyChapters': '١١٤ فایلی دەنگی سورە دادەبەزێت. دەتوانیت بەکارهێنانی ئەپ بەردەوام بکەیت.',
+  'reciters.installingBody':
+      '٦٢٣٦ فایلی دەنگی ئایەت دادەبەزێت. دەتوانیت بەکارهێنانی ئەپ بەردەوام بکەیت.',
+  'reciters.installingBodyChapters':
+      '١١٤ فایلی دەنگی سورە دادەبەزێت. دەتوانیت بەکارهێنانی ئەپ بەردەوام بکەیت.',
   'reciters.installComplete': 'تلاوە ئامادەیە',
   'reciters.installFailed': 'دابەزاندن سەرکەوتوو نەبوو',
   'reciters.approxSize': 'پێویستە {n} میگابایت دابەزێت',
@@ -162,9 +176,11 @@ const ckbBundle = <String, String>{
   'reciters.chapterOnly':
       'ئەم قاریە تەنیا سورە تەواوەکان دەخوێنێتەوە. دوگمەی لێدانی سورە بەکاربهێنە.',
   'reciters.uninstallTitle': 'سڕینەوەی تلاوە',
-  'reciters.uninstallBody': 'بۆشاییەکەی {name} ئازاد دەبێتەوە. دەتوانیت دواتر دیسان دایبەزێنیت.',
+  'reciters.uninstallBody':
+      'بۆشاییەکەی {name} ئازاد دەبێتەوە. دەتوانیت دواتر دیسان دایبەزێنیت.',
   'reciters.notInstalled': 'هیچ قاریەک نییە',
-  'reciters.notInstalledBody': 'قاریەک دابەزێنە لە ڕێگای ڕێکخستن ← سەرچاوەکان، یان تەنیا ئەم ئایەتە دابەزێنە.',
+  'reciters.notInstalledBody':
+      'قاریەک دابەزێنە لە ڕێگای ڕێکخستن ← سەرچاوەکان، یان تەنیا ئەم ئایەتە دابەزێنە.',
   'reciters.downloadThisAyah': 'دابەزاندنی ئەم ئایەتە',
   'reciters.openResources': 'کردنەوەی سەرچاوەکان',
   'reciters.play': 'لێدان',
@@ -185,13 +201,15 @@ const ckbBundle = <String, String>{
   'tafsirs.sample': 'نمونە',
   'tafsirs.samplePrefix': 'ئایەت',
   'tafsirs.noneSelected': 'هیچ تەفسیرێک نەهەڵبژێردراوە',
-  'tafsirs.noneSelectedBody': 'تەفسیرێک هەڵبژێرە لە سەرچاوەکان. تەنیا تێکستی ئەو ئایەتانە دادەبەزێت کە دەکرێنەوە.',
+  'tafsirs.noneSelectedBody':
+      'تەفسیرێک هەڵبژێرە لە سەرچاوەکان. تەنیا تێکستی ئەو ئایەتانە دادەبەزێت کە دەکرێنەوە.',
   'tafsirs.chooseTafsir': 'تەفسیرێک هەڵبژێرە',
   'tafsirs.empty': 'تەفسیر بۆ ئەم ئایەتە بەردەست نییە.',
   'tafsirs.installTitle': 'دابەزاندنی تەفسیر',
   'tafsirs.installing': 'تەفسیر دادەبەزێت',
   'tafsirs.installingBody': 'تەفسیر بۆ هەموو ئایەتەکان (٦٢٣٦) دادەبەزێت.',
-  'tafsirs.installNote': 'تەفسیر بۆ هەموو ئایەتەکان (٦٢٣٦) دادەبەزێت بۆ خوێندنەوەی بێ ئینتەرنێت. نزیکەی ١٠–٣٠ مێگابایت.',
+  'tafsirs.installNote':
+      'تەفسیر بۆ هەموو ئایەتەکان (٦٢٣٦) دادەبەزێت بۆ خوێندنەوەی بێ ئینتەرنێت. نزیکەی ١٠–٣٠ مێگابایت.',
   'tafsirs.uninstallTitle': 'لابردنی تەفسیر',
   'settings.translationFontSize': 'قەبارەی فۆنتی وەرگێڕان',
   'settings.boldText': 'دەقی ئەستوور',
@@ -199,9 +217,11 @@ const ckbBundle = <String, String>{
   'settings.boldTranslation': 'وەرگێڕانی ئەستوور',
   'quran.playSurah': 'لێدانی سورە',
   'quran.installToPlayTitle': 'قاری دابەزێنە بۆ لێدانی سورە',
-  'quran.installToPlayBody': 'بۆ لێدانی هەموو سورەکە پێویستە قاری چالاک بە تەواوی دابەزێنرابێت. سەرچاوەکان بکەرەوە بۆ دەستپێکردنی دابەزاندن.',
+  'quran.installToPlayBody':
+      'بۆ لێدانی هەموو سورەکە پێویستە قاری چالاک بە تەواوی دابەزێنرابێت. سەرچاوەکان بکەرەوە بۆ دەستپێکردنی دابەزاندن.',
   'quran.downloadSurahTitle': 'دابەزاندنی سورە',
-  'quran.downloadSurahBody': 'دەنگی ئەم سورەیە دادەبەزێنرێت. ئەمە تەنیا یەک جار ڕوودەدات بۆ هەر سورە و قاریەک.',
+  'quran.downloadSurahBody':
+      'دەنگی ئەم سورەیە دادەبەزێنرێت. ئەمە تەنیا یەک جار ڕوودەدات بۆ هەر سورە و قاریەک.',
   'resources.surahInfo': 'زانیاری سورە',
   'resources.surahNameFont': 'فۆنتی ناوی سورە',
   'resources.mushafFontPack': 'پاکەی فۆنتی موسحەف',
@@ -211,10 +231,12 @@ const ckbBundle = <String, String>{
   'surahInfo.empty': 'وەسف بۆ ئەم سورەیە بەردەست نییە.',
   'surahInfo.installTitle': 'دابەزاندنی زانیاری سورە',
   'surahInfo.installingBody': 'وەسفی هەر ١١٤ سورە دادەبەزێت بەم زمانە.',
-  'surahInfo.description': 'زمانێک هەڵبژێرە بۆ دابەزاندنی وەسفی هەموو ١١٤ سورە. سەرچاوەکە تەنیا ئینگلیزی و ئوردی و تامیلی و مالایالامی و ئیتالی پشتگیری دەکات — عەرەبی بەردەست نییە.',
+  'surahInfo.description':
+      'زمانێک هەڵبژێرە بۆ دابەزاندنی وەسفی هەموو ١١٤ سورە. سەرچاوەکە تەنیا ئینگلیزی و ئوردی و تامیلی و مالایالامی و ئیتالی پشتگیری دەکات — عەرەبی بەردەست نییە.',
   'quran.moreActions': 'زیاتر',
   'popular.title': 'ئایەتی ڕۆژانە',
-  'popular.description': 'لیستێکی ئایەت و سورە بەنرخەکانە کە لەگەڵ سوودەکانیان هاتوون.',
+  'popular.description':
+      'لیستێکی ئایەت و سورە بەنرخەکانە کە لەگەڵ سوودەکانیان هاتوون.',
   'popular.fatiha': 'سورەی فاتیحە',
   'popular.fatiha_benefit': 'دایکی کتێب — لە هەموو نوێژێکدا دەخوێنرێت.',
   'popular.kursi': 'ئایەتی کورسی',
@@ -226,7 +248,8 @@ const ckbBundle = <String, String>{
   'popular.kahfLast10': 'دوا دە ئایەتی کەهف',
   'popular.kahfLast10_benefit': 'پاراستن لە تاقیکردنەوەی دەججال.',
   'popular.kahf': 'سورەی کەهف',
-  'popular.kahf_benefit': 'لە جومعەدا دەخوێنرێت — ڕووناکی لە نێوان دوو جومعەدا.',
+  'popular.kahf_benefit':
+      'لە جومعەدا دەخوێنرێت — ڕووناکی لە نێوان دوو جومعەدا.',
   'popular.sajdah': 'سورەی سەجدە',
   'popular.sajdah_benefit': 'هەموو شەوێکی هەینی لەگەڵ سورەی موڵک دەخوێنرێت.',
   'popular.yaseen': 'سورەی یاسین',
@@ -295,7 +318,8 @@ const ckbBundle = <String, String>{
   'settings.notificationsHint': 'ئەزان لە کاتی هەر نوێژێکی چالاکدا دەژمێردرێ',
   'settings.sendTestNotification': 'ناردنی ئاگادارکردنەوەی تاقیکردنەوە',
   'settings.notificationsBlockedTitle': 'ئاگادارکردنەوەکان داخراون',
-  'settings.notificationsBlockedBody': 'لە ڕێکخستنەکانی مۆبایلەکەت ئاگادارکردنەوە بۆ "سەکینە" چالاک بکە بۆ گوێگرتنی ئەزان لە کاتی هەر نوێژێک.',
+  'settings.notificationsBlockedBody':
+      'لە ڕێکخستنەکانی مۆبایلەکەت ئاگادارکردنەوە بۆ "سەکینە" چالاک بکە بۆ گوێگرتنی ئەزان لە کاتی هەر نوێژێک.',
   'settings.openSystemSettings': 'کردنەوەی ڕێکخستنەکان',
   'settings.timeFormat': 'شێوازی کات',
   'settings.time12h': '١٢ کاتژمێر',
@@ -317,4 +341,15 @@ const ckbBundle = <String, String>{
   'common.tryAgain': 'دووبارە هەوڵبدە',
   'common.noResults': 'هیچ ئەنجامێک نییە',
   'common.done': 'تەواو',
+  'location.error.serviceOff':
+      'بۆ دۆزینەوەی شوێنەکەت، خزمەتگوزاری شوێن چالاک بکە.',
+  'location.error.denied': 'بۆ دۆزینەوەی شوێنەکەت، مۆڵەتی شوێن پێویستە.',
+  'location.error.deniedForever':
+      'مۆڵەتی شوێن ڕاگیراوە. لە ڕێکخستنەکان چالاکی بکە، یان بەدوای شارەکەتدا بگەڕێ.',
+  'location.error.timeout':
+      'نەتوانرا شوێنەکەت بدۆزرێتەوە. دووبارە هەوڵبدە، یان بەدوای شارەکەتدا بگەڕێ.',
+  'location.error.notFound':
+      'هیچ شارێکی نزیک نەدۆزرایەوە. تکایە بەدوای شارەکەتدا بگەڕێ.',
+  'location.error.unknown':
+      'نەتوانرا شوێنەکەت بدۆزرێتەوە. تکایە بەدوای شارەکەتدا بگەڕێ.',
 };

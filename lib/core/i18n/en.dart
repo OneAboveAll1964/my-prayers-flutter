@@ -1,27 +1,35 @@
 const enBundle = <String, String>{
   'appName': 'Sakina',
   'onboarding.language.title': 'Choose Language',
-  'onboarding.language.subtitle': 'Choose your language to proceed.\nYou can change this later.',
+  'onboarding.language.subtitle':
+      'Choose your language to proceed.\nYou can change this later.',
   'onboarding.continue': 'Continue',
   'onboarding.next': 'Next',
   'onboarding.skip': 'Skip',
   'onboarding.getStarted': 'Get Started',
   'onboarding.finish': 'Enter Sakina',
   'onboarding.feature.prayer.title': 'Prayer Times & Adhan',
-  'onboarding.feature.prayer.subtitle': 'Accurate prayer times for your location, with the adhan played at every prayer.',
+  'onboarding.feature.prayer.subtitle':
+      'Accurate prayer times for your location, with the adhan played at every prayer.',
   'onboarding.feature.qibla.title': 'Qibla Direction',
-  'onboarding.feature.qibla.subtitle': 'A live compass that always points you toward the Kaaba in Makkah.',
+  'onboarding.feature.qibla.subtitle':
+      'A live compass that always points you toward the Kaaba in Makkah.',
   'onboarding.feature.quran.title': 'The Holy Quran',
-  'onboarding.feature.quran.subtitle': 'Read the entire Quran with translations, tafsir and reciters.',
+  'onboarding.feature.quran.subtitle':
+      'Read the entire Quran with translations, tafsir and reciters.',
   'onboarding.feature.more.title': 'Adhkar, Tasbih & More',
-  'onboarding.feature.more.subtitle': 'Daily adhkar, a digital tasbih, the 99 Names, the Hijri calendar and a home‑screen widget.',
+  'onboarding.feature.more.subtitle':
+      'Daily adhkar, a digital tasbih, the 99 Names, the Hijri calendar and a home‑screen widget.',
   'onboarding.setup.location.title': 'Your Location',
-  'onboarding.setup.location.subtitle': 'Used to calculate accurate prayer times. It stays on your device.',
+  'onboarding.setup.location.subtitle':
+      'Used to calculate accurate prayer times. It stays on your device.',
   'onboarding.setup.notifications.title': 'Prayer Notifications',
-  'onboarding.setup.notifications.subtitle': 'Be notified and hear the adhan at each prayer time.',
+  'onboarding.setup.notifications.subtitle':
+      'Be notified and hear the adhan at each prayer time.',
   'onboarding.setup.notifications.enable': 'Enable prayer notifications',
   'onboarding.setup.appearance.title': 'Appearance',
-  'onboarding.setup.appearance.subtitle': 'Choose how Sakina looks. You can change this anytime.',
+  'onboarding.setup.appearance.subtitle':
+      'Choose how Sakina looks. You can change this anytime.',
   'onboarding.theme.auto': 'Automatic',
   'onboarding.theme.light': 'Light',
   'onboarding.theme.dark': 'Dark',
@@ -73,7 +81,8 @@ const enBundle = <String, String>{
   'qibla.heading': 'Heading',
   'qibla.distance': 'Distance to Kaaba',
   'qibla.calibrate': 'Wave your phone side to side to calibrate the compass',
-  'qibla.noCompass': 'Compass not available — facing direction shown statically',
+  'qibla.noCompass':
+      'Compass not available — facing direction shown statically',
   'qibla.enable': 'Enable compass',
   'azkars.title': 'Azkars',
   'azkars.search': 'Search azkars',
@@ -129,7 +138,8 @@ const enBundle = <String, String>{
   'settings.save': 'Save',
   'settings.minutes': 'min',
   'mushaf.installTitle': 'Mushaf font pack',
-  'mushaf.installBody': 'Mushaf mode renders the Madinah Mushaf with one specialized font per page (604 pages). The first time, around 360 MB needs to be downloaded. After that everything works offline.',
+  'mushaf.installBody':
+      'Mushaf mode renders the Madinah Mushaf with one specialized font per page (604 pages). The first time, around 360 MB needs to be downloaded. After that everything works offline.',
   'mushaf.installAction': 'Download',
   'mushaf.installing': 'Downloading…',
   'mushaf.installFonts': 'Page fonts',
@@ -139,11 +149,13 @@ const enBundle = <String, String>{
   'mushaf.installRetry': 'Retry',
   'mushaf.installDone': 'Open Mushaf',
   'mushaf.removeTitle': 'Remove mushaf font pack',
-  'mushaf.removeBody': 'This frees ~360 MB of storage. Mushaf reading mode won\'t work until you install it again.',
+  'mushaf.removeBody':
+      'This frees ~360 MB of storage. Mushaf reading mode won\'t work until you install it again.',
   'common.retry': 'Retry',
   'settings.resources': 'Resources',
   'resources.title': 'Resources',
-  'resources.description': 'Download recitations, tafsirs and other content for offline use. Tap an item to manage it.',
+  'resources.description':
+      'Download recitations, tafsirs and other content for offline use. Tap an item to manage it.',
   'resources.reciters': 'Reciters',
   'resources.tafsirs': 'Tafsirs',
   'resources.fonts': 'Fonts',
@@ -153,8 +165,10 @@ const enBundle = <String, String>{
   'reciters.install': 'Install',
   'reciters.uninstall': 'Remove',
   'reciters.installing': 'Downloading recitation',
-  'reciters.installingBody': 'Downloading 6,236 ayah audio files. You can keep using the app — this continues in the background.',
-  'reciters.installingBodyChapters': 'Downloading 114 surah audio files. You can keep using the app — this continues in the background.',
+  'reciters.installingBody':
+      'Downloading 6,236 ayah audio files. You can keep using the app — this continues in the background.',
+  'reciters.installingBodyChapters':
+      'Downloading 114 surah audio files. You can keep using the app — this continues in the background.',
   'reciters.installComplete': 'Recitation ready',
   'reciters.installFailed': 'Download failed',
   'reciters.approxSize': '{n} MB needs to download',
@@ -162,9 +176,11 @@ const enBundle = <String, String>{
   'reciters.chapterOnly':
       'This reciter only plays full surahs. Use the play-surah button.',
   'reciters.uninstallTitle': 'Remove recitation',
-  'reciters.uninstallBody': 'This frees the disk space used by {name}. You can install it again later.',
+  'reciters.uninstallBody':
+      'This frees the disk space used by {name}. You can install it again later.',
   'reciters.notInstalled': 'No reciter installed',
-  'reciters.notInstalledBody': 'Install a reciter from Settings → Resources, or download just this ayah.',
+  'reciters.notInstalledBody':
+      'Install a reciter from Settings → Resources, or download just this ayah.',
   'reciters.downloadThisAyah': 'Download this ayah',
   'reciters.openResources': 'Open Resources',
   'reciters.play': 'Play',
@@ -185,13 +201,15 @@ const enBundle = <String, String>{
   'tafsirs.sample': 'Sample',
   'tafsirs.samplePrefix': 'Verse',
   'tafsirs.noneSelected': 'No tafsir selected',
-  'tafsirs.noneSelectedBody': 'Pick a tafsir from Resources. The text downloads only for ayahs you open.',
+  'tafsirs.noneSelectedBody':
+      'Pick a tafsir from Resources. The text downloads only for ayahs you open.',
   'tafsirs.chooseTafsir': 'Choose a tafsir',
   'tafsirs.empty': 'No tafsir text for this ayah.',
   'tafsirs.installTitle': 'Download tafsir',
   'tafsirs.installing': 'Downloading tafsir',
   'tafsirs.installingBody': 'Downloading tafsir for all 6236 ayahs.',
-  'tafsirs.installNote': 'All 6236 ayahs will download for offline use. ~10–30 MB depending on the tafsir.',
+  'tafsirs.installNote':
+      'All 6236 ayahs will download for offline use. ~10–30 MB depending on the tafsir.',
   'tafsirs.uninstallTitle': 'Remove tafsir',
   'settings.translationFontSize': 'Translation font size',
   'settings.boldText': 'Bold text',
@@ -199,9 +217,11 @@ const enBundle = <String, String>{
   'settings.boldTranslation': 'Bold translation',
   'quran.playSurah': 'Play surah',
   'quran.installToPlayTitle': 'Install reciter to play surah',
-  'quran.installToPlayBody': 'Playing the entire surah requires the active reciter to be fully downloaded. Open Resources to start the install.',
+  'quran.installToPlayBody':
+      'Playing the entire surah requires the active reciter to be fully downloaded. Open Resources to start the install.',
   'quran.downloadSurahTitle': 'Downloading surah',
-  'quran.downloadSurahBody': 'Downloading the audio for this surah. This only happens once per surah and reciter.',
+  'quran.downloadSurahBody':
+      'Downloading the audio for this surah. This only happens once per surah and reciter.',
   'resources.surahInfo': 'Surah info',
   'resources.surahNameFont': 'Surah name calligraphy',
   'resources.mushafFontPack': 'Mushaf font pack',
@@ -210,11 +230,14 @@ const enBundle = <String, String>{
   'surahInfo.selectActive': 'Tap a language to make it active',
   'surahInfo.empty': 'No description is available for this surah.',
   'surahInfo.installTitle': 'Install surah info',
-  'surahInfo.installingBody': 'Downloading description for all 114 surahs in this language.',
-  'surahInfo.description': 'Pick a language to download all 114 surah descriptions for offline reading. Surah info is only available from Quran.com in English, Urdu, Tamil, Malayalam and Italian — Arabic isn\'t supported by the upstream source.',
+  'surahInfo.installingBody':
+      'Downloading description for all 114 surahs in this language.',
+  'surahInfo.description':
+      'Pick a language to download all 114 surah descriptions for offline reading. Surah info is only available from Quran.com in English, Urdu, Tamil, Malayalam and Italian — Arabic isn\'t supported by the upstream source.',
   'quran.moreActions': 'More',
   'popular.title': 'Daily ayahs',
-  'popular.description': 'A curated list of frequently recited ayahs and surahs with reported benefits.',
+  'popular.description':
+      'A curated list of frequently recited ayahs and surahs with reported benefits.',
   'popular.fatiha': 'Surah Al-Fatiha',
   'popular.fatiha_benefit': 'The opening — recited in every prayer.',
   'popular.kursi': 'Ayat al-Kursi',
@@ -238,7 +261,8 @@ const enBundle = <String, String>{
   'popular.hashrLast3': 'Last 3 ayahs of Al-Hashr',
   'popular.hashrLast3_benefit': 'Forgiveness if recited morning and evening.',
   'popular.mulk': 'Surah Al-Mulk',
-  'popular.mulk_benefit': 'Intercedes for its reciter — protection in the grave.',
+  'popular.mulk_benefit':
+      'Intercedes for its reciter — protection in the grave.',
   'popular.ikhlas': 'Surah Al-Ikhlas',
   'popular.ikhlas_benefit': 'Equal in reward to a third of the Quran.',
   'popular.falaq': 'Surah Al-Falaq',
@@ -295,7 +319,8 @@ const enBundle = <String, String>{
   'settings.notificationsHint': 'Adhan plays at each enabled prayer',
   'settings.sendTestNotification': 'Send test notification',
   'settings.notificationsBlockedTitle': 'Notifications are blocked',
-  'settings.notificationsBlockedBody': 'Allow notifications for Sakina in your phone\'s settings to hear the adhan at each prayer.',
+  'settings.notificationsBlockedBody':
+      'Allow notifications for Sakina in your phone\'s settings to hear the adhan at each prayer.',
   'settings.openSystemSettings': 'Open Settings',
   'settings.timeFormat': 'Time format',
   'settings.time12h': '12-hour',
@@ -317,4 +342,16 @@ const enBundle = <String, String>{
   'common.tryAgain': 'Try again',
   'common.noResults': 'No results',
   'common.done': 'Done',
+  'location.error.serviceOff':
+      'Turn on location services to detect your location.',
+  'location.error.denied':
+      'Location permission is needed to detect your location.',
+  'location.error.deniedForever':
+      'Location permission is blocked. Enable it in Settings, or search for your city instead.',
+  'location.error.timeout':
+      'Couldn’t get your location. Try again, or search for your city.',
+  'location.error.notFound':
+      'No nearby city found. Please search for your city.',
+  'location.error.unknown':
+      'Couldn’t detect your location. Please search for your city.',
 };

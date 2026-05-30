@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/i18n/app_l10n.dart';
 import '../../core/services/notification_service.dart';
@@ -49,32 +48,15 @@ class _SettingsLocationPageState extends ConsumerState<SettingsLocationPage> {
   }
 
   Future<void> _detect() async {
+    if (_detecting) return;
     setState(() => _detecting = true);
-    try {
-      final perm = await Geolocator.checkPermission();
-      var allowed = perm == LocationPermission.always ||
-          perm == LocationPermission.whileInUse;
-      if (!allowed) {
-        final req = await Geolocator.requestPermission();
-        allowed = req == LocationPermission.always ||
-            req == LocationPermission.whileInUse;
-      }
-      if (!allowed) {
-        if (mounted) setState(() => _detecting = false);
-        return;
-      }
-      final pos = await Geolocator.getCurrentPosition(
-          locationSettings: const LocationSettings(
-              accuracy: LocationAccuracy.medium));
-      final found = await LocationRepository.instance
-          .reverseGeocode(pos.latitude, pos.longitude);
-      if (!mounted) return;
-      if (found != null) {
-        _select(found);
-      }
-    } catch (_) {
-    } finally {
-      if (mounted) setState(() => _detecting = false);
+    final result = await LocationRepository.instance.detectCurrentLocation();
+    if (!mounted) return;
+    setState(() => _detecting = false);
+    if (result.ok) {
+      _select(result.location!);
+    } else {
+      showLocationDetectError(context, result.error!);
     }
   }
 
@@ -109,13 +91,18 @@ class _SettingsLocationPageState extends ConsumerState<SettingsLocationPage> {
               back: true,
               search: AppTextField(
                 hintText: l10n.t('home.searchCity'),
-                prefix: Icon(Ionicons.search_outline,
-                    size: 18, color: palette.textMuted),
+                prefix: Icon(
+                  Ionicons.search_outline,
+                  size: 18,
+                  color: palette.textMuted,
+                ),
                 onChanged: (v) {
                   _query = v;
                   _debounce?.cancel();
                   _debounce = Timer(
-                      const Duration(milliseconds: 220), () => _runSearch(v));
+                    const Duration(milliseconds: 220),
+                    () => _runSearch(v),
+                  );
                 },
               ),
             ),
@@ -133,14 +120,19 @@ class _SettingsLocationPageState extends ConsumerState<SettingsLocationPage> {
                     variant: AppButtonVariant.outline,
                     onPressed: _detecting ? null : _detect,
                   ),
-                  if (_query.trim().isEmpty && fav.recentLocations.isNotEmpty) ...[
+                  if (_query.trim().isEmpty &&
+                      fav.recentLocations.isNotEmpty) ...[
                     const SizedBox(height: 16),
                     _SectionLabel(label: l10n.t('favorites.recentLocations')),
                     const SizedBox(height: 6),
                     AppSurface(
                       child: Column(
                         children: [
-                          for (var i = 0; i < fav.recentLocations.length; i++) ...[
+                          for (
+                            var i = 0;
+                            i < fav.recentLocations.length;
+                            i++
+                          ) ...[
                             _LocationRow(
                               location: fav.recentLocations[i],
                               onTap: () => _select(fav.recentLocations[i]),
@@ -162,8 +154,10 @@ class _SettingsLocationPageState extends ConsumerState<SettingsLocationPage> {
                     else if (_results.isEmpty)
                       Padding(
                         padding: const EdgeInsets.all(16),
-                        child: Text(l10n.t('common.noResults'),
-                            style: TextStyle(color: palette.textMuted)),
+                        child: Text(
+                          l10n.t('common.noResults'),
+                          style: TextStyle(color: palette.textMuted),
+                        ),
                       )
                     else
                       AppSurface(
@@ -204,12 +198,15 @@ class _SectionLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(left: 4),
-      child: Text(label,
-          style: TextStyle(
-              color: context.palette.textSubtle,
-              fontSize: 11.5,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 0.4)),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: context.palette.textSubtle,
+          fontSize: 11.5,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.4,
+        ),
+      ),
     );
   }
 }
@@ -248,28 +245,34 @@ class _LocationRowState extends State<_LocationRow> {
                 color: palette.accentSoft,
                 borderRadius: BorderRadius.circular(99),
               ),
-              child: Icon(Ionicons.location_outline,
-                  size: 14, color: palette.accent),
+              child: Icon(
+                Ionicons.location_outline,
+                size: 14,
+                color: palette.accent,
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(widget.location.name,
-                      style: TextStyle(
-                          color: palette.text,
-                          fontSize: 14.5,
-                          fontWeight: FontWeight.w600)),
+                  Text(
+                    widget.location.name,
+                    style: TextStyle(
+                      color: palette.text,
+                      fontSize: 14.5,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                   if (widget.location.countryName.isNotEmpty)
-                    Text(widget.location.countryName,
-                        style: TextStyle(
-                            color: palette.textSubtle, fontSize: 12)),
+                    Text(
+                      widget.location.countryName,
+                      style: TextStyle(color: palette.textSubtle, fontSize: 12),
+                    ),
                 ],
               ),
             ),
-            Icon(Ionicons.chevron_forward,
-                size: 18, color: palette.textMuted),
+            Icon(Ionicons.chevron_forward, size: 18, color: palette.textMuted),
           ],
         ),
       ),

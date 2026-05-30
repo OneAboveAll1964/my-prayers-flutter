@@ -8,20 +8,27 @@ const arBundle = <String, String>{
   'onboarding.getStarted': 'لنبدأ',
   'onboarding.finish': 'ادخل إلى سكينة',
   'onboarding.feature.prayer.title': 'مواقيت الصلاة والأذان',
-  'onboarding.feature.prayer.subtitle': 'مواقيت دقيقة لموقعك، مع رفع الأذان عند كل صلاة.',
+  'onboarding.feature.prayer.subtitle':
+      'مواقيت دقيقة لموقعك، مع رفع الأذان عند كل صلاة.',
   'onboarding.feature.qibla.title': 'اتجاه القبلة',
-  'onboarding.feature.qibla.subtitle': 'بوصلة حيّة تشير دائمًا نحو الكعبة في مكة.',
+  'onboarding.feature.qibla.subtitle':
+      'بوصلة حيّة تشير دائمًا نحو الكعبة في مكة.',
   'onboarding.feature.quran.title': 'القرآن الكريم',
-  'onboarding.feature.quran.subtitle': 'اقرأ القرآن كاملًا مع الترجمات والتفسير والقرّاء.',
+  'onboarding.feature.quran.subtitle':
+      'اقرأ القرآن كاملًا مع الترجمات والتفسير والقرّاء.',
   'onboarding.feature.more.title': 'الأذكار والتسبيح والمزيد',
-  'onboarding.feature.more.subtitle': 'أذكار يومية، ومسبحة رقمية، وأسماء الله الحسنى، والتقويم الهجري، وأداة للشاشة الرئيسية.',
+  'onboarding.feature.more.subtitle':
+      'أذكار يومية، ومسبحة رقمية، وأسماء الله الحسنى، والتقويم الهجري، وأداة للشاشة الرئيسية.',
   'onboarding.setup.location.title': 'موقعك',
-  'onboarding.setup.location.subtitle': 'يُستخدم لحساب مواقيت الصلاة بدقة، ويبقى على جهازك.',
+  'onboarding.setup.location.subtitle':
+      'يُستخدم لحساب مواقيت الصلاة بدقة، ويبقى على جهازك.',
   'onboarding.setup.notifications.title': 'إشعارات الصلاة',
-  'onboarding.setup.notifications.subtitle': 'تلقَّ إشعارًا واستمع إلى الأذان عند كل صلاة.',
+  'onboarding.setup.notifications.subtitle':
+      'تلقَّ إشعارًا واستمع إلى الأذان عند كل صلاة.',
   'onboarding.setup.notifications.enable': 'تفعيل إشعارات الصلاة',
   'onboarding.setup.appearance.title': 'المظهر',
-  'onboarding.setup.appearance.subtitle': 'اختر شكل سكينة. يمكنك تغييره في أي وقت.',
+  'onboarding.setup.appearance.subtitle':
+      'اختر شكل سكينة. يمكنك تغييره في أي وقت.',
   'onboarding.theme.auto': 'تلقائي',
   'onboarding.theme.light': 'فاتح',
   'onboarding.theme.dark': 'داكن',
@@ -129,7 +136,8 @@ const arBundle = <String, String>{
   'settings.save': 'حفظ',
   'settings.minutes': 'د',
   'mushaf.installTitle': 'حزمة خطوط المصحف',
-  'mushaf.installBody': 'وضع المصحف يستخدم خطًا مخصصًا لكل صفحة من ٦٠٤ صفحات. أول مرة فقط، يلزم تنزيل حوالي ٣٦٠ ميغابايت. بعد ذلك يعمل دون إنترنت.',
+  'mushaf.installBody':
+      'وضع المصحف يستخدم خطًا مخصصًا لكل صفحة من ٦٠٤ صفحات. أول مرة فقط، يلزم تنزيل حوالي ٣٦٠ ميغابايت. بعد ذلك يعمل دون إنترنت.',
   'mushaf.installAction': 'تنزيل',
   'mushaf.installing': 'جارٍ التنزيل…',
   'mushaf.installFonts': 'خطوط الصفحات',
@@ -139,11 +147,13 @@ const arBundle = <String, String>{
   'mushaf.installRetry': 'إعادة',
   'mushaf.installDone': 'فتح المصحف',
   'mushaf.removeTitle': 'إزالة حزمة خطوط المصحف',
-  'mushaf.removeBody': 'سيتم تحرير حوالي ٣٦٠ ميغابايت. لن يعمل وضع المصحف حتى تعيد تنزيل الحزمة.',
+  'mushaf.removeBody':
+      'سيتم تحرير حوالي ٣٦٠ ميغابايت. لن يعمل وضع المصحف حتى تعيد تنزيل الحزمة.',
   'common.retry': 'إعادة المحاولة',
   'settings.resources': 'الموارد',
   'resources.title': 'الموارد',
-  'resources.description': 'نزّل التلاوات والتفاسير والمحتوى الآخر للاستخدام دون اتصال. اضغط على عنصر لإدارته.',
+  'resources.description':
+      'نزّل التلاوات والتفاسير والمحتوى الآخر للاستخدام دون اتصال. اضغط على عنصر لإدارته.',
   'resources.reciters': 'القُرّاء',
   'resources.tafsirs': 'التفاسير',
   'resources.fonts': 'الخطوط',
@@ -153,8 +163,10 @@ const arBundle = <String, String>{
   'reciters.install': 'تنزيل',
   'reciters.uninstall': 'حذف',
   'reciters.installing': 'جارٍ تنزيل التلاوة',
-  'reciters.installingBody': 'يجري تنزيل ٦٬٢٣٦ ملف تلاوة. يمكنك متابعة استخدام التطبيق وسيستمر التنزيل في الخلفية.',
-  'reciters.installingBodyChapters': 'يجري تنزيل ١١٤ ملف تلاوة (سورة كاملة). يمكنك متابعة استخدام التطبيق وسيستمر التنزيل في الخلفية.',
+  'reciters.installingBody':
+      'يجري تنزيل ٦٬٢٣٦ ملف تلاوة. يمكنك متابعة استخدام التطبيق وسيستمر التنزيل في الخلفية.',
+  'reciters.installingBodyChapters':
+      'يجري تنزيل ١١٤ ملف تلاوة (سورة كاملة). يمكنك متابعة استخدام التطبيق وسيستمر التنزيل في الخلفية.',
   'reciters.installComplete': 'التلاوة جاهزة',
   'reciters.installFailed': 'فشل التنزيل',
   'reciters.approxSize': 'يلزم تنزيل {n} ميغابايت',
@@ -162,9 +174,11 @@ const arBundle = <String, String>{
   'reciters.chapterOnly':
       'هذا القارئ يُشغّل السور كاملةً فقط. استخدم زر تشغيل السورة.',
   'reciters.uninstallTitle': 'إزالة التلاوة',
-  'reciters.uninstallBody': 'سيتم تحرير المساحة التي تستخدمها {name}. يمكنك إعادة تنزيلها لاحقًا.',
+  'reciters.uninstallBody':
+      'سيتم تحرير المساحة التي تستخدمها {name}. يمكنك إعادة تنزيلها لاحقًا.',
   'reciters.notInstalled': 'لا يوجد قارئ مثبَّت',
-  'reciters.notInstalledBody': 'ثبّت قارئًا من الإعدادات ← الموارد، أو نزّل هذه الآية فقط.',
+  'reciters.notInstalledBody':
+      'ثبّت قارئًا من الإعدادات ← الموارد، أو نزّل هذه الآية فقط.',
   'reciters.downloadThisAyah': 'تنزيل هذه الآية',
   'reciters.openResources': 'فتح الموارد',
   'reciters.play': 'تشغيل',
@@ -185,13 +199,15 @@ const arBundle = <String, String>{
   'tafsirs.sample': 'عيّنة',
   'tafsirs.samplePrefix': 'الآية',
   'tafsirs.noneSelected': 'لم يتم اختيار تفسير',
-  'tafsirs.noneSelectedBody': 'اختر تفسيرًا من الموارد. لا يُنزَّل النص إلا للآيات التي تفتحها.',
+  'tafsirs.noneSelectedBody':
+      'اختر تفسيرًا من الموارد. لا يُنزَّل النص إلا للآيات التي تفتحها.',
   'tafsirs.chooseTafsir': 'اختر تفسيرًا',
   'tafsirs.empty': 'لا يوجد تفسير لهذه الآية.',
   'tafsirs.installTitle': 'تنزيل التفسير',
   'tafsirs.installing': 'جارٍ تنزيل التفسير',
   'tafsirs.installingBody': 'جارٍ تنزيل التفسير لجميع الآيات (٦٢٣٦).',
-  'tafsirs.installNote': 'سيُنزَّل التفسير لجميع الآيات (٦٢٣٦) للقراءة دون اتصال. الحجم حوالي ١٠–٣٠ ميجابايت.',
+  'tafsirs.installNote':
+      'سيُنزَّل التفسير لجميع الآيات (٦٢٣٦) للقراءة دون اتصال. الحجم حوالي ١٠–٣٠ ميجابايت.',
   'tafsirs.uninstallTitle': 'إزالة التفسير',
   'settings.translationFontSize': 'حجم خط الترجمة',
   'settings.boldText': 'نص عريض',
@@ -199,9 +215,11 @@ const arBundle = <String, String>{
   'settings.boldTranslation': 'الترجمة بخط عريض',
   'quran.playSurah': 'تشغيل السورة',
   'quran.installToPlayTitle': 'ثبّت القارئ لتشغيل السورة',
-  'quran.installToPlayBody': 'تشغيل السورة كاملةً يتطلب تنزيل القارئ النشط أولًا. افتح الموارد لبدء التنزيل.',
+  'quran.installToPlayBody':
+      'تشغيل السورة كاملةً يتطلب تنزيل القارئ النشط أولًا. افتح الموارد لبدء التنزيل.',
   'quran.downloadSurahTitle': 'تنزيل السورة',
-  'quran.downloadSurahBody': 'يتم تنزيل صوت هذه السورة. يحدث ذلك مرة واحدة لكل سورة وقارئ.',
+  'quran.downloadSurahBody':
+      'يتم تنزيل صوت هذه السورة. يحدث ذلك مرة واحدة لكل سورة وقارئ.',
   'resources.surahInfo': 'معلومات السورة',
   'resources.surahNameFont': 'خط أسماء السور',
   'resources.mushafFontPack': 'حزمة خطوط المصحف',
@@ -211,10 +229,12 @@ const arBundle = <String, String>{
   'surahInfo.empty': 'لا يتوفر وصف لهذه السورة.',
   'surahInfo.installTitle': 'تنزيل معلومات السور',
   'surahInfo.installingBody': 'جارٍ تنزيل وصف ١١٤ سورة بهذه اللغة.',
-  'surahInfo.description': 'اختر لغة لتنزيل وصف جميع السور الـ١١٤. مصدر هذه الأوصاف يدعم فقط الإنجليزية والأردية والتاميلية والمالايالامية والإيطالية — العربية غير متوفرة من المصدر.',
+  'surahInfo.description':
+      'اختر لغة لتنزيل وصف جميع السور الـ١١٤. مصدر هذه الأوصاف يدعم فقط الإنجليزية والأردية والتاميلية والمالايالامية والإيطالية — العربية غير متوفرة من المصدر.',
   'quran.moreActions': 'المزيد',
   'popular.title': 'آيات يومية',
-  'popular.description': 'قائمة منتقاة من الآيات والسور التي يُستحبّ تلاوتها مع ذكر فضائلها.',
+  'popular.description':
+      'قائمة منتقاة من الآيات والسور التي يُستحبّ تلاوتها مع ذكر فضائلها.',
   'popular.fatiha': 'سورة الفاتحة',
   'popular.fatiha_benefit': 'أم الكتاب، تُتلى في كل صلاة.',
   'popular.kursi': 'آية الكرسي',
@@ -295,7 +315,8 @@ const arBundle = <String, String>{
   'settings.notificationsHint': 'يُشغل الأذان عند كل صلاة مفعّلة',
   'settings.sendTestNotification': 'إرسال إشعار تجريبي',
   'settings.notificationsBlockedTitle': 'الإشعارات محظورة',
-  'settings.notificationsBlockedBody': 'فعّل الإشعارات لـ "سكينة" من إعدادات الهاتف لتستمع إلى الأذان عند كل صلاة.',
+  'settings.notificationsBlockedBody':
+      'فعّل الإشعارات لـ "سكينة" من إعدادات الهاتف لتستمع إلى الأذان عند كل صلاة.',
   'settings.openSystemSettings': 'فتح الإعدادات',
   'settings.timeFormat': 'تنسيق الوقت',
   'settings.time12h': '١٢ ساعة',
@@ -317,4 +338,13 @@ const arBundle = <String, String>{
   'common.tryAgain': 'حاول مجدداً',
   'common.noResults': 'لا توجد نتائج',
   'common.done': 'تم',
+  'location.error.serviceOff': 'فعّل خدمات الموقع لتحديد موقعك.',
+  'location.error.denied': 'يلزم إذن الموقع لتحديد موقعك.',
+  'location.error.deniedForever':
+      'إذن الموقع محظور. فعّله من الإعدادات، أو ابحث عن مدينتك بدلاً من ذلك.',
+  'location.error.timeout':
+      'تعذّر تحديد موقعك. حاول مجدداً، أو ابحث عن مدينتك.',
+  'location.error.notFound':
+      'لم يتم العثور على مدينة قريبة. الرجاء البحث عن مدينتك.',
+  'location.error.unknown': 'تعذّر تحديد موقعك. الرجاء البحث عن مدينتك.',
 };

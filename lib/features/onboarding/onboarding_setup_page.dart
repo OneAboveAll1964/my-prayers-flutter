@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:ionicons/ionicons.dart';
 
 import '../../core/i18n/app_l10n.dart';
@@ -211,32 +210,15 @@ class _LocationStepState extends ConsumerState<_LocationStep> {
   }
 
   Future<void> _detect() async {
+    if (_detecting) return;
     setState(() => _detecting = true);
-    try {
-      final perm = await Geolocator.checkPermission();
-      var allowed =
-          perm == LocationPermission.always ||
-          perm == LocationPermission.whileInUse;
-      if (!allowed) {
-        final req = await Geolocator.requestPermission();
-        allowed =
-            req == LocationPermission.always ||
-            req == LocationPermission.whileInUse;
-      }
-      if (!allowed) return;
-      final pos = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.medium,
-        ),
-      );
-      final found = await LocationRepository.instance.reverseGeocode(
-        pos.latitude,
-        pos.longitude,
-      );
-      if (mounted && found != null) _select(found);
-    } catch (_) {
-    } finally {
-      if (mounted) setState(() => _detecting = false);
+    final result = await LocationRepository.instance.detectCurrentLocation();
+    if (!mounted) return;
+    setState(() => _detecting = false);
+    if (result.ok) {
+      _select(result.location!);
+    } else {
+      showLocationDetectError(context, result.error!);
     }
   }
 

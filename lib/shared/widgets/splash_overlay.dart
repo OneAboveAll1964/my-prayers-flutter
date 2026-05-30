@@ -30,7 +30,7 @@ class _SplashOverlayState extends State<SplashOverlay>
   @override
   void initState() {
     super.initState();
-    _showVisual = !kIsWeb && Platform.isIOS;
+    _showVisual = !kIsWeb && (Platform.isIOS || Platform.isAndroid);
     _start();
   }
 
@@ -73,8 +73,8 @@ class _SplashOverlayState extends State<SplashOverlay>
                 color: palette.bg,
                 alignment: Alignment.center,
                 child: Container(
-                  width: splashIconSize,
-                  height: splashIconSize,
+                  width: splashHandoffSize,
+                  height: splashHandoffSize,
                   decoration: const BoxDecoration(shape: BoxShape.circle),
                   clipBehavior: Clip.antiAlias,
                   child: Image.asset(

@@ -16,8 +16,13 @@ Offset splashIconCenter(BuildContext context) {
 }
 
 class SplashOverlay extends StatefulWidget {
-  const SplashOverlay({super.key, required this.child});
+  const SplashOverlay({
+    super.key,
+    required this.child,
+    this.animateReveal = false,
+  });
   final Widget child;
+  final bool animateReveal;
 
   @override
   State<SplashOverlay> createState() => _SplashOverlayState();
@@ -27,7 +32,7 @@ class _SplashOverlayState extends State<SplashOverlay>
     with SingleTickerProviderStateMixin {
   late final AnimationController _fade = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 450),
+    duration: const Duration(milliseconds: 360),
   );
   bool _showVisual = false;
   bool _gone = false;
@@ -41,7 +46,7 @@ class _SplashOverlayState extends State<SplashOverlay>
 
   Future<void> _start() async {
     if (_showVisual) {
-      await Future<void>.delayed(const Duration(milliseconds: 650));
+      await Future<void>.delayed(const Duration(milliseconds: 350));
       if (!mounted) return;
       await _fade.forward();
       if (!mounted) return;
@@ -50,7 +55,7 @@ class _SplashOverlayState extends State<SplashOverlay>
     } else {
       _gone = true;
       WidgetsBinding.instance.addPostFrameCallback((_) async {
-        await Future<void>.delayed(const Duration(milliseconds: 200));
+        await Future<void>.delayed(const Duration(milliseconds: 120));
         splashFinished.value = true;
       });
     }
@@ -67,7 +72,7 @@ class _SplashOverlayState extends State<SplashOverlay>
     final palette = context.palette;
     final center = splashIconCenter(context);
 
-    final icon = Container(
+    Widget icon = Container(
       decoration: const BoxDecoration(shape: BoxShape.circle),
       clipBehavior: Clip.antiAlias,
       child: Image.asset(
@@ -81,10 +86,32 @@ class _SplashOverlayState extends State<SplashOverlay>
         ),
       ),
     );
+    if (widget.animateReveal) {
+      icon = AnimatedBuilder(
+        animation: _fade,
+        builder: (context, child) {
+          final e = Curves.easeIn.transform(_fade.value);
+          return Transform.scale(scale: 1 + 0.12 * e, child: child);
+        },
+        child: icon,
+      );
+    }
+
+    Widget content = widget.child;
+    if (widget.animateReveal && !_gone) {
+      content = AnimatedBuilder(
+        animation: _fade,
+        builder: (context, child) {
+          final e = Curves.easeOut.transform(_fade.value);
+          return Transform.scale(scale: 1.04 - 0.04 * e, child: child);
+        },
+        child: content,
+      );
+    }
 
     return Stack(
       children: [
-        widget.child,
+        content,
         if (!_gone)
           IgnorePointer(
             child: FadeTransition(

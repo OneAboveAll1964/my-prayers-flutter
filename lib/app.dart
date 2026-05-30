@@ -76,6 +76,7 @@ class MyPrayersApp extends ConsumerWidget {
           child: Directionality(
             textDirection: isRtl ? TextDirection.rtl : TextDirection.ltr,
             child: SplashOverlay(
+              animateReveal: settings.onboardingComplete,
               child: _Root(
                 onboardingComplete: settings.onboardingComplete,
                 appChild: child ?? const SizedBox(),
@@ -141,12 +142,24 @@ class _RootState extends State<_Root> with SingleTickerProviderStateMixin {
     if (!_swapping) return widget.appChild;
     return Stack(
       children: [
-        widget.appChild,
+        AnimatedBuilder(
+          animation: _swap,
+          builder: (context, child) {
+            final e = Curves.easeOut.transform(_swap.value);
+            return Transform.scale(scale: 1.03 - 0.03 * e, child: child);
+          },
+          child: widget.appChild,
+        ),
         IgnorePointer(
-          child: FadeTransition(
-            opacity: ReverseAnimation(
-              CurvedAnimation(parent: _swap, curve: Curves.easeInOut),
-            ),
+          child: AnimatedBuilder(
+            animation: _swap,
+            builder: (context, child) {
+              final e = Curves.easeIn.transform(_swap.value);
+              return Opacity(
+                opacity: 1 - e,
+                child: Transform.scale(scale: 1 + 0.08 * e, child: child),
+              );
+            },
             child: onboarding,
           ),
         ),

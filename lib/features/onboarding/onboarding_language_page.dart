@@ -58,10 +58,8 @@ class _OnboardingLanguagePageState extends ConsumerState<OnboardingLanguagePage>
   void _measure() {
     final box = _circleKey.currentContext?.findRenderObject();
     if (box is! RenderBox || !box.hasSize) return;
-    final size = MediaQuery.sizeOf(context);
     final restCenter = box.localToGlobal(box.size.center(Offset.zero));
-    final screenCenter = Offset(size.width / 2, size.height / 2);
-    setState(() => _restOffset = screenCenter - restCenter);
+    setState(() => _restOffset = splashIconCenter(context) - restCenter);
   }
 
   Future<void> _choose(String code, String current) async {

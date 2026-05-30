@@ -10,6 +10,11 @@ const splashIconSize = 120.0;
 
 double get splashHandoffSize => (!kIsWeb && Platform.isAndroid) ? 179.0 : 120.0;
 
+Offset splashIconCenter(BuildContext context) {
+  final size = MediaQuery.sizeOf(context);
+  return Offset(size.width / 2, size.height / 2);
+}
+
 class SplashOverlay extends StatefulWidget {
   const SplashOverlay({super.key, required this.child});
   final Widget child;
@@ -60,6 +65,7 @@ class _SplashOverlayState extends State<SplashOverlay>
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
+    final center = splashIconCenter(context);
     return Stack(
       children: [
         widget.child,
@@ -71,26 +77,33 @@ class _SplashOverlayState extends State<SplashOverlay>
               ),
               child: Container(
                 color: palette.bg,
-                alignment: Alignment.center,
-                child: Container(
-                  width: splashHandoffSize,
-                  height: splashHandoffSize,
-                  decoration: const BoxDecoration(shape: BoxShape.circle),
-                  clipBehavior: Clip.antiAlias,
-                  child: Image.asset(
-                    'assets/widget/launch_icon.png',
-                    fit: BoxFit.cover,
-                    filterQuality: FilterQuality.medium,
-                    errorBuilder: (_, _, _) => Container(
-                      color: palette.accent,
-                      alignment: Alignment.center,
-                      child: Icon(
-                        Icons.mosque,
-                        color: palette.accentOn,
-                        size: 56,
+                child: Stack(
+                  children: [
+                    Positioned(
+                      left: center.dx - splashHandoffSize / 2,
+                      top: center.dy - splashHandoffSize / 2,
+                      width: splashHandoffSize,
+                      height: splashHandoffSize,
+                      child: Container(
+                        decoration: const BoxDecoration(shape: BoxShape.circle),
+                        clipBehavior: Clip.antiAlias,
+                        child: Image.asset(
+                          'assets/widget/launch_icon.png',
+                          fit: BoxFit.cover,
+                          filterQuality: FilterQuality.medium,
+                          errorBuilder: (_, _, _) => Container(
+                            color: palette.accent,
+                            alignment: Alignment.center,
+                            child: Icon(
+                              Icons.mosque,
+                              color: palette.accentOn,
+                              size: 56,
+                            ),
+                          ),
+                        ),
                       ),
                     ),
-                  ),
+                  ],
                 ),
               ),
             ),

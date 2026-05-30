@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ionicons/ionicons.dart';
 import '../../core/i18n/app_l10n.dart';
 import '../../core/theme/tokens.dart';
 import '../../shared/state/settings_provider.dart';
 import '../../shared/widgets/page_scaffold.dart';
 import '../../shared/widgets/segmented_control.dart';
+import '../../shared/widgets/theme_preview_phone.dart';
 import 'widgets/arabic_font_picker.dart';
 import 'widgets/settings_widgets.dart';
 
@@ -30,19 +32,34 @@ class SettingsAppearancePage extends ConsumerWidget {
                 children: [
                   SettingsSection(
                     label: l10n.t('settings.theme'),
-                    child: SegmentedControl<AppThemeMode>(
-                      value: settings.themeMode,
-                      onChanged: notifier.setTheme,
-                      options: [
-                        SegmentedOption(
-                            value: AppThemeMode.auto,
-                            label: l10n.t('settings.themeAuto')),
-                        SegmentedOption(
-                            value: AppThemeMode.light,
-                            label: l10n.t('settings.themeLight')),
-                        SegmentedOption(
-                            value: AppThemeMode.dark,
-                            label: l10n.t('settings.themeDark')),
+                    child: Column(
+                      children: [
+                        for (final (m, label, icon) in [
+                          (
+                            AppThemeMode.auto,
+                            l10n.t('settings.themeAuto'),
+                            Ionicons.contrast_outline,
+                          ),
+                          (
+                            AppThemeMode.light,
+                            l10n.t('settings.themeLight'),
+                            Ionicons.sunny_outline,
+                          ),
+                          (
+                            AppThemeMode.dark,
+                            l10n.t('settings.themeDark'),
+                            Ionicons.moon_outline,
+                          ),
+                        ]) ...[
+                          ThemeOptionCard(
+                            icon: icon,
+                            label: label,
+                            mode: m,
+                            selected: settings.themeMode == m,
+                            onTap: () => notifier.setTheme(m),
+                          ),
+                          const SizedBox(height: 12),
+                        ],
                       ],
                     ),
                   ),
@@ -53,11 +70,13 @@ class SettingsAppearancePage extends ConsumerWidget {
                       onChanged: notifier.setTimeFormat,
                       options: [
                         SegmentedOption(
-                            value: '24h',
-                            label: l10n.t('settings.time24h')),
+                          value: '24h',
+                          label: l10n.t('settings.time24h'),
+                        ),
                         SegmentedOption(
-                            value: '12h',
-                            label: l10n.t('settings.time12h')),
+                          value: '12h',
+                          label: l10n.t('settings.time12h'),
+                        ),
                       ],
                     ),
                   ),

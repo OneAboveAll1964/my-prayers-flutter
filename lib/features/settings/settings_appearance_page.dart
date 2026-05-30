@@ -5,7 +5,6 @@ import '../../core/i18n/app_l10n.dart';
 import '../../core/theme/tokens.dart';
 import '../../shared/state/settings_provider.dart';
 import '../../shared/widgets/page_scaffold.dart';
-import '../../shared/widgets/segmented_control.dart';
 import '../../shared/widgets/theme_preview_phone.dart';
 import 'widgets/arabic_font_picker.dart';
 import 'widgets/settings_widgets.dart';
@@ -65,19 +64,9 @@ class SettingsAppearancePage extends ConsumerWidget {
                   ),
                   SettingsSection(
                     label: l10n.t('settings.timeFormat'),
-                    child: SegmentedControl<String>(
+                    child: TimeFormatSelector(
                       value: settings.timeFormat,
                       onChanged: notifier.setTimeFormat,
-                      options: [
-                        SegmentedOption(
-                          value: '24h',
-                          label: l10n.t('settings.time24h'),
-                        ),
-                        SegmentedOption(
-                          value: '12h',
-                          label: l10n.t('settings.time12h'),
-                        ),
-                      ],
                     ),
                   ),
                   SettingsSection(

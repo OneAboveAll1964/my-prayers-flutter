@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '../../core/theme/tokens.dart';
@@ -187,6 +189,161 @@ class _PhoneFace extends StatelessWidget {
       ),
     );
   }
+}
+
+class TimeFormatSelector extends StatelessWidget {
+  const TimeFormatSelector({
+    super.key,
+    required this.value,
+    required this.onChanged,
+  });
+  final String value;
+  final ValueChanged<String> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: _TimeFormatCard(
+            text: '12',
+            unit: 'HR',
+            ticks: 12,
+            selected: value == '12h',
+            onTap: () => onChanged('12h'),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _TimeFormatCard(
+            text: '24',
+            unit: 'HR',
+            ticks: 24,
+            selected: value == '24h',
+            onTap: () => onChanged('24h'),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _TimeFormatCard extends StatelessWidget {
+  const _TimeFormatCard({
+    required this.text,
+    required this.unit,
+    required this.ticks,
+    required this.selected,
+    required this.onTap,
+  });
+  final String text;
+  final String unit;
+  final int ticks;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    final on = selected ? palette.accent : palette.textMuted;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: AppTokens.duration,
+        curve: AppTokens.ease,
+        padding: const EdgeInsets.symmetric(vertical: 18),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: selected ? palette.accentSoft : palette.surface,
+          borderRadius: BorderRadius.circular(AppTokens.radiusLg),
+          border: Border.all(
+            color: selected ? palette.accent : palette.line,
+            width: selected ? 2 : 1,
+          ),
+        ),
+        child: SizedBox(
+          width: 76,
+          height: 76,
+          child: CustomPaint(
+            painter: _ClockPainter(
+              ticks: ticks,
+              ring: selected ? palette.accent : palette.lineStrong,
+              tick: selected
+                  ? palette.accent.withValues(alpha: 0.6)
+                  : palette.line,
+            ),
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    text,
+                    style: TextStyle(
+                      color: selected ? palette.accentStrong : palette.text,
+                      fontSize: 26,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -1,
+                      height: 1,
+                    ),
+                  ),
+                  const SizedBox(height: 1),
+                  Text(
+                    unit,
+                    style: TextStyle(
+                      color: on,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.5,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ClockPainter extends CustomPainter {
+  _ClockPainter({required this.ticks, required this.ring, required this.tick});
+  final int ticks;
+  final Color ring;
+  final Color tick;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = size.center(Offset.zero);
+    final radius = size.width / 2;
+
+    canvas.drawCircle(
+      center,
+      radius,
+      Paint()
+        ..color = ring
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2.5,
+    );
+
+    final tickPaint = Paint()
+      ..color = tick
+      ..strokeCap = StrokeCap.round
+      ..strokeWidth = 2;
+    final major = ticks ~/ 4;
+    for (var i = 0; i < ticks; i++) {
+      final a = (i / ticks) * 2 * math.pi;
+      final outer = radius - 4;
+      final inner = radius - (i % major == 0 ? 9 : 6);
+      final dir = Offset(math.sin(a), -math.cos(a));
+      canvas.drawLine(center + dir * inner, center + dir * outer, tickPaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_ClockPainter old) =>
+      old.ticks != ticks || old.ring != ring || old.tick != tick;
 }
 
 class ThemeOptionCard extends StatelessWidget {

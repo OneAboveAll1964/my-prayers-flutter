@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ionicons/ionicons.dart';
 
 import '../../core/i18n/app_l10n.dart';
 import '../../core/theme/tokens.dart';
 import '../../shared/state/settings_provider.dart';
+import '../../shared/widgets/app_button.dart';
 import 'onboarding_features_page.dart';
 import 'onboarding_language_page.dart';
 import 'onboarding_setup_page.dart';
@@ -32,16 +34,22 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow>
   late final AnimationController _fade = AnimationController(
     vsync: this,
     value: 1,
-    duration: const Duration(milliseconds: 300),
+    duration: const Duration(milliseconds: 360),
   );
-  late final Animation<double> _fadeIn = CurvedAnimation(
+  late final Animation<double> _outAnim = ReverseAnimation(
+    CurvedAnimation(
+      parent: _fade,
+      curve: const Interval(0.0, 0.45, curve: Curves.easeIn),
+    ),
+  );
+  late final Animation<double> _inAnim = CurvedAnimation(
     parent: _fade,
-    curve: Curves.easeOut,
+    curve: const Interval(0.4, 1.0, curve: Curves.easeOut),
   );
   late final Animation<double> _scaleIn = Tween<double>(
-    begin: 0.98,
+    begin: 0.97,
     end: 1.0,
-  ).animate(_fadeIn);
+  ).animate(_inAnim);
 
   @override
   void initState() {
@@ -99,10 +107,10 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow>
     }
   }
 
-  Widget _pageFor(int stage) => switch (stage) {
+  Widget _bodyFor(int stage) => switch (stage) {
     0 => OnboardingLanguagePage(key: _languageKey, footerKey: _footerKey),
-    1 => OnboardingFeaturesPage(key: _featuresKey, onBack: _back),
-    _ => OnboardingSetupPage(key: _setupKey, step: _setupStep, onBack: _back),
+    1 => OnboardingFeaturesPage(key: _featuresKey),
+    _ => OnboardingSetupPage(key: _setupKey, step: _setupStep),
   };
 
   String _footerLabel(AppL10n l10n) {
@@ -111,6 +119,45 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow>
     return _setupStep < _setupSteps - 1
         ? l10n.t('onboarding.next')
         : l10n.t('onboarding.finish');
+  }
+
+  Widget _header(BuildContext context) {
+    final palette = context.palette;
+    return SizedBox(
+      height: 56,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: Padding(
+              padding: const EdgeInsetsDirectional.only(start: 8),
+              child: AnimatedOpacity(
+                opacity: _stage > 0 ? 1 : 0,
+                duration: const Duration(milliseconds: 200),
+                child: IgnorePointer(
+                  ignoring: _stage == 0,
+                  child: AppIconButton(
+                    icon: Ionicons.arrow_back,
+                    onPressed: _back,
+                    color: palette.text,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Text(
+            'Sakina',
+            style: TextStyle(
+              color: palette.text,
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.5,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -122,16 +169,21 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow>
       body: SafeArea(
         child: Column(
           children: [
+            _header(context),
             Expanded(
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  if (_outgoing != null) _pageFor(_outgoing!),
+                  if (_outgoing != null)
+                    FadeTransition(
+                      opacity: _outAnim,
+                      child: _bodyFor(_outgoing!),
+                    ),
                   FadeTransition(
-                    opacity: _fadeIn,
+                    opacity: _inAnim,
                     child: ScaleTransition(
                       scale: _scaleIn,
-                      child: _pageFor(_stage),
+                      child: _bodyFor(_stage),
                     ),
                   ),
                 ],

@@ -18,13 +18,8 @@ import '../../shared/widgets/app_spinner.dart';
 import '../../shared/widgets/app_toggle.dart';
 
 class OnboardingSetupPage extends StatelessWidget {
-  const OnboardingSetupPage({
-    super.key,
-    required this.step,
-    required this.onBack,
-  });
+  const OnboardingSetupPage({super.key, required this.step});
   final int step;
-  final VoidCallback onBack;
 
   static const _steps = 3;
 
@@ -35,34 +30,22 @@ class OnboardingSetupPage extends StatelessWidget {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(8, 4, 20, 0),
+          padding: const EdgeInsets.only(top: 4, bottom: 6),
           child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              AppIconButton(
-                icon: Ionicons.arrow_back,
-                onPressed: onBack,
-                color: palette.text,
-              ),
-              Expanded(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    for (var i = 0; i < _steps; i++)
-                      AnimatedContainer(
-                        duration: AppTokens.duration,
-                        curve: AppTokens.ease,
-                        margin: const EdgeInsets.symmetric(horizontal: 3),
-                        height: 5,
-                        width: i == step ? 26 : 16,
-                        decoration: BoxDecoration(
-                          color: i <= step ? palette.accent : palette.line,
-                          borderRadius: BorderRadius.circular(99),
-                        ),
-                      ),
-                  ],
+              for (var i = 0; i < _steps; i++)
+                AnimatedContainer(
+                  duration: AppTokens.duration,
+                  curve: AppTokens.ease,
+                  margin: const EdgeInsets.symmetric(horizontal: 3),
+                  height: 5,
+                  width: i == step ? 26 : 16,
+                  decoration: BoxDecoration(
+                    color: i <= step ? palette.accent : palette.line,
+                    borderRadius: BorderRadius.circular(99),
+                  ),
                 ),
-              ),
-              const SizedBox(width: 40),
             ],
           ),
         ),
@@ -145,6 +128,7 @@ class _LocationStep extends ConsumerStatefulWidget {
 
 class _LocationStepState extends ConsumerState<_LocationStep> {
   Timer? _debounce;
+  String _query = '';
   List<AppLocation> _results = [];
   bool _searching = false;
   bool _detecting = false;
@@ -160,7 +144,10 @@ class _LocationStepState extends ConsumerState<_LocationStep> {
       enabled: s.notificationsEnabled,
       perPrayer: s.perPrayerNotifications,
     );
-    setState(() => _results = []);
+    setState(() {
+      _results = [];
+      _query = '';
+    });
     FocusScope.of(context).unfocus();
   }
 
@@ -223,117 +210,216 @@ class _LocationStepState extends ConsumerState<_LocationStep> {
     final palette = context.palette;
     final selected = ref.watch(settingsProvider).location;
 
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
+    final searching = _query.trim().isNotEmpty;
+
+    return Column(
       children: [
-        _StepHeader(
-          icon: Ionicons.location_outline,
-          title: l10n.t('onboarding.setup.location.title'),
-          subtitle: l10n.t('onboarding.setup.location.subtitle'),
-        ),
-        const SizedBox(height: 26),
-        if (selected != null) ...[
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            decoration: BoxDecoration(
-              color: palette.accentSoft,
-              borderRadius: BorderRadius.circular(AppTokens.radius),
-              border: Border.all(color: palette.accent.withValues(alpha: 0.4)),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  Ionicons.checkmark_circle,
-                  color: palette.accent,
-                  size: 22,
+        AnimatedSize(
+          duration: AppTokens.duration,
+          curve: AppTokens.ease,
+          alignment: Alignment.topCenter,
+          child: searching
+              ? const SizedBox(width: double.infinity)
+              : Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 2, 24, 0),
+                  child: Column(
+                    children: [
+                      Text(
+                        l10n.t('onboarding.setup.location.title'),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: palette.text,
+                          fontSize: 22,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        l10n.t('onboarding.setup.location.subtitle'),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: palette.textMuted,
+                          fontSize: 14,
+                          height: 1.4,
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                    ],
+                  ),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    selected.name,
-                    style: TextStyle(
-                      color: palette.text,
-                      fontSize: 15.5,
-                      fontWeight: FontWeight.w700,
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
+            children: [
+              AppButton(
+                label: _detecting
+                    ? l10n.t('common.loading')
+                    : l10n.t('home.useMyLocation'),
+                icon: _detecting ? null : Ionicons.locate_outline,
+                variant: AppButtonVariant.outline,
+                expand: true,
+                onPressed: _detecting ? null : _detect,
+              ),
+              const SizedBox(height: 12),
+              AppTextField(
+                hintText: l10n.t('home.searchCity'),
+                prefix: Icon(
+                  Ionicons.search_outline,
+                  size: 18,
+                  color: palette.textMuted,
+                ),
+                onChanged: (v) {
+                  setState(() => _query = v);
+                  _debounce?.cancel();
+                  _debounce = Timer(
+                    const Duration(milliseconds: 220),
+                    () => _search(v),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        Expanded(
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(24, 0, 24, 12),
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            children: [
+              if (!searching && selected != null)
+                _SelectedLocationCard(name: selected.name),
+              if (searching && _searching)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 22),
+                  child: Center(child: AppSpinner(size: 22)),
+                ),
+              if (searching && !_searching && _results.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 22),
+                  child: Center(
+                    child: Text(
+                      l10n.t('common.noResults'),
+                      style: TextStyle(color: palette.textMuted),
                     ),
                   ),
                 ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 14),
-        ],
-        AppButton(
-          label: _detecting
-              ? l10n.t('common.loading')
-              : l10n.t('home.useMyLocation'),
-          icon: _detecting ? null : Ionicons.locate_outline,
-          variant: AppButtonVariant.outline,
-          expand: true,
-          onPressed: _detecting ? null : _detect,
-        ),
-        const SizedBox(height: 14),
-        AppTextField(
-          hintText: l10n.t('home.searchCity'),
-          prefix: Icon(
-            Ionicons.search_outline,
-            size: 18,
-            color: palette.textMuted,
-          ),
-          onChanged: (v) {
-            _debounce?.cancel();
-            _debounce = Timer(
-              const Duration(milliseconds: 220),
-              () => _search(v),
-            );
-          },
-        ),
-        if (_searching)
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 18),
-            child: Center(child: AppSpinner(size: 22)),
-          )
-        else if (_results.isNotEmpty) ...[
-          const SizedBox(height: 12),
-          for (final loc in _results)
-            GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () => _select(loc),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 12,
-                ),
-                margin: const EdgeInsets.only(bottom: 8),
-                decoration: BoxDecoration(
-                  color: palette.surface,
-                  borderRadius: BorderRadius.circular(AppTokens.radius),
-                  border: Border.all(color: palette.line),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Ionicons.location_outline,
-                      size: 18,
-                      color: palette.textMuted,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        loc.name,
-                        style: TextStyle(
-                          color: palette.text,
-                          fontSize: 14.5,
-                          fontWeight: FontWeight.w600,
+              if (searching && !_searching && _results.isNotEmpty)
+                Container(
+                  decoration: BoxDecoration(
+                    color: palette.surface,
+                    borderRadius: BorderRadius.circular(AppTokens.radius),
+                    border: Border.all(color: palette.line),
+                  ),
+                  child: Column(
+                    children: [
+                      for (var i = 0; i < _results.length; i++) ...[
+                        _LocationRow(
+                          location: _results[i],
+                          onTap: () => _select(_results[i]),
                         ),
-                      ),
-                    ),
-                  ],
+                        if (i < _results.length - 1)
+                          Container(height: 1, color: palette.line),
+                      ],
+                    ],
+                  ),
                 ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _SelectedLocationCard extends StatelessWidget {
+  const _SelectedLocationCard({required this.name});
+  final String name;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: palette.accentSoft,
+        borderRadius: BorderRadius.circular(AppTokens.radius),
+        border: Border.all(color: palette.accent.withValues(alpha: 0.4)),
+      ),
+      child: Row(
+        children: [
+          Icon(Ionicons.checkmark_circle, color: palette.accent, size: 22),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              name,
+              style: TextStyle(
+                color: palette.text,
+                fontSize: 15.5,
+                fontWeight: FontWeight.w700,
               ),
             ),
+          ),
         ],
-      ],
+      ),
+    );
+  }
+}
+
+class _LocationRow extends StatelessWidget {
+  const _LocationRow({required this.location, required this.onTap});
+  final AppLocation location;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        child: Row(
+          children: [
+            Container(
+              width: 30,
+              height: 30,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: palette.accentSoft,
+                borderRadius: BorderRadius.circular(99),
+              ),
+              child: Icon(
+                Ionicons.location_outline,
+                size: 14,
+                color: palette.accent,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    location.name,
+                    style: TextStyle(
+                      color: palette.text,
+                      fontSize: 14.5,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  if (location.countryName.isNotEmpty)
+                    Text(
+                      location.countryName,
+                      style: TextStyle(color: palette.textSubtle, fontSize: 12),
+                    ),
+                ],
+              ),
+            ),
+            Icon(Ionicons.chevron_forward, size: 18, color: palette.textMuted),
+          ],
+        ),
+      ),
     );
   }
 }

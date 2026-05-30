@@ -39,104 +39,80 @@ class _OnboardingLanguagePageState
         ref.watch(settingsProvider).language ??
         langKey(Localizations.localeOf(context));
 
-    return Column(
-      children: [
-        SizedBox(
-          height: 52,
-          child: Center(
-            child: Text(
-              'Sakina',
-              style: TextStyle(
-                color: palette.text,
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 0.5,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Column(
+        children: [
+          const Spacer(flex: 2),
+          Container(
+            width: 104,
+            height: 104,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: palette.accent.withValues(alpha: 0.28),
+                  blurRadius: 36,
+                  spreadRadius: 2,
+                ),
+              ],
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: Image.asset(
+              'assets/widget/launch_icon.png',
+              fit: BoxFit.cover,
+              errorBuilder: (_, _, _) => Container(
+                color: palette.accent,
+                alignment: Alignment.center,
+                child: Icon(Icons.mosque, color: palette.accentOn, size: 48),
               ),
             ),
           ),
-        ),
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Column(
-              children: [
-                const Spacer(flex: 2),
-                Container(
-                  width: 104,
-                  height: 104,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: palette.accent.withValues(alpha: 0.28),
-                        blurRadius: 36,
-                        spreadRadius: 2,
-                      ),
-                    ],
-                  ),
-                  clipBehavior: Clip.antiAlias,
-                  child: Image.asset(
-                    'assets/widget/launch_icon.png',
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, _, _) => Container(
-                      color: palette.accent,
-                      alignment: Alignment.center,
-                      child: Icon(
-                        Icons.mosque,
-                        color: palette.accentOn,
-                        size: 48,
-                      ),
+          const SizedBox(height: 28),
+          SizedBox(
+            width: double.infinity,
+            height: 142,
+            child: SnapDissolve(
+              key: _snapKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    l10n.t('onboarding.language.title'),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: palette.text,
+                      fontSize: 28,
+                      fontWeight: FontWeight.w800,
+                      height: 1.1,
                     ),
-                  ),
-                ),
-                const SizedBox(height: 28),
-                SizedBox(
-                  width: double.infinity,
-                  height: 142,
-                  child: SnapDissolve(
-                    key: _snapKey,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          l10n.t('onboarding.language.title'),
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: palette.text,
-                            fontSize: 28,
-                            fontWeight: FontWeight.w800,
-                            height: 1.1,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          l10n.t('onboarding.language.subtitle'),
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: palette.textMuted,
-                            fontSize: 14.5,
-                            height: 1.45,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const Spacer(flex: 1),
-                for (final code in _codes) ...[
-                  _LangPill(
-                    label: langDisplayNames[code] ?? code,
-                    selected: code == current,
-                    onTap: () => _choose(code, current),
                   ),
                   const SizedBox(height: 12),
+                  Text(
+                    l10n.t('onboarding.language.subtitle'),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: palette.textMuted,
+                      fontSize: 14.5,
+                      height: 1.45,
+                    ),
+                  ),
                 ],
-                const Spacer(flex: 3),
-              ],
+              ),
             ),
           ),
-        ),
-      ],
+          const Spacer(flex: 1),
+          for (final code in _codes) ...[
+            _LangPill(
+              label: langDisplayNames[code] ?? code,
+              selected: code == current,
+              onTap: () => _choose(code, current),
+            ),
+            const SizedBox(height: 12),
+          ],
+          const Spacer(flex: 3),
+        ],
+      ),
     );
   }
 }

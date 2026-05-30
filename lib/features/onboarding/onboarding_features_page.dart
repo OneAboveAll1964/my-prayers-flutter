@@ -6,7 +6,6 @@ import 'package:ionicons/ionicons.dart';
 
 import '../../core/i18n/app_l10n.dart';
 import '../../core/theme/tokens.dart';
-import '../../shared/widgets/app_button.dart';
 import 'widgets/orbit_field.dart';
 import 'widgets/snap_dissolve.dart';
 
@@ -53,8 +52,7 @@ const _features = <_Feature>[
 ];
 
 class OnboardingFeaturesPage extends StatefulWidget {
-  const OnboardingFeaturesPage({super.key, required this.onBack});
-  final VoidCallback onBack;
+  const OnboardingFeaturesPage({super.key});
 
   @override
   State<OnboardingFeaturesPage> createState() => _OnboardingFeaturesPageState();
@@ -185,31 +183,6 @@ class _OnboardingFeaturesPageState extends State<OnboardingFeaturesPage>
       onHorizontalDragEnd: _onDragEnd,
       child: Column(
         children: [
-          SizedBox(
-            height: 52,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                Align(
-                  alignment: AlignmentDirectional.centerStart,
-                  child: AppIconButton(
-                    icon: Ionicons.arrow_back,
-                    onPressed: widget.onBack,
-                    color: palette.text,
-                  ),
-                ),
-                Text(
-                  'Sakina',
-                  style: TextStyle(
-                    color: palette.text,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ],
-            ),
-          ),
           Expanded(
             flex: 5,
             child: OrbitField(

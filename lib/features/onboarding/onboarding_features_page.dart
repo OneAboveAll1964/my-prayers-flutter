@@ -17,24 +17,43 @@ class _Feature {
   final String subKey;
 }
 
+class _SpringTurn extends Curve {
+  const _SpringTurn();
+  @override
+  double transformInternal(double t) {
+    const s = 1.1;
+    final u = t - 1.0;
+    return u * u * ((s + 1) * u + s) + 1.0;
+  }
+}
+
+const _spinTurn = _SpringTurn();
+
 const _features = <_Feature>[
-  _Feature(OrbSpec(icon: Ionicons.time_outline, color: Color(0xFF2E7C4F)),
-      'onboarding.feature.prayer.title', 'onboarding.feature.prayer.subtitle'),
-  _Feature(OrbSpec(icon: Ionicons.compass_outline, color: Color(0xFF1C9E8E)),
-      'onboarding.feature.qibla.title', 'onboarding.feature.qibla.subtitle'),
-  _Feature(OrbSpec(icon: Ionicons.book_outline, color: Color(0xFFC68B38)),
-      'onboarding.feature.quran.title', 'onboarding.feature.quran.subtitle'),
-  _Feature(OrbSpec(icon: Ionicons.apps_outline, color: Color(0xFF7A6CC4)),
-      'onboarding.feature.more.title', 'onboarding.feature.more.subtitle'),
+  _Feature(
+    OrbSpec(icon: Ionicons.time_outline, color: Color(0xFF2E7C4F)),
+    'onboarding.feature.prayer.title',
+    'onboarding.feature.prayer.subtitle',
+  ),
+  _Feature(
+    OrbSpec(icon: Ionicons.compass_outline, color: Color(0xFF1C9E8E)),
+    'onboarding.feature.qibla.title',
+    'onboarding.feature.qibla.subtitle',
+  ),
+  _Feature(
+    OrbSpec(icon: Ionicons.book_outline, color: Color(0xFFC68B38)),
+    'onboarding.feature.quran.title',
+    'onboarding.feature.quran.subtitle',
+  ),
+  _Feature(
+    OrbSpec(icon: Ionicons.apps_outline, color: Color(0xFF7A6CC4)),
+    'onboarding.feature.more.title',
+    'onboarding.feature.more.subtitle',
+  ),
 ];
 
 class OnboardingFeaturesPage extends StatefulWidget {
-  const OnboardingFeaturesPage({
-    super.key,
-    required this.onGetStarted,
-    required this.onBack,
-  });
-  final VoidCallback onGetStarted;
+  const OnboardingFeaturesPage({super.key, required this.onBack});
   final VoidCallback onBack;
 
   @override
@@ -43,24 +62,27 @@ class OnboardingFeaturesPage extends StatefulWidget {
 
 class _OnboardingFeaturesPageState extends State<OnboardingFeaturesPage>
     with TickerProviderStateMixin {
-  late final AnimationController _snap =
-      AnimationController(vsync: this, duration: const Duration(milliseconds: 420));
-  // One full turn of the focus-orb bracket on every selection change.
-  late final AnimationController _spin =
-      AnimationController(vsync: this, duration: const Duration(milliseconds: 300));
+  late final AnimationController _snap = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 420),
+  );
+  late final AnimationController _spin = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 300),
+  );
   Animation<double> _focusAnim = const AlwaysStoppedAnimation(0);
 
-  // Continuous, unbounded orbit index. Orb angles are periodic so it wraps
-  // naturally (circular). The displayed feature is `_focus` rounded, mod N.
   double _focus = 0;
   int _displayIndex = 0;
-  int _pendingIndex = 0; // change claimed synchronously, to dedupe the haptic
-  double _dragAnchor = 0; // settled index when a drag began
+  int _pendingIndex = 0;
+  double _dragAnchor = 0;
   bool _dragging = false;
+  bool _spinArmed = false;
+  double _spinTarget = 0;
   Timer? _auto;
   final _textSnapKey = GlobalKey<SnapDissolveState>();
 
-  static const _pxPerStep = 150.0; // drag distance for one orb step
+  static const _pxPerStep = 150.0;
 
   @override
   void initState() {
@@ -68,6 +90,10 @@ class _OnboardingFeaturesPageState extends State<OnboardingFeaturesPage>
     _snap.addListener(() {
       setState(() => _focus = _focusAnim.value);
       _syncText();
+      if (_spinArmed && (_spinTarget - _focus).abs() <= 0.2) {
+        _spinArmed = false;
+        _spin.forward(from: 0);
+      }
     });
     _spin.addListener(() => setState(() {}));
     _startAuto();
@@ -93,16 +119,11 @@ class _OnboardingFeaturesPageState extends State<OnboardingFeaturesPage>
     });
   }
 
-  /// Dissolves the title/subtitle, spins the bracket and fires a selection
-  /// haptic when the focused feature changes.
   Future<void> _syncText() async {
     final target = _index;
     if (target == _pendingIndex) return;
-    // Claim synchronously: _displayIndex only updates after the await below, so
-    // without this the re-entrant settle ticks would double-fire the haptic.
     _pendingIndex = target;
     HapticFeedback.selectionClick();
-    _spin.forward(from: 0);
     await _textSnapKey.currentState?.prepare();
     if (!mounted) return;
     setState(() => _displayIndex = target);
@@ -110,8 +131,14 @@ class _OnboardingFeaturesPageState extends State<OnboardingFeaturesPage>
   }
 
   void _settleTo(double target) {
-    _focusAnim = Tween<double>(begin: _focus, end: target)
-        .animate(CurvedAnimation(parent: _snap, curve: Curves.easeOutCubic));
+    final n = _features.length;
+    final targetIndex = ((target.round() % n) + n) % n;
+    _spinArmed = targetIndex != _pendingIndex;
+    _spinTarget = target;
+    _focusAnim = Tween<double>(
+      begin: _focus,
+      end: target,
+    ).animate(CurvedAnimation(parent: _snap, curve: Curves.easeOutCubic));
     _snap.forward(from: 0);
   }
 
@@ -123,19 +150,16 @@ class _OnboardingFeaturesPageState extends State<OnboardingFeaturesPage>
   }
 
   void _onDragUpdate(DragUpdateDetails d) {
-    // Free drag, clamped to one step either side — paged, no momentum. The text
-    // dissolve and bracket spin are deferred to release: they fire during the
-    // settle animation (see _onDragEnd → _settleTo → _snap listener → _syncText).
     setState(() {
-      _focus = (_focus - (d.primaryDelta ?? 0) / _pxPerStep)
-          .clamp(_dragAnchor - 1, _dragAnchor + 1);
+      _focus = (_focus - (d.primaryDelta ?? 0) / _pxPerStep).clamp(
+        _dragAnchor - 1,
+        _dragAnchor + 1,
+      );
     });
   }
 
   void _onDragEnd(DragEndDetails d) {
     _dragging = false;
-    // A flick, or dragging past a third of a step, advances exactly one orb —
-    // no multi-step momentum. Otherwise it springs back to where it started.
     final v = d.primaryVelocity ?? 0;
     final delta = _focus - _dragAnchor;
     double target = _dragAnchor;
@@ -154,114 +178,100 @@ class _OnboardingFeaturesPageState extends State<OnboardingFeaturesPage>
     final palette = context.palette;
     final orbs = [for (final f in _features) f.spec];
 
-    return Scaffold(
-      backgroundColor: palette.bg,
-      body: SafeArea(
-        // Swipe anywhere to circulate the orbs.
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onHorizontalDragStart: _onDragStart,
-          onHorizontalDragUpdate: _onDragUpdate,
-          onHorizontalDragEnd: _onDragEnd,
-          child: Column(
-            children: [
-              SizedBox(
-                height: 52,
-                child: Stack(
-                  alignment: Alignment.center,
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onHorizontalDragStart: _onDragStart,
+      onHorizontalDragUpdate: _onDragUpdate,
+      onHorizontalDragEnd: _onDragEnd,
+      child: Column(
+        children: [
+          SizedBox(
+            height: 52,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: AppIconButton(
+                    icon: Ionicons.arrow_back,
+                    onPressed: widget.onBack,
+                    color: palette.text,
+                  ),
+                ),
+                Text(
+                  'Sakina',
+                  style: TextStyle(
+                    color: palette.text,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            flex: 5,
+            child: OrbitField(
+              orbs: orbs,
+              focus: _focus,
+              bracketTurn: _spinTurn.transform(_spin.value),
+            ),
+          ),
+          SizedBox(
+            width: double.infinity,
+            height: 150,
+            child: SnapDissolve(
+              key: _textSnapKey,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 28),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Align(
-                      alignment: AlignmentDirectional.centerStart,
-                      child: AppIconButton(
-                        icon: Ionicons.arrow_back,
-                        onPressed: widget.onBack,
+                    Text(
+                      l10n.t(_features[_displayIndex].titleKey),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
                         color: palette.text,
+                        fontSize: 25,
+                        fontWeight: FontWeight.w800,
                       ),
                     ),
-                    Text('Sakina',
-                        style: TextStyle(
-                            color: palette.text,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 0.5)),
+                    const SizedBox(height: 12),
+                    Text(
+                      l10n.t(_features[_displayIndex].subKey),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: palette.textMuted,
+                        fontSize: 14.5,
+                        height: 1.45,
+                      ),
+                    ),
                   ],
                 ),
               ),
-              Expanded(
-                flex: 5,
-                child: OrbitField(
-                  orbs: orbs,
-                  focus: _focus,
-                  bracketTurn: _spin.value,
-                ),
-              ),
-              // Title + subtitle — dissolves between features (fixed height so
-              // nothing below shifts).
-              SizedBox(
-                width: double.infinity,
-                height: 150,
-                child: SnapDissolve(
-                  key: _textSnapKey,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 28),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          l10n.t(_features[_displayIndex].titleKey),
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: palette.text,
-                            fontSize: 25,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          l10n.t(_features[_displayIndex].subKey),
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: palette.textMuted,
-                            fontSize: 14.5,
-                            height: 1.45,
-                          ),
-                        ),
-                      ],
-                    ),
+            ),
+          ),
+          const SizedBox(height: 14),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              for (var i = 0; i < _features.length; i++)
+                AnimatedContainer(
+                  duration: AppTokens.duration,
+                  curve: AppTokens.ease,
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  width: i == _displayIndex ? 22 : 7,
+                  height: 7,
+                  decoration: BoxDecoration(
+                    color: i == _displayIndex ? palette.accent : palette.line,
+                    borderRadius: BorderRadius.circular(99),
                   ),
                 ),
-              ),
-              const SizedBox(height: 14),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  for (var i = 0; i < _features.length; i++)
-                    AnimatedContainer(
-                      duration: AppTokens.duration,
-                      curve: AppTokens.ease,
-                      margin: const EdgeInsets.symmetric(horizontal: 4),
-                      width: i == _displayIndex ? 22 : 7,
-                      height: 7,
-                      decoration: BoxDecoration(
-                        color: i == _displayIndex ? palette.accent : palette.line,
-                        borderRadius: BorderRadius.circular(99),
-                      ),
-                    ),
-                ],
-              ),
-              const Spacer(),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
-                child: AppButton(
-                  label: l10n.t('onboarding.getStarted'),
-                  size: AppButtonSize.lg,
-                  expand: true,
-                  onPressed: widget.onGetStarted,
-                ),
-              ),
             ],
           ),
-        ),
+          const SizedBox(height: 8),
+        ],
       ),
     );
   }

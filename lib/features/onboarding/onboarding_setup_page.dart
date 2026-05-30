@@ -9,6 +9,7 @@ import '../../core/services/notification_service.dart';
 import '../../core/theme/tokens.dart';
 import '../../shared/data/location_repository.dart';
 import '../../shared/models/location.dart';
+import '../../shared/models/prayer_time.dart';
 import '../../shared/state/favorites_provider.dart';
 import '../../shared/state/settings_provider.dart';
 import '../../shared/widgets/app_button.dart';
@@ -16,129 +17,83 @@ import '../../shared/widgets/app_field.dart';
 import '../../shared/widgets/app_spinner.dart';
 import '../../shared/widgets/app_toggle.dart';
 
-class OnboardingSetupPage extends ConsumerStatefulWidget {
+class OnboardingSetupPage extends StatelessWidget {
   const OnboardingSetupPage({
     super.key,
-    required this.onFinish,
+    required this.step,
     required this.onBack,
   });
-  final VoidCallback onFinish;
+  final int step;
   final VoidCallback onBack;
 
-  @override
-  ConsumerState<OnboardingSetupPage> createState() =>
-      _OnboardingSetupPageState();
-}
-
-class _OnboardingSetupPageState extends ConsumerState<OnboardingSetupPage> {
   static const _steps = 3;
-  int _step = 0;
-
-  void _next() {
-    if (_step < _steps - 1) {
-      setState(() => _step++);
-    } else {
-      widget.onFinish();
-    }
-  }
-
-  void _back() {
-    if (_step > 0) {
-      setState(() => _step--);
-    } else {
-      widget.onBack();
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppL10n.of(context);
     final palette = context.palette;
 
-    return Scaffold(
-      backgroundColor: palette.bg,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Top bar with step progress
-            Padding(
-              padding: const EdgeInsets.fromLTRB(8, 4, 20, 0),
-              child: Row(
-                children: [
-                  AppIconButton(
-                      icon: Ionicons.arrow_back,
-                      onPressed: _back,
-                      color: palette.text),
-                  Expanded(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        for (var i = 0; i < _steps; i++)
-                          AnimatedContainer(
-                            duration: AppTokens.duration,
-                            curve: AppTokens.ease,
-                            margin:
-                                const EdgeInsets.symmetric(horizontal: 3),
-                            height: 5,
-                            width: i == _step ? 26 : 16,
-                            decoration: BoxDecoration(
-                              color: i <= _step
-                                  ? palette.accent
-                                  : palette.line,
-                              borderRadius: BorderRadius.circular(99),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 40),
-                ],
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(8, 4, 20, 0),
+          child: Row(
+            children: [
+              AppIconButton(
+                icon: Ionicons.arrow_back,
+                onPressed: onBack,
+                color: palette.text,
               ),
-            ),
-            Expanded(
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 320),
-                transitionBuilder: (child, anim) => FadeTransition(
-                  opacity: anim,
-                  child: SlideTransition(
-                    position: Tween<Offset>(
-                            begin: const Offset(0.08, 0), end: Offset.zero)
-                        .animate(anim),
-                    child: child,
-                  ),
-                ),
-                child: KeyedSubtree(
-                  key: ValueKey(_step),
-                  child: switch (_step) {
-                    0 => const _LocationStep(),
-                    1 => const _NotificationsStep(),
-                    _ => const _AppearanceStep(),
-                  },
+              Expanded(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    for (var i = 0; i < _steps; i++)
+                      AnimatedContainer(
+                        duration: AppTokens.duration,
+                        curve: AppTokens.ease,
+                        margin: const EdgeInsets.symmetric(horizontal: 3),
+                        height: 5,
+                        width: i == step ? 26 : 16,
+                        decoration: BoxDecoration(
+                          color: i <= step ? palette.accent : palette.line,
+                          borderRadius: BorderRadius.circular(99),
+                        ),
+                      ),
+                  ],
                 ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
-              child: AppButton(
-                label: _step < _steps - 1
-                    ? l10n.t('onboarding.next')
-                    : l10n.t('onboarding.finish'),
-                size: AppButtonSize.lg,
-                expand: true,
-                onPressed: _next,
-              ),
-            ),
-          ],
+              const SizedBox(width: 40),
+            ],
+          ),
         ),
-      ),
+        Expanded(
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 300),
+            switchInCurve: Curves.easeOut,
+            switchOutCurve: Curves.easeIn,
+            transitionBuilder: (child, anim) =>
+                FadeTransition(opacity: anim, child: child),
+            child: KeyedSubtree(
+              key: ValueKey(step),
+              child: switch (step) {
+                0 => const _LocationStep(),
+                1 => const _NotificationsStep(),
+                _ => const _AppearanceStep(),
+              },
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
 
-/// Shared header (icon halo + title + subtitle) for each step.
 class _StepHeader extends StatelessWidget {
-  const _StepHeader(
-      {required this.icon, required this.title, required this.subtitle});
+  const _StepHeader({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+  });
   final IconData icon;
   final String title;
   final String subtitle;
@@ -158,23 +113,30 @@ class _StepHeader extends StatelessWidget {
           child: Icon(icon, size: 38, color: palette.accent),
         ),
         const SizedBox(height: 22),
-        Text(title,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-                color: palette.text,
-                fontSize: 24,
-                fontWeight: FontWeight.w800)),
+        Text(
+          title,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: palette.text,
+            fontSize: 24,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
         const SizedBox(height: 10),
-        Text(subtitle,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-                color: palette.textMuted, fontSize: 14.5, height: 1.45)),
+        Text(
+          subtitle,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: palette.textMuted,
+            fontSize: 14.5,
+            height: 1.45,
+          ),
+        ),
       ],
     );
   }
 }
 
-// ----------------------------------------------------------------- Location ---
 class _LocationStep extends ConsumerStatefulWidget {
   const _LocationStep();
   @override
@@ -206,19 +168,25 @@ class _LocationStepState extends ConsumerState<_LocationStep> {
     setState(() => _detecting = true);
     try {
       final perm = await Geolocator.checkPermission();
-      var allowed = perm == LocationPermission.always ||
+      var allowed =
+          perm == LocationPermission.always ||
           perm == LocationPermission.whileInUse;
       if (!allowed) {
         final req = await Geolocator.requestPermission();
-        allowed = req == LocationPermission.always ||
+        allowed =
+            req == LocationPermission.always ||
             req == LocationPermission.whileInUse;
       }
       if (!allowed) return;
       final pos = await Geolocator.getCurrentPosition(
-          locationSettings:
-              const LocationSettings(accuracy: LocationAccuracy.medium));
-      final found = await LocationRepository.instance
-          .reverseGeocode(pos.latitude, pos.longitude);
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.medium,
+        ),
+      );
+      final found = await LocationRepository.instance.reverseGeocode(
+        pos.latitude,
+        pos.longitude,
+      );
       if (mounted && found != null) _select(found);
     } catch (_) {
     } finally {
@@ -274,16 +242,20 @@ class _LocationStepState extends ConsumerState<_LocationStep> {
             ),
             child: Row(
               children: [
-                Icon(Ionicons.checkmark_circle,
-                    color: palette.accent, size: 22),
+                Icon(
+                  Ionicons.checkmark_circle,
+                  color: palette.accent,
+                  size: 22,
+                ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     selected.name,
                     style: TextStyle(
-                        color: palette.text,
-                        fontSize: 15.5,
-                        fontWeight: FontWeight.w700),
+                      color: palette.text,
+                      fontSize: 15.5,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
               ],
@@ -303,12 +275,17 @@ class _LocationStepState extends ConsumerState<_LocationStep> {
         const SizedBox(height: 14),
         AppTextField(
           hintText: l10n.t('home.searchCity'),
-          prefix: Icon(Ionicons.search_outline,
-              size: 18, color: palette.textMuted),
+          prefix: Icon(
+            Ionicons.search_outline,
+            size: 18,
+            color: palette.textMuted,
+          ),
           onChanged: (v) {
             _debounce?.cancel();
-            _debounce =
-                Timer(const Duration(milliseconds: 220), () => _search(v));
+            _debounce = Timer(
+              const Duration(milliseconds: 220),
+              () => _search(v),
+            );
           },
         ),
         if (_searching)
@@ -323,8 +300,10 @@ class _LocationStepState extends ConsumerState<_LocationStep> {
               behavior: HitTestBehavior.opaque,
               onTap: () => _select(loc),
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 12,
+                ),
                 margin: const EdgeInsets.only(bottom: 8),
                 decoration: BoxDecoration(
                   color: palette.surface,
@@ -333,15 +312,21 @@ class _LocationStepState extends ConsumerState<_LocationStep> {
                 ),
                 child: Row(
                   children: [
-                    Icon(Ionicons.location_outline,
-                        size: 18, color: palette.textMuted),
+                    Icon(
+                      Ionicons.location_outline,
+                      size: 18,
+                      color: palette.textMuted,
+                    ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: Text(loc.name,
-                          style: TextStyle(
-                              color: palette.text,
-                              fontSize: 14.5,
-                              fontWeight: FontWeight.w600)),
+                      child: Text(
+                        loc.name,
+                        style: TextStyle(
+                          color: palette.text,
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -353,7 +338,6 @@ class _LocationStepState extends ConsumerState<_LocationStep> {
   }
 }
 
-// ------------------------------------------------------------ Notifications ---
 class _NotificationsStep extends ConsumerWidget {
   const _NotificationsStep();
 
@@ -361,15 +345,10 @@ class _NotificationsStep extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppL10n.of(context);
     final palette = context.palette;
-    final enabled = ref.watch(settingsProvider).notificationsEnabled;
+    final settings = ref.watch(settingsProvider);
+    final enabled = settings.notificationsEnabled;
 
-    Future<void> toggle(bool v) async {
-      if (v) {
-        final granted =
-            await NotificationService.instance.requestPermissions();
-        if (!granted) return;
-      }
-      ref.read(settingsProvider.notifier).setNotificationsEnabled(v);
+    void reschedule() {
       final s = ref.read(settingsProvider);
       NotificationService.instance.reschedule(
         location: s.location,
@@ -378,6 +357,15 @@ class _NotificationsStep extends ConsumerWidget {
         enabled: s.notificationsEnabled,
         perPrayer: s.perPrayerNotifications,
       );
+    }
+
+    Future<void> toggle(bool v) async {
+      if (v) {
+        final granted = await NotificationService.instance.requestPermissions();
+        if (!granted) return;
+      }
+      ref.read(settingsProvider.notifier).setNotificationsEnabled(v);
+      reschedule();
     }
 
     return ListView(
@@ -409,9 +397,10 @@ class _NotificationsStep extends ConsumerWidget {
                   child: Text(
                     l10n.t('onboarding.setup.notifications.enable'),
                     style: TextStyle(
-                        color: palette.text,
-                        fontSize: 15.5,
-                        fontWeight: FontWeight.w700),
+                      color: palette.text,
+                      fontSize: 15.5,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
                 AppToggle(value: enabled, onChanged: toggle),
@@ -419,12 +408,67 @@ class _NotificationsStep extends ConsumerWidget {
             ),
           ),
         ),
+        AnimatedSize(
+          duration: AppTokens.duration,
+          curve: AppTokens.ease,
+          alignment: Alignment.topCenter,
+          child: enabled
+              ? Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: palette.surface,
+                      borderRadius: BorderRadius.circular(AppTokens.radius),
+                      border: Border.all(color: palette.line),
+                    ),
+                    child: Column(
+                      children: [
+                        for (var i = 0; i < prayerKeys.length; i++)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 6),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    l10n.t('prayers.${prayerKeys[i]}'),
+                                    style: TextStyle(
+                                      color: palette.text,
+                                      fontSize: 14.5,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                                AppToggle(
+                                  value: settings.perPrayerNotifications[i],
+                                  onChanged: (v) {
+                                    final list = [
+                                      ...settings.perPrayerNotifications,
+                                    ];
+                                    list[i] = v;
+                                    ref
+                                        .read(settingsProvider.notifier)
+                                        .setPerPrayerNotifications(list);
+                                    reschedule();
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                )
+              : const SizedBox(width: double.infinity),
+        ),
       ],
     );
   }
 }
 
-// --------------------------------------------------------------- Appearance ---
 class _AppearanceStep extends ConsumerWidget {
   const _AppearanceStep();
 
@@ -435,9 +479,21 @@ class _AppearanceStep extends ConsumerWidget {
     final mode = ref.watch(settingsProvider).themeMode;
 
     final options = [
-      (AppThemeMode.auto, l10n.t('onboarding.theme.auto'), Ionicons.contrast_outline),
-      (AppThemeMode.light, l10n.t('onboarding.theme.light'), Ionicons.sunny_outline),
-      (AppThemeMode.dark, l10n.t('onboarding.theme.dark'), Ionicons.moon_outline),
+      (
+        AppThemeMode.auto,
+        l10n.t('onboarding.theme.auto'),
+        Ionicons.contrast_outline,
+      ),
+      (
+        AppThemeMode.light,
+        l10n.t('onboarding.theme.light'),
+        Ionicons.sunny_outline,
+      ),
+      (
+        AppThemeMode.dark,
+        l10n.t('onboarding.theme.dark'),
+        Ionicons.moon_outline,
+      ),
     ];
 
     return ListView(
@@ -452,12 +508,10 @@ class _AppearanceStep extends ConsumerWidget {
         for (final (m, label, icon) in options) ...[
           GestureDetector(
             behavior: HitTestBehavior.opaque,
-            onTap: () =>
-                ref.read(settingsProvider.notifier).setTheme(m),
+            onTap: () => ref.read(settingsProvider.notifier).setTheme(m),
             child: AnimatedContainer(
               duration: AppTokens.duration,
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               decoration: BoxDecoration(
                 color: mode == m ? palette.accentSoft : palette.surface,
                 borderRadius: BorderRadius.circular(AppTokens.radius),
@@ -468,20 +522,28 @@ class _AppearanceStep extends ConsumerWidget {
               ),
               child: Row(
                 children: [
-                  Icon(icon,
-                      size: 22,
-                      color: mode == m ? palette.accent : palette.textMuted),
+                  Icon(
+                    icon,
+                    size: 22,
+                    color: mode == m ? palette.accent : palette.textMuted,
+                  ),
                   const SizedBox(width: 14),
                   Expanded(
-                    child: Text(label,
-                        style: TextStyle(
-                            color: palette.text,
-                            fontSize: 15.5,
-                            fontWeight: FontWeight.w700)),
+                    child: Text(
+                      label,
+                      style: TextStyle(
+                        color: palette.text,
+                        fontSize: 15.5,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                   ),
                   if (mode == m)
-                    Icon(Ionicons.checkmark_circle,
-                        color: palette.accent, size: 22),
+                    Icon(
+                      Ionicons.checkmark_circle,
+                      color: palette.accent,
+                      size: 22,
+                    ),
                 ],
               ),
             ),

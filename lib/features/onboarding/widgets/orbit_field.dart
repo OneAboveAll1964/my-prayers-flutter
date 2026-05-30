@@ -3,18 +3,12 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../../../core/theme/tokens.dart';
 
-/// A single orbiting feature orb.
 class OrbSpec {
   const OrbSpec({required this.icon, required this.color});
   final IconData icon;
   final Color color;
 }
 
-/// A morphing phone mockup with [orbs] orbiting around it on a clean tilted 3D
-/// ring. The orb nearest the (continuous, wrapping) [focus] sits at the phone's
-/// centre and scales up. A top/bottom-cut "( )" bracket frames it and spins via
-/// [bracketTurn] (0→1 = one full turn). The phone morphs between an Android and
-/// an iPhone (corner radius + camera cutout) as the focus moves between orbs.
 class OrbitField extends StatelessWidget {
   const OrbitField({
     super.key,
@@ -29,7 +23,6 @@ class OrbitField extends StatelessWidget {
 
   static double _lerp(double a, double b, double t) => a + (b - a) * t;
 
-  // 0 = Android, 1 = iPhone, alternating per orb.
   static double _styleOf(int i, int n) =>
       (((i % n) + n) % n).isEven ? 0.0 : 1.0;
 
@@ -43,37 +36,34 @@ class OrbitField extends StatelessWidget {
         final phoneH = phoneW * 2.0;
         final cx = w / 2;
         final cy = h / 2;
-        final rx = phoneW * 0.7; // horizontal ring radius
-        final ry = phoneH * 0.12; // vertical (perspective) radius
-        final base = phoneW * 0.45; // focused-orb diameter (arcs scale from this)
+        final rx = phoneW * 0.7;
+        final ry = phoneH * 0.12;
+        final base = phoneW * 0.45;
         final n = orbs.length;
 
         final lo = focus.floor();
         final style = _lerp(_styleOf(lo, n), _styleOf(lo + 1, n), focus - lo);
-        // Fixed neutral bracket — doesn't change with the focused orb, and a
-        // muted grey reads better than green against the multi-colour orbs.
         final bracketColor = context.palette.textMuted;
 
         final placed = <_Placed>[];
         for (var i = 0; i < n; i++) {
           final angle = (i - focus) * (2 * math.pi / n);
-          final depth = math.cos(angle); // 1 = front (centre), -1 = back (top)
+          final depth = math.cos(angle);
           final t = (depth + 1) / 2;
 
-          // Clean tilted ring: orbs stay on the ring and just rotate. The front
-          // orb naturally sits at the phone's centre and scales up in place.
-          placed.add(_Placed(
-            orb: orbs[i],
-            x: cx + rx * math.sin(angle),
-            y: cy - ry * (1 - math.cos(angle)),
-            size: base * _lerp(0.3, 1.0, t),
-            opacity: _lerp(0.75, 1.0, t).clamp(0.0, 1.0),
-            depth: depth,
-          ));
+          placed.add(
+            _Placed(
+              orb: orbs[i],
+              x: cx + rx * math.sin(angle),
+              y: cy - ry * (1 - math.cos(angle)),
+              size: base * _lerp(0.3, 1.0, t),
+              opacity: _lerp(0.75, 1.0, t).clamp(0.0, 1.0),
+              depth: depth,
+            ),
+          );
         }
         placed.sort((a, b) => a.depth.compareTo(b.depth));
 
-        // Force the field to fill the width so the Stack's centre matches `cx`.
         return SizedBox(
           width: w,
           height: h,
@@ -83,8 +73,6 @@ class OrbitField extends StatelessWidget {
             children: [
               for (final p in placed.where((p) => p.depth < 0)) _orb(p),
               _PhoneMockup(width: phoneW, height: phoneH, style: style),
-              // "( )" bracket framing the focused orb; spins on selection change.
-              // Drawn under the front orbs so they pass over the arcs while moving.
               Positioned(
                 left: cx - base * 0.60,
                 top: cy - base * 0.60,
@@ -93,7 +81,9 @@ class OrbitField extends StatelessWidget {
                 child: IgnorePointer(
                   child: CustomPaint(
                     painter: _BracketPainter(
-                        color: bracketColor, turn: bracketTurn),
+                      color: bracketColor,
+                      turn: bracketTurn,
+                    ),
                   ),
                 ),
               ),
@@ -162,12 +152,12 @@ class _BracketPainter extends CustomPainter {
       ..strokeWidth = 2
       ..strokeCap = StrokeCap.round;
 
-    const sweep = 1.1; // short arcs (~63° each) → clear "( )", big top/bottom gaps
+    const sweep = 1.1;
     canvas.save();
     canvas.translate(size.width / 2, size.height / 2);
     canvas.rotate(turn * 2 * math.pi);
-    canvas.drawArc(rect, -sweep / 2, sweep, false, paint); // right ")"
-    canvas.drawArc(rect, math.pi - sweep / 2, sweep, false, paint); // left "("
+    canvas.drawArc(rect, -sweep / 2, sweep, false, paint);
+    canvas.drawArc(rect, math.pi - sweep / 2, sweep, false, paint);
     canvas.restore();
   }
 
@@ -180,7 +170,7 @@ class _PhoneMockup extends StatelessWidget {
   const _PhoneMockup({
     required this.width,
     required this.height,
-    required this.style, // 0 = Android, 1 = iPhone
+    required this.style,
   });
   final double width;
   final double height;
@@ -193,13 +183,13 @@ class _PhoneMockup extends StatelessWidget {
     final dark = Theme.of(context).brightness == Brightness.dark;
     final frame = dark ? const Color(0xFF2A2F36) : const Color(0xFFD9DCE1);
     final screenTop = dark ? const Color(0xFF181C21) : const Color(0xFFFFFFFF);
-    final screenBottom =
-        dark ? const Color(0xFF0E1116) : const Color(0xFFEEF0F3);
+    final screenBottom = dark
+        ? const Color(0xFF0E1116)
+        : const Color(0xFFEEF0F3);
     final btn = dark ? const Color(0xFF4A515B) : const Color(0xFFAEB3BA);
     const cutout = Color(0xFF0B0D10);
 
-    final radius = _lerp(width * 0.12, width * 0.2, style); // Android→iPhone
-    // Camera: Android punch-hole (small circle) → iPhone Dynamic Island (pill).
+    final radius = _lerp(width * 0.12, width * 0.2, style);
     final camW = _lerp(width * 0.05, width * 0.36, style);
     final camH = _lerp(width * 0.05, width * 0.082, style);
 
@@ -259,32 +249,33 @@ class _PhoneMockup extends StatelessWidget {
     );
 
     Widget sideButton(double h) => Container(
-          width: width * 0.014,
-          height: h,
-          decoration: BoxDecoration(
-            color: btn,
-            borderRadius: BorderRadius.circular(4),
-          ),
-        );
+      width: width * 0.014,
+      height: h,
+      decoration: BoxDecoration(
+        color: btn,
+        borderRadius: BorderRadius.circular(4),
+      ),
+    );
 
     return Stack(
       clipBehavior: Clip.none,
       children: [
         phone,
-        // Volume buttons (left)
         Positioned(
-            left: -width * 0.008,
-            top: height * 0.22,
-            child: sideButton(height * 0.07)),
+          left: -width * 0.008,
+          top: height * 0.22,
+          child: sideButton(height * 0.07),
+        ),
         Positioned(
-            left: -width * 0.008,
-            top: height * 0.31,
-            child: sideButton(height * 0.07)),
-        // Power button (right)
+          left: -width * 0.008,
+          top: height * 0.31,
+          child: sideButton(height * 0.07),
+        ),
         Positioned(
-            right: -width * 0.008,
-            top: height * 0.26,
-            child: sideButton(height * 0.12)),
+          right: -width * 0.008,
+          top: height * 0.26,
+          child: sideButton(height * 0.12),
+        ),
       ],
     );
   }

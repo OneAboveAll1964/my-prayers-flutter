@@ -45,9 +45,8 @@ class _SplashOverlayState extends State<SplashOverlay>
   }
 
   Future<void> _start() async {
-    final hold = widget.animateReveal ? 350 : 650;
     if (_showVisual) {
-      await Future<void>.delayed(Duration(milliseconds: hold));
+      await Future<void>.delayed(const Duration(milliseconds: 350));
       if (!mounted) return;
       await _fade.forward();
       if (!mounted) return;

@@ -64,16 +64,9 @@ class MyPrayersApp extends ConsumerWidget {
       builder: (ctx, child) {
         final activeLocale = Localizations.localeOf(ctx);
         final isRtl = isRtlLang(langKey(activeLocale));
-        final Widget content;
-        if (settings.onboardingComplete) {
-          content = child ?? const SizedBox();
-        } else {
-          content = Overlay(
-            initialEntries: [
-              OverlayEntry(builder: (_) => const OnboardingFlow()),
-            ],
-          );
-        }
+        final Widget content = settings.onboardingComplete
+            ? (child ?? const SizedBox())
+            : const _OnboardingHost();
         return MediaQuery(
           data: MediaQuery.of(ctx).copyWith(
             textScaler: TextScaler.noScaling,
@@ -93,6 +86,24 @@ class MyPrayersApp extends ConsumerWidget {
       return const Locale.fromSubtags(languageCode: 'ckb', scriptCode: 'Badi');
     }
     return Locale(code);
+  }
+}
+
+class _OnboardingHost extends StatefulWidget {
+  const _OnboardingHost();
+
+  @override
+  State<_OnboardingHost> createState() => _OnboardingHostState();
+}
+
+class _OnboardingHostState extends State<_OnboardingHost> {
+  late final OverlayEntry _entry = OverlayEntry(
+    builder: (_) => const OnboardingFlow(),
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    return Overlay(initialEntries: [_entry]);
   }
 }
 

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -19,8 +20,8 @@ class SettingsPage extends ConsumerWidget {
     final l10n = AppL10n.of(context);
     final palette = context.palette;
     final settings = ref.watch(settingsProvider);
-    final lang = settings.language ??
-        Localizations.localeOf(context).languageCode;
+    final lang =
+        settings.language ?? Localizations.localeOf(context).languageCode;
 
     return Scaffold(
       backgroundColor: palette.bg,
@@ -66,16 +67,14 @@ class SettingsPage extends ConsumerWidget {
                           icon: Ionicons.time_outline,
                           label: l10n.t('settings.prayerTimes'),
                           value: '',
-                          onTap: () =>
-                              context.push('/settings/prayer-times'),
+                          onTap: () => context.push('/settings/prayer-times'),
                         ),
                         const SettingsDivider(),
                         SettingsTile(
                           icon: Ionicons.notifications_outline,
                           label: l10n.t('settings.notifications'),
                           value: settings.notificationsEnabled ? '✓' : '',
-                          onTap: () =>
-                              context.push('/settings/notifications'),
+                          onTap: () => context.push('/settings/notifications'),
                         ),
                       ],
                     ),
@@ -93,6 +92,21 @@ class SettingsPage extends ConsumerWidget {
                       ],
                     ),
                   ),
+                  if (kDebugMode)
+                    AppSurface(
+                      padding: EdgeInsets.zero,
+                      child: SettingsTile(
+                        icon: Ionicons.refresh_outline,
+                        label: 'Reset onboarding (dev)',
+                        value: '',
+                        onTap: () {
+                          context.go('/');
+                          ref
+                              .read(settingsProvider.notifier)
+                              .setOnboardingComplete(false);
+                        },
+                      ),
+                    ),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(2, 8, 2, 8),
                     child: Column(
@@ -101,17 +115,22 @@ class SettingsPage extends ConsumerWidget {
                         Text(
                           '${l10n.t('settings.version')} 1.0.0',
                           style: TextStyle(
-                              color: palette.textSubtle, fontSize: 12),
+                            color: palette.textSubtle,
+                            fontSize: 12,
+                          ),
                         ),
                         const SizedBox(height: 4),
                         GestureDetector(
                           behavior: HitTestBehavior.opaque,
                           onTap: () async {
                             final uri = Uri.parse(
-                                'https://github.com/OneAboveAll1964');
+                              'https://github.com/OneAboveAll1964',
+                            );
                             if (await canLaunchUrl(uri)) {
-                              await launchUrl(uri,
-                                  mode: LaunchMode.externalApplication);
+                              await launchUrl(
+                                uri,
+                                mode: LaunchMode.externalApplication,
+                              );
                             }
                           },
                           child: Row(
@@ -126,8 +145,11 @@ class SettingsPage extends ConsumerWidget {
                                 ),
                               ),
                               const SizedBox(width: 4),
-                              Icon(Ionicons.open_outline,
-                                  size: 12, color: palette.accent),
+                              Icon(
+                                Ionicons.open_outline,
+                                size: 12,
+                                color: palette.accent,
+                              ),
                             ],
                           ),
                         ),

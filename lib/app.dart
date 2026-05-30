@@ -31,16 +31,21 @@ class MyPrayersApp extends ConsumerWidget {
         ? platformBrightness
         : (mode == ThemeMode.dark ? Brightness.dark : Brightness.light);
 
-    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      statusBarIconBrightness:
-          resolved == Brightness.dark ? Brightness.light : Brightness.dark,
-      statusBarBrightness: resolved,
-      systemNavigationBarColor:
-          resolved == Brightness.dark ? AppTokens.bgDark : AppTokens.bgLight,
-      systemNavigationBarIconBrightness:
-          resolved == Brightness.dark ? Brightness.light : Brightness.dark,
-    ));
+    SystemChrome.setSystemUIOverlayStyle(
+      SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: resolved == Brightness.dark
+            ? Brightness.light
+            : Brightness.dark,
+        statusBarBrightness: resolved,
+        systemNavigationBarColor: resolved == Brightness.dark
+            ? AppTokens.bgDark
+            : AppTokens.bgLight,
+        systemNavigationBarIconBrightness: resolved == Brightness.dark
+            ? Brightness.light
+            : Brightness.dark,
+      ),
+    );
 
     return MaterialApp.router(
       title: 'Sakina',
@@ -64,17 +69,18 @@ class MyPrayersApp extends ConsumerWidget {
       builder: (ctx, child) {
         final activeLocale = Localizations.localeOf(ctx);
         final isRtl = isRtlLang(langKey(activeLocale));
-        final Widget content = settings.onboardingComplete
-            ? (child ?? const SizedBox())
-            : const _OnboardingHost();
         return MediaQuery(
-          data: MediaQuery.of(ctx).copyWith(
-            textScaler: TextScaler.noScaling,
-            boldText: false,
-          ),
+          data: MediaQuery.of(
+            ctx,
+          ).copyWith(textScaler: TextScaler.noScaling, boldText: false),
           child: Directionality(
             textDirection: isRtl ? TextDirection.rtl : TextDirection.ltr,
-            child: SplashOverlay(child: content),
+            child: SplashOverlay(
+              child: _Root(
+                onboardingComplete: settings.onboardingComplete,
+                appChild: child ?? const SizedBox(),
+              ),
+            ),
           ),
         );
       },
@@ -89,8 +95,68 @@ class MyPrayersApp extends ConsumerWidget {
   }
 }
 
+class _Root extends StatefulWidget {
+  const _Root({required this.onboardingComplete, required this.appChild});
+  final bool onboardingComplete;
+  final Widget appChild;
+
+  @override
+  State<_Root> createState() => _RootState();
+}
+
+class _RootState extends State<_Root> with SingleTickerProviderStateMixin {
+  final _obKey = GlobalKey();
+  late bool _complete = widget.onboardingComplete;
+  bool _swapping = false;
+  late final AnimationController _swap = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 250),
+  );
+
+  @override
+  void didUpdateWidget(_Root old) {
+    super.didUpdateWidget(old);
+    if (widget.onboardingComplete != _complete) {
+      _complete = widget.onboardingComplete;
+      if (_complete) {
+        _swapping = true;
+        _swap.forward(from: 0).whenComplete(() {
+          if (mounted) setState(() => _swapping = false);
+        });
+      }
+      setState(() {});
+    }
+  }
+
+  @override
+  void dispose() {
+    _swap.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final onboarding = _OnboardingHost(key: _obKey);
+    if (!_complete) return onboarding;
+    if (!_swapping) return widget.appChild;
+    return Stack(
+      children: [
+        widget.appChild,
+        IgnorePointer(
+          child: FadeTransition(
+            opacity: ReverseAnimation(
+              CurvedAnimation(parent: _swap, curve: Curves.easeInOut),
+            ),
+            child: onboarding,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _OnboardingHost extends StatefulWidget {
-  const _OnboardingHost();
+  const _OnboardingHost({super.key});
 
   @override
   State<_OnboardingHost> createState() => _OnboardingHostState();

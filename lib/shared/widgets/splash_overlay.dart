@@ -66,6 +66,22 @@ class _SplashOverlayState extends State<SplashOverlay>
   Widget build(BuildContext context) {
     final palette = context.palette;
     final center = splashIconCenter(context);
+
+    final icon = Container(
+      decoration: const BoxDecoration(shape: BoxShape.circle),
+      clipBehavior: Clip.antiAlias,
+      child: Image.asset(
+        'assets/widget/launch_icon.png',
+        fit: BoxFit.cover,
+        filterQuality: FilterQuality.medium,
+        errorBuilder: (_, _, _) => Container(
+          color: palette.accent,
+          alignment: Alignment.center,
+          child: Icon(Icons.mosque, color: palette.accentOn, size: 56),
+        ),
+      ),
+    );
+
     return Stack(
       children: [
         widget.child,
@@ -84,24 +100,7 @@ class _SplashOverlayState extends State<SplashOverlay>
                       top: center.dy - splashHandoffSize / 2,
                       width: splashHandoffSize,
                       height: splashHandoffSize,
-                      child: Container(
-                        decoration: const BoxDecoration(shape: BoxShape.circle),
-                        clipBehavior: Clip.antiAlias,
-                        child: Image.asset(
-                          'assets/widget/launch_icon.png',
-                          fit: BoxFit.cover,
-                          filterQuality: FilterQuality.medium,
-                          errorBuilder: (_, _, _) => Container(
-                            color: palette.accent,
-                            alignment: Alignment.center,
-                            child: Icon(
-                              Icons.mosque,
-                              color: palette.accentOn,
-                              size: 56,
-                            ),
-                          ),
-                        ),
-                      ),
+                      child: icon,
                     ),
                   ],
                 ),

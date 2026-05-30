@@ -84,7 +84,7 @@ Future<void> _precacheLaunchIcon(AssetImage provider) {
   );
   stream.addListener(listener);
   return completer.future.timeout(
-    const Duration(milliseconds: 600),
+    const Duration(milliseconds: 100),
     onTimeout: () {},
   );
 }

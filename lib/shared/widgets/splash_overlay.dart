@@ -1,7 +1,11 @@
-import 'dart:io' show Platform;
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'dart:async';
+
 import '../../core/theme/tokens.dart';
+
+final splashFinished = ValueNotifier<bool>(false);
+
+const splashIconSize = 120.0;
 
 class SplashOverlay extends StatefulWidget {
   const SplashOverlay({super.key, required this.child});
@@ -13,75 +17,83 @@ class SplashOverlay extends StatefulWidget {
 
 class _SplashOverlayState extends State<SplashOverlay>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-  late final Animation<double> _fade;
-  late final Animation<double> _scale;
-  bool _shouldShow = false;
+  late final AnimationController _fade = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 500),
+  );
+  bool _gone = false;
 
   @override
   void initState() {
     super.initState();
-    _shouldShow = !kIsWeb && Platform.isIOS;
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 480),
-    );
-    _fade = CurvedAnimation(
-      parent: _controller,
-      curve: const Interval(0.35, 1.0, curve: Curves.easeOutCubic),
-    );
-    _scale = Tween<double>(begin: 1.0, end: 1.18).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInCubic),
-    );
-    if (_shouldShow) {
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
-        await Future<void>.delayed(const Duration(milliseconds: 380));
-        if (!mounted) return;
-        await _controller.forward();
-        if (!mounted) return;
-        setState(() => _shouldShow = false);
-      });
-    }
+    _start();
+  }
+
+  Future<void> _start() async {
+    await Future.delayed(const Duration(milliseconds: 1100));
+    if (!mounted) return;
+    await _fade.forward();
+    if (!mounted) return;
+    setState(() => _gone = true);
+    splashFinished.value = true;
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _fade.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (!_shouldShow) return widget.child;
-    final brightness = MediaQuery.platformBrightnessOf(context);
-    final dark = brightness == Brightness.dark;
-    final bg = dark ? AppTokens.bgDark : AppTokens.bgLight;
+    final palette = context.palette;
     return Stack(
       children: [
         widget.child,
-        AnimatedBuilder(
-          animation: _controller,
-          builder: (ctx, _) => IgnorePointer(
-            child: Opacity(
-              opacity: 1.0 - _fade.value,
-              child: Container(
-                color: bg,
-                child: Center(
-                  child: Transform.scale(
-                    scale: _scale.value,
-                    child: Image.asset(
-                      'assets/widget/launch_icon.png',
-                      width: 120,
-                      height: 120,
-                      filterQuality: FilterQuality.medium,
-                      errorBuilder: (_, _, _) => const SizedBox(
-                        width: 120,
-                        height: 120,
-                      ),
-                    ),
-                  ),
-                ),
+        if (!_gone)
+          FadeTransition(
+            opacity: ReverseAnimation(
+              CurvedAnimation(parent: _fade, curve: Curves.easeOut),
+            ),
+            child: Container(
+              color: palette.bg,
+              alignment: Alignment.center,
+              child: _SplashContent(),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _SplashContent extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Container(
+          width: splashIconSize,
+          height: splashIconSize,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: palette.accent.withValues(alpha: 0.25),
+                blurRadius: 40,
+                spreadRadius: 4,
               ),
+            ],
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: Image.asset(
+            'assets/widget/launch_icon.png',
+            fit: BoxFit.cover,
+            errorBuilder: (_, _, _) => Container(
+              color: palette.accent,
+              alignment: Alignment.center,
+              child: Icon(Icons.mosque, color: palette.accentOn, size: 60),
             ),
           ),
         ),

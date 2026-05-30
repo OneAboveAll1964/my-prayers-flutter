@@ -6,6 +6,7 @@ import '../../core/i18n/app_l10n.dart';
 import '../../core/theme/tokens.dart';
 import '../../shared/state/settings_provider.dart';
 import '../../shared/widgets/app_button.dart';
+import '../../shared/widgets/splash_overlay.dart';
 import 'onboarding_features_page.dart';
 import 'onboarding_language_page.dart';
 import 'onboarding_setup_page.dart';
@@ -51,17 +52,35 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow>
     end: 1.0,
   ).animate(_inAnim);
 
+  late final AnimationController _chrome = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 850),
+  );
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    if (splashFinished.value) {
+      _chrome.value = 1;
+    } else {
+      splashFinished.addListener(_onSplash);
+    }
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    splashFinished.removeListener(_onSplash);
     _fade.dispose();
+    _chrome.dispose();
     super.dispose();
+  }
+
+  void _onSplash() {
+    if (!splashFinished.value) return;
+    splashFinished.removeListener(_onSplash);
+    if (mounted) _chrome.forward();
   }
 
   @override
@@ -169,7 +188,16 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow>
       body: SafeArea(
         child: Column(
           children: [
-            _header(context),
+            AnimatedBuilder(
+              animation: _chrome,
+              builder: (context, child) {
+                final e = Curves.easeOut.transform(
+                  ((_chrome.value - 0.45) / 0.55).clamp(0.0, 1.0),
+                );
+                return Opacity(opacity: e, child: child);
+              },
+              child: _header(context),
+            ),
             Expanded(
               child: Stack(
                 fit: StackFit.expand,
@@ -189,12 +217,27 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow>
                 ],
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
-              child: _FooterButton(
-                snapKey: _footerKey,
-                label: _footerLabel(l10n),
-                onPressed: _forward,
+            AnimatedBuilder(
+              animation: _chrome,
+              builder: (context, child) {
+                final e = Curves.easeOut.transform(
+                  ((_chrome.value - 0.5) / 0.5).clamp(0.0, 1.0),
+                );
+                return Opacity(
+                  opacity: e,
+                  child: Transform.translate(
+                    offset: Offset(0, (1 - e) * 24),
+                    child: child,
+                  ),
+                );
+              },
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
+                child: _FooterButton(
+                  snapKey: _footerKey,
+                  label: _footerLabel(l10n),
+                  onPressed: _forward,
+                ),
               ),
             ),
           ],

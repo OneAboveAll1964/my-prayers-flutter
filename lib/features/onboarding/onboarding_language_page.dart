@@ -4,7 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/i18n/app_l10n.dart';
 import '../../core/theme/tokens.dart';
 import '../../shared/state/settings_provider.dart';
+import '../../shared/widgets/splash_overlay.dart';
 import 'widgets/snap_dissolve.dart';
+
+const _iconSize = 104.0;
 
 class OnboardingLanguagePage extends ConsumerStatefulWidget {
   const OnboardingLanguagePage({super.key, required this.footerKey});
@@ -15,11 +18,51 @@ class OnboardingLanguagePage extends ConsumerStatefulWidget {
       _OnboardingLanguagePageState();
 }
 
-class _OnboardingLanguagePageState
-    extends ConsumerState<OnboardingLanguagePage> {
+class _OnboardingLanguagePageState extends ConsumerState<OnboardingLanguagePage>
+    with SingleTickerProviderStateMixin {
   final _snapKey = GlobalKey<SnapDissolveState>();
+  final _circleKey = GlobalKey();
+
+  late final AnimationController _intro = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 850),
+  );
+  Offset? _restOffset;
 
   static const _codes = ['ckb', 'ckb_Badini', 'en', 'ar'];
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _measure());
+    if (splashFinished.value) {
+      _intro.value = 1;
+    } else {
+      splashFinished.addListener(_onSplash);
+    }
+  }
+
+  @override
+  void dispose() {
+    splashFinished.removeListener(_onSplash);
+    _intro.dispose();
+    super.dispose();
+  }
+
+  void _onSplash() {
+    if (!splashFinished.value) return;
+    splashFinished.removeListener(_onSplash);
+    if (mounted) _intro.forward();
+  }
+
+  void _measure() {
+    final box = _circleKey.currentContext?.findRenderObject();
+    if (box is! RenderBox || !box.hasSize) return;
+    final size = MediaQuery.sizeOf(context);
+    final restCenter = box.localToGlobal(box.size.center(Offset.zero));
+    final screenCenter = Offset(size.width / 2, size.height / 2);
+    setState(() => _restOffset = screenCenter - restCenter);
+  }
 
   Future<void> _choose(String code, String current) async {
     if (code == current) return;
@@ -29,6 +72,70 @@ class _OnboardingLanguagePageState
     ref.read(settingsProvider.notifier).setLanguage(code);
     _snapKey.currentState?.play();
     widget.footerKey.currentState?.play();
+  }
+
+  Widget _circle() {
+    final palette = context.palette;
+    return Container(
+      key: _circleKey,
+      width: _iconSize,
+      height: _iconSize,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: palette.accent.withValues(alpha: 0.28),
+            blurRadius: 36,
+            spreadRadius: 2,
+          ),
+        ],
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Image.asset(
+        'assets/widget/launch_icon.png',
+        fit: BoxFit.cover,
+        errorBuilder: (_, _, _) => Container(
+          color: palette.accent,
+          alignment: Alignment.center,
+          child: Icon(Icons.mosque, color: palette.accentOn, size: 48),
+        ),
+      ),
+    );
+  }
+
+  Widget _animatedCircle() {
+    return AnimatedBuilder(
+      animation: _intro,
+      builder: (context, child) {
+        if (_restOffset == null) return child!;
+        final c = Curves.easeOutCubic.transform(
+          (_intro.value / 0.62).clamp(0.0, 1.0),
+        );
+        final scale = 1.0 + (splashIconSize / _iconSize - 1.0) * (1 - c);
+        return Transform.translate(
+          offset: Offset(_restOffset!.dx * (1 - c), _restOffset!.dy * (1 - c)),
+          child: Transform.scale(scale: scale, child: child),
+        );
+      },
+      child: _circle(),
+    );
+  }
+
+  Widget _introContent(Widget child, {double delay = 0}) {
+    return AnimatedBuilder(
+      animation: _intro,
+      builder: (context, c) {
+        final start = 0.45 + delay;
+        final e = Curves.easeOut.transform(
+          ((_intro.value - start) / (1.0 - start)).clamp(0.0, 1.0),
+        );
+        return Opacity(
+          opacity: e,
+          child: Transform.translate(offset: Offset(0, (1 - e) * 18), child: c),
+        );
+      },
+      child: child,
+    );
   }
 
   @override
@@ -44,72 +151,59 @@ class _OnboardingLanguagePageState
       child: Column(
         children: [
           const Spacer(flex: 2),
-          Container(
-            width: 104,
-            height: 104,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: palette.accent.withValues(alpha: 0.28),
-                  blurRadius: 36,
-                  spreadRadius: 2,
-                ),
-              ],
-            ),
-            clipBehavior: Clip.antiAlias,
-            child: Image.asset(
-              'assets/widget/launch_icon.png',
-              fit: BoxFit.cover,
-              errorBuilder: (_, _, _) => Container(
-                color: palette.accent,
-                alignment: Alignment.center,
-                child: Icon(Icons.mosque, color: palette.accentOn, size: 48),
-              ),
-            ),
-          ),
+          _animatedCircle(),
           const SizedBox(height: 28),
-          SizedBox(
-            width: double.infinity,
-            height: 142,
-            child: SnapDissolve(
-              key: _snapKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    l10n.t('onboarding.language.title'),
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: palette.text,
-                      fontSize: 28,
-                      fontWeight: FontWeight.w800,
-                      height: 1.1,
+          _introContent(
+            SizedBox(
+              width: double.infinity,
+              height: 142,
+              child: SnapDissolve(
+                key: _snapKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      l10n.t('onboarding.language.title'),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: palette.text,
+                        fontSize: 28,
+                        fontWeight: FontWeight.w800,
+                        height: 1.1,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    l10n.t('onboarding.language.subtitle'),
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: palette.textMuted,
-                      fontSize: 14.5,
-                      height: 1.45,
+                    const SizedBox(height: 12),
+                    Text(
+                      l10n.t('onboarding.language.subtitle'),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: palette.textMuted,
+                        fontSize: 14.5,
+                        height: 1.45,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
           const Spacer(flex: 1),
-          for (final code in _codes) ...[
-            _LangPill(
-              label: langDisplayNames[code] ?? code,
-              selected: code == current,
-              onTap: () => _choose(code, current),
+          _introContent(
+            delay: 0.12,
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                for (final code in _codes) ...[
+                  _LangPill(
+                    label: langDisplayNames[code] ?? code,
+                    selected: code == current,
+                    onTap: () => _choose(code, current),
+                  ),
+                  const SizedBox(height: 12),
+                ],
+              ],
             ),
-            const SizedBox(height: 12),
-          ],
+          ),
           const Spacer(flex: 3),
         ],
       ),

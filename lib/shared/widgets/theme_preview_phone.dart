@@ -202,42 +202,75 @@ class TimeFormatSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: _TimeFormatCard(
-            text: '12',
-            unit: 'HR',
-            ticks: 12,
-            selected: value == '12h',
-            onTap: () => onChanged('12h'),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _TimeFormatCard(
-            text: '24',
-            unit: 'HR',
-            ticks: 24,
-            selected: value == '24h',
-            onTap: () => onChanged('24h'),
-          ),
-        ),
-      ],
+    final palette = context.palette;
+    final is12 = value == '12h';
+    const pad = 6.0;
+
+    return Container(
+      height: 108,
+      padding: const EdgeInsets.all(pad),
+      decoration: BoxDecoration(
+        color: palette.surface2,
+        borderRadius: BorderRadius.circular(AppTokens.radiusLg),
+        border: Border.all(color: palette.line),
+      ),
+      child: LayoutBuilder(
+        builder: (context, c) {
+          final half = c.maxWidth / 2;
+          return Stack(
+            children: [
+              AnimatedAlign(
+                duration: AppTokens.duration,
+                curve: AppTokens.ease,
+                alignment: is12 ? Alignment.centerLeft : Alignment.centerRight,
+                child: Container(
+                  width: half,
+                  height: double.infinity,
+                  decoration: BoxDecoration(
+                    color: palette.accentSoft,
+                    borderRadius: BorderRadius.circular(
+                      AppTokens.radiusLg - pad,
+                    ),
+                    border: Border.all(color: palette.accent, width: 2),
+                  ),
+                ),
+              ),
+              Row(
+                children: [
+                  Expanded(
+                    child: _TimeFormatFace(
+                      text: '12',
+                      ticks: 12,
+                      selected: is12,
+                      onTap: () => onChanged('12h'),
+                    ),
+                  ),
+                  Expanded(
+                    child: _TimeFormatFace(
+                      text: '24',
+                      ticks: 24,
+                      selected: !is12,
+                      onTap: () => onChanged('24h'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 }
 
-class _TimeFormatCard extends StatelessWidget {
-  const _TimeFormatCard({
+class _TimeFormatFace extends StatelessWidget {
+  const _TimeFormatFace({
     required this.text,
-    required this.unit,
     required this.ticks,
     required this.selected,
     required this.onTap,
   });
   final String text;
-  final String unit;
   final int ticks;
   final bool selected;
   final VoidCallback onTap;
@@ -245,30 +278,22 @@ class _TimeFormatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
-    final on = selected ? palette.accent : palette.textMuted;
+    final ring = Color.lerp(
+      palette.lineStrong,
+      palette.accent,
+      selected ? 1 : 0,
+    )!;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
-      child: AnimatedContainer(
-        duration: AppTokens.duration,
-        curve: AppTokens.ease,
-        padding: const EdgeInsets.symmetric(vertical: 18),
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: selected ? palette.accentSoft : palette.surface,
-          borderRadius: BorderRadius.circular(AppTokens.radiusLg),
-          border: Border.all(
-            color: selected ? palette.accent : palette.line,
-            width: selected ? 2 : 1,
-          ),
-        ),
+      child: Center(
         child: SizedBox(
-          width: 76,
-          height: 76,
+          width: 72,
+          height: 72,
           child: CustomPaint(
             painter: _ClockPainter(
               ticks: ticks,
-              ring: selected ? palette.accent : palette.lineStrong,
+              ring: ring,
               tick: selected
                   ? palette.accent.withValues(alpha: 0.6)
                   : palette.line,
@@ -277,22 +302,24 @@ class _TimeFormatCard extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    text,
+                  AnimatedDefaultTextStyle(
+                    duration: AppTokens.duration,
+                    curve: AppTokens.ease,
                     style: TextStyle(
                       color: selected ? palette.accentStrong : palette.text,
-                      fontSize: 26,
+                      fontSize: 25,
                       fontWeight: FontWeight.w800,
                       letterSpacing: -1,
                       height: 1,
                     ),
+                    child: Text(text),
                   ),
                   const SizedBox(height: 1),
                   Text(
-                    unit,
+                    'HR',
                     style: TextStyle(
-                      color: on,
-                      fontSize: 10,
+                      color: selected ? palette.accent : palette.textMuted,
+                      fontSize: 9.5,
                       fontWeight: FontWeight.w800,
                       letterSpacing: 1.5,
                     ),

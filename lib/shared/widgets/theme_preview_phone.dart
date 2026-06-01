@@ -222,7 +222,9 @@ class TimeFormatSelector extends StatelessWidget {
               AnimatedAlign(
                 duration: AppTokens.duration,
                 curve: AppTokens.ease,
-                alignment: is12 ? Alignment.centerLeft : Alignment.centerRight,
+                alignment: is12
+                    ? AlignmentDirectional.centerStart
+                    : AlignmentDirectional.centerEnd,
                 child: Container(
                   width: half,
                   height: double.infinity,
@@ -391,6 +393,7 @@ class ThemeOptionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
+    final rtl = Directionality.of(context) == TextDirection.rtl;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
@@ -413,11 +416,11 @@ class ThemeOptionCard extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            Positioned(
-              right: 8,
+            PositionedDirectional(
+              end: 8,
               bottom: -86,
               child: Transform.rotate(
-                angle: -0.10,
+                angle: rtl ? 0.10 : -0.10,
                 alignment: Alignment.bottomCenter,
                 child: ThemePreviewPhone(mode: mode),
               ),
@@ -425,7 +428,7 @@ class ThemeOptionCard extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 14),
               child: Align(
-                alignment: Alignment.centerLeft,
+                alignment: AlignmentDirectional.centerStart,
                 child: Row(
                   children: [
                     AnimatedContainer(
@@ -457,9 +460,9 @@ class ThemeOptionCard extends StatelessWidget {
               ),
             ),
             if (selected)
-              Positioned(
+              PositionedDirectional(
                 top: 12,
-                right: 12,
+                end: 12,
                 child: Container(
                   width: 24,
                   height: 24,

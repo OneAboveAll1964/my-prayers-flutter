@@ -1,0 +1,17 @@
+name: ionicons
+description: Vendored Ionicons icon set, patched for Flutter SDKs where IconData is a final class (cannot be subclassed). Based on ionicons 0.2.2.
+version: 0.2.2
+
+environment:
+  sdk: ">=2.17.6 <4.0.0"
+  flutter: ">=1.17.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+flutter:
+  fonts:
+    - family: Ionicons
+      fonts:
+        - asset: assets/fonts/Ionicons.ttf

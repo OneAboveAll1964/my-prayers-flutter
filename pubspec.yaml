@@ -26,7 +26,10 @@ dependencies:
   audioplayers: ^6.1.0
   home_widget: ^0.7.0
   url_launcher: ^6.3.0
-  ionicons: ^0.2.2
+  # Vendored & patched: upstream ionicons 0.2.2 subclasses IconData, which is a
+  # final class in current Flutter SDKs. See third_party/ionicons/.
+  ionicons:
+    path: third_party/ionicons
   flutter_timezone: ^4.1.0
   http: ^1.5.0
   flutter_displaymode: ^0.6.0

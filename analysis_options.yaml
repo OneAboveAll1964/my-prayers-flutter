@@ -1,1 +1,6 @@
 include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  exclude:
+    # Vendored third-party code (patched ionicons); keeps upstream style as-is.
+    - third_party/**

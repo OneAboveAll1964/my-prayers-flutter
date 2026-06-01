@@ -384,10 +384,9 @@ packages:
   ionicons:
     dependency: "direct main"
     description:
-      name: ionicons
-      sha256: "5496bc65a16115ecf05b15b78f494ee4a8869504357668f0a11d689e970523cf"
-      url: "https://pub.dev"
-    source: hosted
+      path: "third_party/ionicons"
+      relative: true
+    source: path
     version: "0.2.2"
   jni:
     dependency: transitive

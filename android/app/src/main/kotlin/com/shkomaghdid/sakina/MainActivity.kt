@@ -1,4 +1,4 @@
-package com.shkomaghdid.myprayers
+package com.shkomaghdid.sakina
 
 import android.os.Bundle
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen

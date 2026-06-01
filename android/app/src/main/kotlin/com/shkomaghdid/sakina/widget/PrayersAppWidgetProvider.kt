@@ -1,4 +1,4 @@
-package com.shkomaghdid.myprayers.widget
+package com.shkomaghdid.sakina.widget
 
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
@@ -20,8 +20,8 @@ import android.util.TypedValue
 import android.view.View
 import android.widget.RemoteViews
 import androidx.core.content.res.ResourcesCompat
-import com.shkomaghdid.myprayers.MainActivity
-import com.shkomaghdid.myprayers.R
+import com.shkomaghdid.sakina.MainActivity
+import com.shkomaghdid.sakina.R
 import es.antonborri.home_widget.HomeWidgetPlugin
 import kotlin.math.max
 import kotlin.math.min
@@ -68,7 +68,7 @@ class PrayersAppWidgetProvider : AppWidgetProvider() {
     }
 
     companion object {
-        const val ACTION_RANDOMIZE = "com.shkomaghdid.myprayers.WIDGET_RANDOMIZE"
+        const val ACTION_RANDOMIZE = "com.shkomaghdid.sakina.WIDGET_RANDOMIZE"
 
         fun buildViews(
             context: Context,

@@ -1,4 +1,4 @@
-package com.shkomaghdid.myprayers.widget
+package com.shkomaghdid.sakina.widget
 
 import android.content.Context
 import es.antonborri.home_widget.HomeWidgetPlugin

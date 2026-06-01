@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.shkomaghdid.myprayers"
+    namespace = "com.shkomaghdid.sakina"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -20,7 +20,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.shkomaghdid.myprayers"
+        applicationId = "com.shkomaghdid.sakina"
         minSdk = 24
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode

@@ -6,7 +6,7 @@ class WidgetDataService {
   WidgetDataService._();
   static final WidgetDataService instance = WidgetDataService._();
 
-  static const _appGroupId = 'group.com.shkomaghdid.myprayers';
+  static const _appGroupId = 'group.com.shkomaghdid.sakina';
   static const _iosName = 'MyPrayersWidget';
   static const _androidName = 'PrayersAppWidgetProvider';
 

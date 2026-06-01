@@ -13,7 +13,7 @@ import workmanager_apple
       UNUserNotificationCenter.current().delegate = self
     }
     WorkmanagerPlugin.registerPeriodicTask(
-      withIdentifier: "com.shkomaghdid.myprayers.reschedule",
+      withIdentifier: "com.shkomaghdid.sakina.reschedule",
       frequency: NSNumber(value: 12 * 60 * 60))
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }

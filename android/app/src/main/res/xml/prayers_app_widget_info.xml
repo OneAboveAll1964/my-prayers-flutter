@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
-    android:configure="com.shkomaghdid.myprayers.widget.WidgetConfigActivity"
+    android:configure="com.shkomaghdid.sakina.widget.WidgetConfigActivity"
     android:initialKeyguardLayout="@layout/prayers_app_widget"
     android:initialLayout="@layout/prayers_app_widget"
     android:minWidth="180dp"

@@ -4,7 +4,7 @@ import '../../shared/data/muslim_db.dart';
 import '../../shared/state/settings_provider.dart';
 import 'notification_service.dart';
 
-const rescheduleTaskName = 'com.shkomaghdid.myprayers.reschedule';
+const rescheduleTaskName = 'com.shkomaghdid.sakina.reschedule';
 
 @pragma('vm:entry-point')
 void callbackDispatcher() {

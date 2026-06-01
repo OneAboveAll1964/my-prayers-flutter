@@ -24,7 +24,7 @@
 -dontwarn j$.**
 
 # Our own widget machinery — referenced from layout XML and intent filters.
--keep class com.shkomaghdid.myprayers.** { *; }
+-keep class com.shkomaghdid.sakina.** { *; }
 
 # AndroidX work / lifecycle
 -keep class androidx.work.** { *; }

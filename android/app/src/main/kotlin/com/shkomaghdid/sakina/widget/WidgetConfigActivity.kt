@@ -1,4 +1,4 @@
-package com.shkomaghdid.myprayers.widget
+package com.shkomaghdid.sakina.widget
 
 import android.app.Activity
 import android.appwidget.AppWidgetManager
@@ -13,7 +13,7 @@ import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
-import com.shkomaghdid.myprayers.R
+import com.shkomaghdid.sakina.R
 import es.antonborri.home_widget.HomeWidgetPlugin
 
 class WidgetConfigActivity : Activity() {

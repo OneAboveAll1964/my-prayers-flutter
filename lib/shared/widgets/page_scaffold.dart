@@ -76,14 +76,11 @@ class PageHeader extends StatelessWidget {
                   ],
                 ),
               ),
-              if (action != null) action!,
+              ?action,
             ],
           ),
           if (search != null)
-            Padding(
-              padding: const EdgeInsets.only(top: 10),
-              child: search!,
-            ),
+            Padding(padding: const EdgeInsets.only(top: 10), child: search!),
         ],
       ),
     );
@@ -190,7 +187,9 @@ class AppSurface extends StatelessWidget {
       decoration: BoxDecoration(
         color: tone == SurfaceTone.surface
             ? palette.surface
-            : (tone == SurfaceTone.surface2 ? palette.surface2 : palette.surface3),
+            : (tone == SurfaceTone.surface2
+                  ? palette.surface2
+                  : palette.surface3),
         borderRadius: borderRadius ?? BorderRadius.circular(AppTokens.radius),
         border: Border.all(color: palette.line),
       ),

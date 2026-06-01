@@ -2,7 +2,7 @@
 
 A clean, fully offline prayer-times and Quran companion for iOS and Android.
 
-Bundle ID: `com.shkomaghdid.myprayers`
+Bundle ID: `com.shkomaghdid.sakina`
 
 ## Features
 
@@ -90,7 +90,7 @@ Long-press the widget on the home screen to access the configuration screen.
 
 ### Android
 
-Source: `android/app/src/main/kotlin/com/shkomaghdid/myprayers/widget/`
+Source: `android/app/src/main/kotlin/com/shkomaghdid/sakina/widget/`
 
 - `PrayersAppWidgetProvider.kt` — RemoteViews builder with theme/style/size/layout switching
 - `WidgetConfigActivity.kt` — segmented configuration UI shown when the widget is added or reconfigured

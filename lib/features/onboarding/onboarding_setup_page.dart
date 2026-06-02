@@ -210,6 +210,7 @@ class _SelectCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = context.palette;
     final hasPreview = preview != null;
+    final rtl = Directionality.of(context) == TextDirection.rtl;
 
     final row = Row(
       children: [
@@ -281,23 +282,26 @@ class _SelectCard extends StatelessWidget {
           fit: hasPreview ? StackFit.expand : StackFit.loose,
           children: [
             if (hasPreview)
-              Positioned(
-                right: 8,
+              PositionedDirectional(
+                end: 8,
                 bottom: -86,
                 child: Transform.rotate(
-                  angle: -0.10,
+                  angle: rtl ? 0.10 : -0.10,
                   alignment: Alignment.bottomCenter,
                   child: preview!,
                 ),
               ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-              child: Align(alignment: Alignment.centerLeft, child: row),
+              child: Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: row,
+              ),
             ),
             if (hasPreview && selected)
-              Positioned(
+              PositionedDirectional(
                 top: 12,
-                right: 12,
+                end: 12,
                 child: _AnimatedCheck(selected: selected),
               ),
           ],
